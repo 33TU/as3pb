@@ -12,9 +12,14 @@ The repository contains:
 
 ## Requirements
 
+For generator usage:
+
 - Go
-- Just
 - protoc
+
+For local development and runtime builds:
+
+- Just
 - AIR SDK with `mxmlc` and `compc` on PATH
 
 The AIR SDK can be downloaded with:
