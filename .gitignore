@@ -35,3 +35,4 @@ go.work.sum
 # AS3PB
 bin/
 runtime/bin/
+sdk/

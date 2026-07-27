@@ -1,13 +1,16 @@
 BIN_DIR := "bin"
-AIRSDK_HOME := env("AIRSDK_HOME", "/home/user/Bin/AIRSDK")
 AS3_BIN_DIR := "runtime/bin"
 AS3_OPTIMIZE := env("AS3_OPTIMIZE", "true")
 AS3_INLINE := env("AS3_INLINE", "true")
 AS3_FLOAT := env("AS3_FLOAT", "false")
 AS3_DEBUG := env("AS3_DEBUG", "false")
+SDK_DIR := env("SDK_DIR", "sdk")
 EXAMPLES_OUT := "examples/generated"
 RUNTIME_TEST_PROTOS := "runtime/test/data/test.proto runtime/test/data/bench.proto runtime/test/data/rpc.proto"
 RUNTIME_TEST_GENERATED := "runtime/test/generated"
+
+default:
+    @just --list
 
 test:
     go test ./...
@@ -22,9 +25,13 @@ build-as3-protoc:
     mkdir -p {{ BIN_DIR }}
     go build -o {{ BIN_DIR }}/as3-protoc ./cmd/as3-protoc
 
+# Download AIR SDK for current OS, or one of: linux, mac, windows
+download-air-sdk os="" sdk_dir=SDK_DIR:
+    go run ./cmd/air-sdk-downloader -dir {{ sdk_dir }} {{ if os == "" { "" } else { "-os " + os } }}
+
 build-swc:
     mkdir -p {{ AS3_BIN_DIR }}
-    {{ AIRSDK_HOME }}/bin/compc \
+    compc \
         -source-path runtime/src \
         -include-sources runtime/src \
         -library-path runtime/libs \
@@ -47,7 +54,7 @@ generate-runtime-test-data: build-protoc-gen-as3 build-as3-protoc
 
 build-runtime-test: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
-    {{ AIRSDK_HOME }}/bin/mxmlc \
+    mxmlc \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -61,7 +68,7 @@ build-runtime-test: generate-runtime-test-data
 
 build-runtime-bench: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
-    {{ AIRSDK_HOME }}/bin/mxmlc \
+    mxmlc \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -75,7 +82,7 @@ build-runtime-bench: generate-runtime-test-data
 
 build-runtime-rpc: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
-    {{ AIRSDK_HOME }}/bin/mxmlc \
+    mxmlc \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -97,7 +104,7 @@ generate-examples: build-protoc-gen-as3 build-as3-protoc
         examples/proto/game.proto
 
 build-examples: generate-examples
-    {{ AIRSDK_HOME }}/bin/compc \
+    compc \
         -source-path runtime/src \
         -source-path {{ EXAMPLES_OUT }} \
         -include-sources {{ EXAMPLES_OUT }} \
