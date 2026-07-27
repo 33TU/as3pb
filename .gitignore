@@ -8,6 +8,7 @@
 *.so
 *.dylib
 *.swc
+*.swf
 
 # Test binary, built with `go test -c`
 *.test
