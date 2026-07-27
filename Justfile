@@ -1,3 +1,5 @@
+set windows-shell := ["powershell", "-c"]
+
 BIN_DIR := "bin"
 AS3_BIN_DIR := "runtime/bin"
 AS3_OPTIMIZE := env("AS3_OPTIMIZE", "true")
@@ -94,7 +96,11 @@ build-runtime-rpc: generate-runtime-test-data
         -debug={{ AS3_DEBUG }} \
         runtime/test/rpc/Main.as
 
-run-runtime-rpc-server:
+# Regenerate Go stubs for the runtime RPC test server
+generate-runtime-rpc-server:
+    cd runtime/test/rpc-server && go tool buf generate --config buf.yaml --template buf.gen.yaml ../data/rpc.proto
+
+run-runtime-rpc-server: generate-runtime-rpc-server
     cd runtime/test/rpc-server && go run .
 
 generate-examples: build-protoc-gen-as3 build-as3-protoc

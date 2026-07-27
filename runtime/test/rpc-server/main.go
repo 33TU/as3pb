@@ -7,7 +7,7 @@ import (
 	"time"
 
 	rpcv1 "github.com/33TU/as3pb/runtime/test/rpc-server/gen"
-	"github.com/33TU/as3pb/runtime/test/rpc-server/gen/rpcv1connect"
+	"github.com/33TU/as3pb/runtime/test/rpc-server/gen/genconnect"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -26,7 +26,7 @@ func (rpcFixtureServer) Echo(ctx context.Context, req *rpcv1.RpcEchoRequest) (*r
 func main() {
 	mux := http.NewServeMux()
 
-	path, handler := rpcv1connect.NewRpcFixtureServiceHandler(rpcFixtureServer{})
+	path, handler := genconnect.NewRpcFixtureServiceHandler(rpcFixtureServer{})
 	mux.Handle(path, handler)
 	mux.HandleFunc("/crossdomain.xml", crossdomainXML)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

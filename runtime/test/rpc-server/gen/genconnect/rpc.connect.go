@@ -2,7 +2,7 @@
 //
 // Source: rpc.proto
 
-package rpcv1connect
+package genconnect
 
 import (
 	connect "connectrpc.com/connect"
