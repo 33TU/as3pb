@@ -27,6 +27,7 @@ package as3pb.proto
         /**
          * Creates a new ByteArray instance with little-endian byte order.
          */
+        [Inline]
         public static function newByteArray():ByteArray
         {
             const buffer:ByteArray = new ByteArray();
@@ -37,26 +38,28 @@ package as3pb.proto
         /**
          * Acquires a reusable message serialization buffer for the current nesting depth.
          */
+        [Inline]
         public static function acquireMessageBuffer():ByteArray
         {
-            if (messageBufferDepth == MESSAGE_BUFFER_POOL.length)
-                MESSAGE_BUFFER_POOL.push(newByteArray());
+            const pool:Vector.<ByteArray> = MESSAGE_BUFFER_POOL;
 
-            const buffer:ByteArray = MESSAGE_BUFFER_POOL[messageBufferDepth++];
-            buffer.length = 0;
-            return buffer;
+            if (messageBufferDepth == pool.length)
+                pool.push(newByteArray());
+
+            return pool[messageBufferDepth++];
         }
 
         /**
          * Releases a message serialization buffer acquired by acquireMessageBuffer.
          */
+        [Inline]
         public static function releaseMessageBuffer(buffer:ByteArray):void
         {
-            if (messageBufferDepth == 0)
-                return;
-
-            messageBufferDepth--;
-            buffer.length = 0;
+            if (messageBufferDepth != 0)
+            {
+                buffer.length = 0;
+                messageBufferDepth--;
+            }
         }
 
         /**

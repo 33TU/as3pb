@@ -76,18 +76,7 @@ package as3pb.proto
         {
             reuseBuffer.length = 0;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
-                writeVarint32(reuseBuffer, vec[i]);
-                writeVarint32(reuseBuffer, vec[i + 1]);
-                writeVarint32(reuseBuffer, vec[i + 2]);
-                writeVarint32(reuseBuffer, vec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
+            for (var i:uint = 0; i < n; i++)
                 writeVarint32(reuseBuffer, vec[i]);
 
             writeVarint32(dst, reuseBuffer.length);
@@ -104,18 +93,7 @@ package as3pb.proto
         {
             reuseBuffer.length = 0;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
-                writeVarint32(reuseBuffer, vec[i]);
-                writeVarint32(reuseBuffer, vec[i + 1]);
-                writeVarint32(reuseBuffer, vec[i + 2]);
-                writeVarint32(reuseBuffer, vec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
+            for (var i:uint = 0; i < n; i++)
                 writeVarint32(reuseBuffer, vec[i]);
 
             writeVarint32(dst, reuseBuffer.length);
@@ -207,21 +185,8 @@ package as3pb.proto
             const lowVec:Vector.<uint> = vec.low;
             const highVec:Vector.<uint> = vec.high;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
+            for (var i:uint = 0; i < n; i++)
                 writeVarint64(reuseBuffer, lowVec[i], highVec[i]);
-                writeVarint64(reuseBuffer, lowVec[i + 1], highVec[i + 1]);
-                writeVarint64(reuseBuffer, lowVec[i + 2], highVec[i + 2]);
-                writeVarint64(reuseBuffer, lowVec[i + 3], highVec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
-            {
-                writeVarint64(reuseBuffer, lowVec[i], highVec[i]);
-            }
 
             writeVarint32(dst, reuseBuffer.length);
             dst.writeBytes(reuseBuffer, 0, reuseBuffer.length);
@@ -312,21 +277,8 @@ package as3pb.proto
             const lowVec:Vector.<uint> = vec.low;
             const highVec:Vector.<int> = vec.high;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
+            for (var i:uint = 0; i < n; i++)
                 writeVarint64s(reuseBuffer, lowVec[i], highVec[i]);
-                writeVarint64s(reuseBuffer, lowVec[i + 1], highVec[i + 1]);
-                writeVarint64s(reuseBuffer, lowVec[i + 2], highVec[i + 2]);
-                writeVarint64s(reuseBuffer, lowVec[i + 3], highVec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
-            {
-                writeVarint64s(reuseBuffer, lowVec[i], highVec[i]);
-            }
 
             writeVarint32(dst, reuseBuffer.length);
             dst.writeBytes(reuseBuffer, 0, reuseBuffer.length);
@@ -405,18 +357,7 @@ package as3pb.proto
         {
             reuseBuffer.length = 0;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
-                writeInt32(reuseBuffer, vec[i]);
-                writeInt32(reuseBuffer, vec[i + 1]);
-                writeInt32(reuseBuffer, vec[i + 2]);
-                writeInt32(reuseBuffer, vec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
+            for (var i:uint = 0; i < n; i++)
                 writeInt32(reuseBuffer, vec[i]);
 
             writeVarint32(dst, reuseBuffer.length);
@@ -444,18 +385,7 @@ package as3pb.proto
         {
             reuseBuffer.length = 0;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
-                writeVarint32(reuseBuffer, uint((vec[i] << 1) ^ (vec[i] >> 31)));
-                writeVarint32(reuseBuffer, uint((vec[i + 1] << 1) ^ (vec[i + 1] >> 31)));
-                writeVarint32(reuseBuffer, uint((vec[i + 2] << 1) ^ (vec[i + 2] >> 31)));
-                writeVarint32(reuseBuffer, uint((vec[i + 3] << 1) ^ (vec[i + 3] >> 31)));
-            }
-
-            // tail loop
-            for (; i < n; i++)
+            for (var i:uint = 0; i < n; i++)
                 writeVarint32(reuseBuffer, uint((vec[i] << 1) ^ (vec[i] >> 31)));
 
             writeVarint32(dst, reuseBuffer.length);
@@ -553,18 +483,7 @@ package as3pb.proto
             const lowVec:Vector.<uint> = vec.low;
             const highVec:Vector.<int> = vec.high;
 
-            // 4x unrolled loop
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
-            {
-                writeSint64(reuseBuffer, lowVec[i], highVec[i]);
-                writeSint64(reuseBuffer, lowVec[i + 1], highVec[i + 1]);
-                writeSint64(reuseBuffer, lowVec[i + 2], highVec[i + 2]);
-                writeSint64(reuseBuffer, lowVec[i + 3], highVec[i + 3]);
-            }
-
-            // tail loop
-            for (; i < n; i++)
+            for (var i:uint = 0; i < n; i++)
                 writeSint64(reuseBuffer, lowVec[i], highVec[i]);
 
             writeVarint32(dst, reuseBuffer.length);
