@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package bench;
+
+message BenchMessage {
+  string id = 1;
+  uint32 sequence = 2;
+  sint32 delta = 3;
+  uint64 account_id = 4;
+  sint64 score_delta = 5;
+  fixed32 checksum = 6;
+  sfixed64 signed_tick = 7;
+  float x = 8;
+  double precision = 9;
+  bool active = 10;
+  bytes payload = 11;
+
+  repeated uint32 samples = 20;
+  repeated sint32 offsets = 21;
+  repeated fixed32 hashes = 22;
+  repeated sfixed64 ticks = 23;
+  repeated float positions = 24;
+}

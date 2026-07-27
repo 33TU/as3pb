@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package as3pb.testdata;
+package testdata;
 
 message RuntimeNested {
   string label = 1;

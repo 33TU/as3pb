@@ -29,19 +29,18 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
-         * @param reset Whether to reset a reused destination before reading.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Point = null, limit:uint = 0, reset:Boolean = true):Point
+        public static function deserializeBytes(src:ByteArray, dst:Point = null, limit:uint = 0):Point
         {
             if (!dst)
                 dst = new Point();
-            else if (reset)
+            else
                 Point.reset(dst);
 
             const end:uint = limit ? limit : src.position + src.bytesAvailable;
             while (src.position < end)
             {
-                var tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readVarint32(src);
                 switch (tag)
                 {
                     case 13:

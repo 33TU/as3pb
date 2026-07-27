@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package rpc;
+
+message RpcEchoRequest {
+  string message = 1;
+  uint32 sequence = 2;
+}
+
+message RpcEchoResponse {
+  string message = 1;
+  bool ok = 2;
+}
+
+// RpcFixtureService defines RPC generation fixtures.
+service RpcFixtureService {
+  // Echo returns the provided message.
+  rpc Echo(RpcEchoRequest) returns (RpcEchoResponse);
+}

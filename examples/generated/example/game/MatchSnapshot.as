@@ -32,21 +32,20 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
-         * @param reset Whether to reset a reused destination before reading.
          */
-        public static function deserializeBytes(src:ByteArray, dst:MatchSnapshot = null, limit:uint = 0, reset:Boolean = true):MatchSnapshot
+        public static function deserializeBytes(src:ByteArray, dst:MatchSnapshot = null, limit:uint = 0):MatchSnapshot
         {
             if (!dst)
                 dst = new MatchSnapshot();
-            else if (reset)
+            else
                 MatchSnapshot.reset(dst);
 
-            var msgLen:uint = 0;
+            var messageLength:uint = 0;
 
             const end:uint = limit ? limit : src.position + src.bytesAvailable;
             while (src.position < end)
             {
-                var tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readVarint32(src);
                 switch (tag)
                 {
                     case 10:
@@ -62,8 +61,8 @@ package example.game
                     case 26:
                     {
                         const msgPlayers:Player = new Player();
-                        if ((msgLen = Deserialize.readVarint32(src)) !== 0)
-                            Player.deserializeBytes(src, msgPlayers, src.position + msgLen);
+                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
+                            Player.deserializeBytes(src, msgPlayers, src.position + messageLength);
                         dst.players.push(msgPlayers);
                         break;
                     }

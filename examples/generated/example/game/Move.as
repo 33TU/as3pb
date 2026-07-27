@@ -39,33 +39,32 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
-         * @param reset Whether to reset a reused destination before reading.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Move = null, limit:uint = 0, reset:Boolean = true):Move
+        public static function deserializeBytes(src:ByteArray, dst:Move = null, limit:uint = 0):Move
         {
             if (!dst)
                 dst = new Move();
-            else if (reset)
+            else
                 Move.reset(dst);
 
-            var msgLen:uint = 0;
+            var messageLength:uint = 0;
 
             const end:uint = limit ? limit : src.position + src.bytesAvailable;
             while (src.position < end)
             {
-                var tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readVarint32(src);
                 switch (tag)
                 {
                     case 10:
                     {
-                        if ((msgLen = Deserialize.readVarint32(src)) !== 0)
-                            dst.from = Point.deserializeBytes(src, dst.from, src.position + msgLen, reset);
+                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
+                            dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength);
                         break;
                     }
                     case 18:
                     {
-                        if ((msgLen = Deserialize.readVarint32(src)) !== 0)
-                            dst.to = Point.deserializeBytes(src, dst.to, src.position + msgLen, reset);
+                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
+                            dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength);
                         break;
                     }
                     case 24:

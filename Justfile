@@ -6,7 +6,7 @@ AS3_INLINE := env("AS3_INLINE", "true")
 AS3_FLOAT := env("AS3_FLOAT", "false")
 AS3_DEBUG := env("AS3_DEBUG", "false")
 EXAMPLES_OUT := "examples/generated"
-RUNTIME_TEST_PROTOS := "runtime/test/data/runtime_test.proto runtime/test/data/runtime_bench.proto runtime/test/data/runtime_rpc.proto"
+RUNTIME_TEST_PROTOS := "runtime/test/data/test.proto runtime/test/data/bench.proto runtime/test/data/rpc.proto"
 RUNTIME_TEST_GENERATED := "runtime/test/generated"
 
 test:

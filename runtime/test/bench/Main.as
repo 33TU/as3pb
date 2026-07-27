@@ -6,10 +6,10 @@ package bench
     import flash.text.TextFormat;
     import flash.utils.ByteArray;
 
-    import as3pb.bench.BenchAddress;
-    import as3pb.bench.BenchAddressMetadata;
+    import bench.BenchMessage;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
+    import as3pb.types.UInt64;
 
     public final class Main extends Sprite
     {
@@ -103,55 +103,54 @@ package bench
             log("Iterations: " + ITERATIONS);
             log("");
 
-            const testData:Vector.<BenchAddress> = createTestData(TEST_DATA_SIZE);
+            const testData:Vector.<BenchMessage> = createTestData(TEST_DATA_SIZE);
             const protoResults:Object = benchmarkProtocolBuffers(testData, ITERATIONS);
             const jsonResults:Object = benchmarkJSON(testData, ITERATIONS);
 
             displayBenchmarkResults(protoResults, jsonResults);
         }
 
-        private function createTestData(count:int):Vector.<BenchAddress>
+        private function createTestData(count:int):Vector.<BenchMessage>
         {
-            const addresses:Vector.<BenchAddress> = new Vector.<BenchAddress>();
-            const streets:Array = ["Main Street", "Oak Avenue", "Pine Road", "Elm Circle", "Maple Lane"];
-            const cities:Array = ["Springfield", "Franklin", "Georgetown", "Madison", "Arlington"];
-            const states:Array = ["IL", "TX", "CA", "NY", "FL"];
-            const zips:Array = ["12345", "67890", "54321", "98765", "13579"];
+            const messages:Vector.<BenchMessage> = new Vector.<BenchMessage>();
 
             for (var i:int = 0; i < count; i++)
             {
-                const address:BenchAddress = new BenchAddress();
-                address.street = (i + 1) + " " + streets[i % streets.length];
-                address.city = cities[i % cities.length];
-                address.state = states[i % states.length];
-                address.zip = zips[i % zips.length];
+                const msg:BenchMessage = new BenchMessage();
+                msg.id = "message-" + i;
+                msg.sequence = i + 1;
+                msg.delta = (i % 2 == 0) ? i : -i;
+                msg.accountId = new UInt64(100000 + i, 1);
+                msg.scoreDelta = Int64.fromNumber((i % 2 == 0 ? 1 : -1) * (1337 + i));
+                msg.checksum = 0x12340000 + i;
+                msg.signedTick = Int64.fromNumber(-1000000 - i);
+                msg.x = i * 1.25;
+                msg.precision = i * 0.0009765625;
+                msg.active = (i % 2) == 0;
+                msg.payload.writeUTFBytes("payload-" + i);
+                msg.payload.position = 0;
 
-                const metadata:BenchAddressMetadata = new BenchAddressMetadata();
                 for (var j:int = 0; j < 10; j++)
-                    metadata.luckyNumbers.push(j * 100000000 + i);
+                {
+                    msg.samples.push(j * 100000 + i);
+                    msg.offsets.push((j % 2 == 0) ? j + i : -j - i);
+                    msg.hashes.push(0xabcdef00 + j + i);
+                    msg.positions.push(i + j * 0.5);
+                }
 
                 for (var k:int = 0; k < 10; k++)
                 {
-                    const num:Int64 = Int64.fromNumber(k * 1000000000000 + i + 1);
-                    metadata.bigLuckyNumbers.push(num.low, num.high);
+                    const tick:Int64 = Int64.fromNumber(-1000000000 - (k * 1000) - i);
+                    msg.ticks.push(tick.low, tick.high);
                 }
 
-                metadata.aField = i;
-                metadata.bField = Int64.fromNumber(1337 + i);
-                metadata.cField = i * 3.14;
-                metadata.dField = i * 2.71828;
-                metadata.eField = (i % 2) == 0;
-                metadata.fField.writeUTFBytes("Binary data for address " + i);
-                metadata.fField.position = 0;
-
-                address.metadata.push(metadata);
-                addresses.push(address);
+                messages.push(msg);
             }
 
-            return addresses;
+            return messages;
         }
 
-        private function benchmarkProtocolBuffers(testData:Vector.<BenchAddress>, iterations:int):Object
+        private function benchmarkProtocolBuffers(testData:Vector.<BenchMessage>, iterations:int):Object
         {
             const buffer:ByteArray = Buffers.newByteArray();
             const serialized:Vector.<ByteArray> = new Vector.<ByteArray>();
@@ -160,11 +159,11 @@ package bench
             var startTime:Number = new Date().time;
             for (var iter:int = 0; iter < iterations; iter++)
             {
-                for each (var address:BenchAddress in testData)
+                for each (var msg:BenchMessage in testData)
                 {
                     buffer.length = 0;
                     buffer.position = 0;
-                    BenchAddress.serializeBytes(address, buffer);
+                    BenchMessage.serializeBytes(msg, buffer);
 
                     if (iter == 0)
                     {
@@ -177,14 +176,14 @@ package bench
             }
             const serializationTime:Number = new Date().time - startTime;
 
-            const decoded:BenchAddress = new BenchAddress();
+            const decoded:BenchMessage = new BenchMessage();
             startTime = new Date().time;
             for (iter = 0; iter < iterations; iter++)
             {
                 for each (var bytes:ByteArray in serialized)
                 {
                     bytes.position = 0;
-                    BenchAddress.deserializeBytes(bytes, decoded);
+                    BenchMessage.deserializeBytes(bytes, decoded);
                 }
             }
             const deserializationTime:Number = new Date().time - startTime;
@@ -198,7 +197,7 @@ package bench
                 };
         }
 
-        private function benchmarkJSON(testData:Vector.<BenchAddress>, iterations:int):Object
+        private function benchmarkJSON(testData:Vector.<BenchMessage>, iterations:int):Object
         {
             const serialized:Vector.<ByteArray> = new Vector.<ByteArray>();
             var totalSerializedSize:int = 0;
@@ -207,10 +206,10 @@ package bench
             var startTime:Number = new Date().time;
             for (var iter:int = 0; iter < iterations; iter++)
             {
-                for each (var address:BenchAddress in testData)
+                for each (var msg:BenchMessage in testData)
                 {
                     jsonBytes = Buffers.newByteArray();
-                    jsonBytes.writeUTFBytes(JSON.stringify(address));
+                    jsonBytes.writeUTFBytes(JSON.stringify(msg));
 
                     if (iter == 0)
                     {
@@ -221,7 +220,7 @@ package bench
             }
             const serializationTime:Number = new Date().time - startTime;
 
-            const decoded:BenchAddress = new BenchAddress();
+            const decoded:BenchMessage = new BenchMessage();
             startTime = new Date().time;
             for (iter = 0; iter < iterations; iter++)
             {
@@ -229,10 +228,13 @@ package bench
                 {
                     jsonBytes.position = 0;
                     const parsed:Object = JSON.parse(jsonBytes.readUTFBytes(jsonBytes.length));
-                    decoded.street = parsed.street;
-                    decoded.city = parsed.city;
-                    decoded.state = parsed.state;
-                    decoded.zip = parsed.zip;
+                    decoded.id = parsed.id;
+                    decoded.sequence = parsed.sequence;
+                    decoded.delta = parsed.delta;
+                    decoded.checksum = parsed.checksum;
+                    decoded.x = parsed.x;
+                    decoded.precision = parsed.precision;
+                    decoded.active = parsed.active;
                 }
             }
             const deserializationTime:Number = new Date().time - startTime;
