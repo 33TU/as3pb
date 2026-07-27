@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package as3pb.bench;
+
+import "runtime_bench.proto";
+
+// BenchAddressService defines the service for managing address records.
+service BenchAddressService {
+  // CreateAddress creates a new benchmark address record.
+  rpc CreateAddress(BenchCreateAddressRequest) returns (BenchCreateAddressResponse);
+
+  // DeleteAddress deletes an existing benchmark address record.
+  rpc DeleteAddress(BenchDeleteAddressRequest) returns (BenchDeleteAddressResponse);
+}

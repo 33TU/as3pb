@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package example.game;
+
+message Point {
+  float x = 1;
+  float y = 2;
+}
+
+message Player {
+  string id = 1;
+  string display_name = 2;
+  uint64 score = 3;
+  repeated int32 inventory_item_ids = 4;
+  bytes avatar = 5;
+  Point position = 6;
+
+  oneof action {
+    Move move = 7;
+    Chat chat = 8;
+  }
+}
+
+message Move {
+  Point from = 1;
+  Point to = 2;
+  sint64 tick = 3;
+}
+
+message Chat {
+  string text = 1;
+}
+
+enum MatchState {
+  MATCH_STATE_UNKNOWN = 0;
+  MATCH_STATE_WAITING = 1;
+  MATCH_STATE_RUNNING = 2;
+  MATCH_STATE_FINISHED = 3;
+}
+
+message MatchSnapshot {
+  string match_id = 1;
+  MatchState state = 2;
+  repeated Player players = 3;
+}
+
+service GameService {
+  // GetSnapshot returns the current state for a match.
+  rpc GetSnapshot(GetSnapshotRequest) returns (MatchSnapshot);
+
+  // SendAction applies a player action and returns the updated match state.
+  rpc SendAction(Player) returns (MatchSnapshot);
+}
+
+message GetSnapshotRequest {
+  string match_id = 1;
+}

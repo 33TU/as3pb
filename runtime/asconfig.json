@@ -1,0 +1,9 @@
+{
+  "type": "lib",
+  "config": "air",
+  "compilerOptions": {
+    "include-sources": ["src", "test"],
+    "library-path": ["libs"],
+    "output": "bin/as3pb.swc"
+  }
+}
