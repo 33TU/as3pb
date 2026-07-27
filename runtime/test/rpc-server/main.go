@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	rpcv1 "github.com/33TU/as3pb/runtime/test/rpc-server/gen"
 	"github.com/33TU/as3pb/runtime/test/rpc-server/gen/genconnect"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -24,18 +27,24 @@ func (rpcFixtureServer) Echo(ctx context.Context, req *rpcv1.RpcEchoRequest) (*r
 }
 
 func main() {
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+	r.Use(cors)
+	r.Use(logRequests)
 
 	path, handler := genconnect.NewRpcFixtureServiceHandler(rpcFixtureServer{})
-	mux.Handle(path, handler)
-	mux.HandleFunc("/crossdomain.xml", crossdomainXML)
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	r.Mount(path, handler)
+	r.Get("/crossdomain.xml", crossdomainXML)
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	})
 
 	server := &http.Server{
 		Addr:              "localhost:8080",
-		Handler:           logRequests(cors(mux)),
+		Handler:           r,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

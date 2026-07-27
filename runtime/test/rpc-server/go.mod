@@ -4,6 +4,7 @@ go 1.26.5
 
 require (
 	connectrpc.com/connect v1.20.0
+	github.com/go-chi/chi/v5 v5.2.5
 	google.golang.org/protobuf v1.36.11
 )
 
