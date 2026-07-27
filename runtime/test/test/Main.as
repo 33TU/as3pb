@@ -7,9 +7,6 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
-    import testdata.RuntimeNode;
-    import testdata.RuntimeNested;
-    import testdata.RuntimeSample;
     import as3pb.types.Int64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64;
