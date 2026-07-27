@@ -94,6 +94,9 @@ build-runtime-rpc: generate-runtime-test-data
         -debug={{ AS3_DEBUG }} \
         runtime/test/rpc/Main.as
 
+run-runtime-rpc-server:
+    cd runtime/test/rpc-server && go run .
+
 generate-examples: build-protoc-gen-as3 build-as3-protoc
     rm -rf {{ EXAMPLES_OUT }}
     mkdir -p {{ EXAMPLES_OUT }}
