@@ -2,6 +2,8 @@ package bench
 {
     import flash.display.Sprite;
     import flash.events.MouseEvent;
+    import flash.net.ObjectEncoding;
+    import flash.net.registerClassAlias;
     import flash.text.TextField;
     import flash.text.TextFormat;
     import flash.utils.ByteArray;
@@ -21,6 +23,10 @@ package bench
 
         public function Main()
         {
+            registerClassAlias("bench.BenchMessage", BenchMessage);
+            registerClassAlias("as3pb.types.Int64", Int64);
+            registerClassAlias("as3pb.types.UInt64", UInt64);
+
             setupDisplay();
             runBenchmark();
         }
@@ -106,8 +112,9 @@ package bench
             const testData:Vector.<BenchMessage> = createTestData(TEST_DATA_SIZE);
             const protoResults:Object = benchmarkProtocolBuffers(testData, ITERATIONS);
             const jsonResults:Object = benchmarkJSON(testData, ITERATIONS);
+            const amf3Results:Object = benchmarkAMF3(testData, ITERATIONS);
 
-            displayBenchmarkResults(protoResults, jsonResults);
+            displayBenchmarkResults(protoResults, jsonResults, amf3Results);
         }
 
         private function createTestData(count:int):Vector.<BenchMessage>
@@ -248,30 +255,88 @@ package bench
                 };
         }
 
-        private function displayBenchmarkResults(protoResults:Object, jsonResults:Object):void
+        private function benchmarkAMF3(testData:Vector.<BenchMessage>, iterations:int):Object
+        {
+            const serialized:Vector.<ByteArray> = new Vector.<ByteArray>();
+            var totalSerializedSize:int = 0;
+            var amfBytes:ByteArray;
+
+            var startTime:Number = new Date().time;
+            for (var iter:int = 0; iter < iterations; iter++)
+            {
+                for each (var msg:BenchMessage in testData)
+                {
+                    amfBytes = Buffers.newByteArray();
+                    amfBytes.objectEncoding = ObjectEncoding.AMF3;
+                    amfBytes.writeObject(msg);
+
+                    if (iter == 0)
+                    {
+                        serialized.push(amfBytes);
+                        totalSerializedSize += amfBytes.length;
+                    }
+                }
+            }
+            const serializationTime:Number = new Date().time - startTime;
+
+            var decoded:BenchMessage;
+            startTime = new Date().time;
+            for (iter = 0; iter < iterations; iter++)
+            {
+                for each (amfBytes in serialized)
+                {
+                    amfBytes.position = 0;
+                    decoded = BenchMessage(amfBytes.readObject());
+                }
+            }
+            const deserializationTime:Number = new Date().time - startTime;
+
+            return {
+                    serializationTime: serializationTime,
+                    deserializationTime: deserializationTime,
+                    totalTime: serializationTime + deserializationTime,
+                    serializedSize: totalSerializedSize,
+                    averageSize: Math.round(totalSerializedSize / testData.length)
+                };
+        }
+
+        private function displayBenchmarkResults(protoResults:Object, jsonResults:Object, amf3Results:Object):void
         {
             const sizeRatio:Number = ratio(jsonResults.serializedSize, protoResults.serializedSize);
             const serializeRatio:Number = ratio(jsonResults.serializationTime, protoResults.serializationTime);
             const deserializeRatio:Number = ratio(jsonResults.deserializationTime, protoResults.deserializationTime);
             const totalRatio:Number = ratio(jsonResults.totalTime, protoResults.totalTime);
+            const amf3SizeRatio:Number = ratio(amf3Results.serializedSize, protoResults.serializedSize);
+            const amf3SerializeRatio:Number = ratio(amf3Results.serializationTime, protoResults.serializationTime);
+            const amf3DeserializeRatio:Number = ratio(amf3Results.deserializationTime, protoResults.deserializationTime);
+            const amf3TotalRatio:Number = ratio(amf3Results.totalTime, protoResults.totalTime);
 
             log("--- Data Size ---");
             log("Protocol Buffers total: " + protoResults.serializedSize + " bytes");
             log("JSON total: " + jsonResults.serializedSize + " bytes");
+            log("AMF3 total: " + amf3Results.serializedSize + " bytes");
             log("Protocol Buffers avg: " + protoResults.averageSize + " bytes/message");
             log("JSON avg: " + jsonResults.averageSize + " bytes/message");
+            log("AMF3 avg: " + amf3Results.averageSize + " bytes/message");
             log("JSON/Proto size ratio: " + sizeRatio + "x");
+            log("AMF3/Proto size ratio: " + amf3SizeRatio + "x");
             log("");
             log("--- Timing ---");
             log("Protocol Buffers serialize: " + protoResults.serializationTime + "ms");
             log("JSON serialize: " + jsonResults.serializationTime + "ms");
+            log("AMF3 serialize: " + amf3Results.serializationTime + "ms");
             log("JSON/Proto serialize ratio: " + serializeRatio + "x");
+            log("AMF3/Proto serialize ratio: " + amf3SerializeRatio + "x");
             log("Protocol Buffers deserialize: " + protoResults.deserializationTime + "ms");
             log("JSON deserialize: " + jsonResults.deserializationTime + "ms");
+            log("AMF3 deserialize: " + amf3Results.deserializationTime + "ms");
             log("JSON/Proto deserialize ratio: " + deserializeRatio + "x");
+            log("AMF3/Proto deserialize ratio: " + amf3DeserializeRatio + "x");
             log("Protocol Buffers total: " + protoResults.totalTime + "ms");
             log("JSON total: " + jsonResults.totalTime + "ms");
+            log("AMF3 total: " + amf3Results.totalTime + "ms");
             log("JSON/Proto total ratio: " + totalRatio + "x");
+            log("AMF3/Proto total ratio: " + amf3TotalRatio + "x");
             log("");
             log("Done.");
         }

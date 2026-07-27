@@ -1,6 +1,6 @@
 # AS3PB
 
-AS3PB is a Protocol Buffers code generator and runtime for ActionScript 3.
+AS3PB is a Protocol Buffers code generator and runtime for ActionScript 3, designed for compact wire payloads and low-allocation game/runtime use.
 
 The repository contains:
 
@@ -96,19 +96,27 @@ Iterations: 300
 
 Protocol Buffers avg: 285 bytes/message
 JSON avg: 718 bytes/message
+AMF3 avg: 593 bytes/message
 JSON/Proto size ratio: 2.52x
+AMF3/Proto size ratio: 2.09x
 
-Protocol Buffers serialize: 84ms
-JSON serialize: 1629ms
-JSON/Proto serialize ratio: 19.39x
+Protocol Buffers serialize: 85ms
+JSON serialize: 1608ms
+AMF3 serialize: 197ms
+JSON/Proto serialize ratio: 18.92x
+AMF3/Proto serialize ratio: 2.32x
 
 Protocol Buffers deserialize: 35ms
-JSON deserialize: 289ms
-JSON/Proto deserialize ratio: 8.26x
+JSON deserialize: 283ms
+AMF3 deserialize: 374ms
+JSON/Proto deserialize ratio: 8.09x
+AMF3/Proto deserialize ratio: 10.69x
 
-Protocol Buffers total: 119ms
-JSON total: 1918ms
-JSON/Proto total ratio: 16.12x
+Protocol Buffers total: 120ms
+JSON total: 1891ms
+AMF3 total: 571ms
+JSON/Proto total ratio: 15.76x
+AMF3/Proto total ratio: 4.76x
 ```
 
 Build the RPC sample SWF:
