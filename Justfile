@@ -73,6 +73,20 @@ build-runtime-bench: generate-runtime-test-data
         -debug={{ AS3_DEBUG }} \
         runtime/test/bench/Main.as
 
+build-runtime-rpc: generate-runtime-test-data
+    mkdir -p {{ AS3_BIN_DIR }}
+    {{ AIRSDK_HOME }}/bin/mxmlc \
+        -source-path runtime/src \
+        -source-path runtime/test \
+        -source-path {{ RUNTIME_TEST_GENERATED }} \
+        -output {{ AS3_BIN_DIR }}/as3pb-rpc.swf \
+        -optimize={{ AS3_OPTIMIZE }} \
+        -compiler.strict=true \
+        -compiler.inline={{ AS3_INLINE }} \
+        -compiler.float={{ AS3_FLOAT }} \
+        -debug={{ AS3_DEBUG }} \
+        runtime/test/rpc/Main.as
+
 generate-examples: build-protoc-gen-as3 build-as3-protoc
     rm -rf {{ EXAMPLES_OUT }}
     mkdir -p {{ EXAMPLES_OUT }}
