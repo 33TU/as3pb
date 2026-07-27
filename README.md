@@ -33,6 +33,82 @@ just download-air-sdk windows
 
 After downloading, add the SDK `bin` directory to PATH before building AS3 targets.
 
+## Install
+
+Install the generator and protoc wrapper with Go:
+
+```sh
+go install github.com/33TU/as3pb/cmd/protoc-gen-as3@latest
+go install github.com/33TU/as3pb/cmd/as3-protoc@latest
+```
+
+For local development, build them into `bin/`:
+
+```sh
+just build-protoc-gen-as3
+just build-as3-protoc
+```
+
+## Generate AS3
+
+The easiest way to generate AS3 code is `as3-protoc`. It invokes `protoc`, configures `protoc-gen-as3`, and adds proto import mappings for you:
+
+```sh
+as3-protoc -I proto --as3_out=generated proto/game.proto
+```
+
+When using local development binaries:
+
+```sh
+bin/as3-protoc \
+  --protoc_gen_as3_bin=bin/protoc-gen-as3 \
+  -I examples/proto \
+  --as3_out=examples/generated \
+  examples/proto/game.proto
+```
+
+You can also invoke `protoc-gen-as3` directly through `protoc`:
+
+```sh
+protoc \
+  --plugin=protoc-gen-as3=protoc-gen-as3 \
+  --as3_opt=Mgame.proto=as3.pb \
+  --as3_out=generated \
+  -I proto \
+  proto/game.proto
+```
+
+Direct `protoc` usage requires imported proto files to have usable Go package metadata or explicit `Mfile.proto=package` mappings. The `as3-protoc` wrapper adds those mappings automatically by scanning include paths.
+
+Generator options can be passed with `--as3_opt`:
+
+```sh
+as3-protoc \
+  -I proto \
+  --as3_out=generated \
+  --as3_opt=generate_serialize=true \
+  --as3_opt=generate_deserialize=true \
+  proto/game.proto
+```
+
+Available options:
+
+- `debug`: print generator debug logs.
+- `generate_always`: generate files even when protoc did not mark them for generation.
+- `indent`: set the generated indentation string. Defaults to four spaces.
+- `inline_reset`: emit `[Inline]` on generated reset methods. Defaults to true.
+- `generate_serialize`: emit `serializeBytes` methods. Defaults to true.
+- `generate_deserialize`: emit `deserializeBytes` methods. Defaults to true.
+
+The same options can be set with environment variables:
+
+- `AS3PB_DEBUG`
+- `AS3PB_GENERATE_ALWAYS`
+- `AS3PB_INDENT`
+- `AS3PB_INLINE_RESET`
+- `AS3PB_GENERATE_SERIALIZE`
+- `AS3PB_GENERATE_DESERIALIZE`
+
 ## Commands
 
 List available recipes:
