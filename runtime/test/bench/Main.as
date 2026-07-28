@@ -11,7 +11,9 @@ package bench
     import bench.BenchMessage;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
+    import as3pb.types.Int64Vector;
     import as3pb.types.UInt64;
+    import as3pb.types.UInt64Vector;
 
     public final class Main extends Sprite
     {
@@ -25,7 +27,9 @@ package bench
         {
             registerClassAlias("bench.BenchMessage", BenchMessage);
             registerClassAlias("as3pb.types.Int64", Int64);
+            registerClassAlias("as3pb.types.Int64Vector", Int64Vector);
             registerClassAlias("as3pb.types.UInt64", UInt64);
+            registerClassAlias("as3pb.types.UInt64Vector", UInt64Vector);
 
             setupDisplay();
             runBenchmark();
