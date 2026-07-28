@@ -116,6 +116,38 @@ The same options can be set with environment variables:
 - `AS3PB_GENERATE_SERIALIZE`
 - `AS3PB_GENERATE_DESERIALIZE`
 
+## Use The Runtime
+
+Generated AS3 code depends on the runtime package in `runtime/src/as3pb`.
+
+For performance-sensitive projects, copy or vendor `runtime/src/as3pb` into your AS3 project and compile it together with your generated code. This lets the AS3 compiler see runtime `[Inline]` methods while compiling the final SWF.
+
+Example layout:
+
+```text
+src/
+generated/
+vendor/as3pb/
+```
+
+Example compile source paths:
+
+```sh
+mxmlc \
+  -source-path src \
+  -source-path generated \
+  -source-path vendor \
+  src/Main.as
+```
+
+You can also build the runtime as a SWC:
+
+```sh
+just build-swc
+```
+
+Using the runtime source is recommended for game/runtime builds where inlining and allocation behavior matter. The SWC is convenient for packaging, IDE setup, or projects that prefer binary library dependencies.
+
 ## Commands
 
 List available recipes:
