@@ -252,6 +252,8 @@ The RPC server is a nested Go module in `runtime/test/rpc-server`. Its Go protob
 just generate-runtime-rpc-server
 ```
 
+![AS3PB RPC sample running against the Go fixture server](assets/rpc.png)
+
 ## Examples
 
 Regenerate example AS3 output:
