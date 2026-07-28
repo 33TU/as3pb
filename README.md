@@ -2,6 +2,8 @@
 
 AS3PB is a Protocol Buffers code generator and runtime for ActionScript 3, designed for compact wire payloads and low-allocation game/runtime use.
 
+![AS3PB Flash benchmark summary](assets/benchmark-summary.svg)
+
 The repository contains:
 
 - `protoc-gen-as3`, the protoc plugin that emits AS3 message, enum, and RPC client code.

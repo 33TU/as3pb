@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="560" viewBox="0 0 920 560" role="img" aria-labelledby="title desc">
+  <title id="title">AS3PB Flash benchmark summary</title>
+  <desc id="desc">Protocol Buffers compared with AMF3 and JSON for average payload size, deserialize time, and serialize time.</desc>
+  <rect width="920" height="560" rx="8" fill="#101418"/>
+  <text x="32" y="44" fill="#f4f7fb" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">Flash Player benchmark</text>
+  <text x="32" y="70" fill="#aab6c3" font-family="Arial, Helvetica, sans-serif" font-size="14">Included runtime benchmark: 100 messages, 300 iterations</text>
+
+  <text x="32" y="116" fill="#f4f7fb" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Average payload size</text>
+  <text x="32" y="148" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">Protocol Buffers</text>
+  <rect x="168" y="133" width="159" height="20" rx="3" fill="#34d399"/>
+  <text x="340" y="148" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">285 bytes</text>
+  <text x="32" y="178" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">AMF3</text>
+  <rect x="168" y="163" width="330" height="20" rx="3" fill="#60a5fa"/>
+  <text x="511" y="178" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">593 bytes</text>
+  <text x="32" y="208" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">JSON</text>
+  <rect x="168" y="193" width="400" height="20" rx="3" fill="#f97316"/>
+  <text x="581" y="208" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">718 bytes</text>
+
+  <text x="32" y="268" fill="#f4f7fb" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Deserialize time</text>
+  <text x="32" y="300" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">Protocol Buffers</text>
+  <rect x="168" y="285" width="37" height="20" rx="3" fill="#34d399"/>
+  <text x="218" y="300" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">35 ms</text>
+  <text x="32" y="330" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">JSON</text>
+  <rect x="168" y="315" width="303" height="20" rx="3" fill="#f97316"/>
+  <text x="484" y="330" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">283 ms</text>
+  <text x="32" y="360" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">AMF3</text>
+  <rect x="168" y="345" width="400" height="20" rx="3" fill="#60a5fa"/>
+  <text x="581" y="360" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">374 ms</text>
+
+  <text x="32" y="420" fill="#f4f7fb" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700">Serialize time</text>
+  <text x="32" y="452" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">Protocol Buffers</text>
+  <rect x="168" y="437" width="21" height="20" rx="3" fill="#34d399"/>
+  <text x="202" y="452" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">85 ms</text>
+  <text x="32" y="482" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">AMF3</text>
+  <rect x="168" y="467" width="49" height="20" rx="3" fill="#60a5fa"/>
+  <text x="230" y="482" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">197 ms</text>
+  <text x="32" y="512" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">JSON</text>
+  <rect x="168" y="497" width="400" height="20" rx="3" fill="#f97316"/>
+  <text x="581" y="512" fill="#dce6f1" font-family="Arial, Helvetica, sans-serif" font-size="14">1608 ms</text>
+
+  <text x="610" y="127" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">2.09x smaller than AMF3</text>
+  <text x="610" y="154" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">2.52x smaller than JSON</text>
+  <text x="610" y="292" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">10.69x faster to deserialize than AMF3</text>
+  <text x="610" y="319" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">8.09x faster to deserialize than JSON</text>
+  <text x="610" y="392" fill="#aab6c3" font-family="Arial, Helvetica, sans-serif" font-size="13">Lower is better. Full timing and total results are listed below.</text>
+  <text x="610" y="444" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">2.32x faster to serialize than AMF3</text>
+  <text x="610" y="471" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">18.92x faster to serialize than JSON</text>
+</svg>
