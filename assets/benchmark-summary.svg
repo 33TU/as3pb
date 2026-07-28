@@ -42,7 +42,7 @@
   <text x="610" y="154" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">2.52x smaller than JSON</text>
   <text x="610" y="292" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">10.69x faster to deserialize than AMF3</text>
   <text x="610" y="319" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">8.09x faster to deserialize than JSON</text>
-  <text x="610" y="392" fill="#aab6c3" font-family="Arial, Helvetica, sans-serif" font-size="13">Lower is better. Full timing and total results are listed below.</text>
   <text x="610" y="444" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">2.32x faster to serialize than AMF3</text>
   <text x="610" y="471" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">18.92x faster to serialize than JSON</text>
+  <text x="32" y="545" fill="#aab6c3" font-family="Arial, Helvetica, sans-serif" font-size="13">Lower is better. Full timing and total results are listed below.</text>
 </svg>
