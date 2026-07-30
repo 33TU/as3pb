@@ -31,11 +31,7 @@ package rpc
          * @param onComplete Called with the decoded RpcEchoResponse.
          * @param onError Called if the RPC request fails.
          */
-        public function echo(
-            request:RpcEchoRequest,
-            onComplete:Function,
-            onError:Function
-        ):void
+        public function echo(request:RpcEchoRequest, onComplete:Function, onError:Function):void
         {
             const buffer:ByteArray = BufferPool.acquire();
             RpcEchoRequest.serializeBytes(request, buffer);

@@ -80,13 +80,7 @@ func (g *Generator) generateServiceMethod(packageName string, service *protogen.
 	path := fmt.Sprintf("/%s.%s/%s", packageName, service.Desc.Name(), method.Desc.Name())
 
 	g.generateLeadingComment(serviceMethodComment(method, outputType), false)
-	g.w.Line("public function %s(", methodName)
-	g.w.Indent()
-	g.w.Line("request:%s,", inputType)
-	g.w.Line("onComplete:Function,")
-	g.w.Line("onError:Function")
-	g.w.Dedent()
-	g.w.Line("):void")
+	g.w.Line("public function %s(request:%s, onComplete:Function, onError:Function):void", methodName, inputType)
 	g.w.Line("{")
 	g.w.Indent()
 
