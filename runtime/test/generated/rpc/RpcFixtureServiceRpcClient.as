@@ -12,7 +12,6 @@ package rpc
     /**
      * RpcFixtureService defines RPC generation fixtures.
      */
-
     public final class RpcFixtureServiceRpcClient extends RpcClient
     {
         /**
