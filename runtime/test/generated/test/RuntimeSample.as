@@ -30,6 +30,9 @@ package test
         public var name:String = "";
         public var selected:RuntimeNested = null;
 
+        /**
+         * Active case for choice: FIELD_NAME, FIELD_SELECTED.
+         */
         public var choiceCase:uint;
 
         /**

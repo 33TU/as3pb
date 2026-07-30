@@ -15,6 +15,7 @@ message Player {
   bytes avatar = 5;
   Point position = 6;
 
+  // Action selected by the player for this update.
   oneof action {
     Move move = 7;
     Chat chat = 8;

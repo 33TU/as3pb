@@ -27,6 +27,10 @@ package example.game
         public var move:Move = null;
         public var chat:Chat = null;
 
+        /**
+         * Action selected by the player for this update.
+         * Active case for action: FIELD_MOVE, FIELD_CHAT.
+         */
         public var actionCase:uint;
 
         /**

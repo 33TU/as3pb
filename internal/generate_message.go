@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"strings"
+
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -151,9 +153,20 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 
 	for _, oneof := range message.Oneofs {
 		g.w.BlankLine()
-		g.generateLeadingComment(oneof.Comments.Leading, false)
+		g.generateLeadingComment(oneofCaseComment(oneof, names), false)
 		g.w.Line("public var %s:uint;", names.OneofCase(oneof))
 	}
+}
+
+func oneofCaseComment(oneof *protogen.Oneof, names *MessageNames) protogen.Comments {
+	values := make([]string, 0, len(oneof.Fields))
+	for _, field := range oneof.Fields {
+		values = append(values, names.FieldNumber(field))
+	}
+
+	lines := commentLines(oneof.Comments.Leading)
+	lines = append(lines, "Active case for "+string(oneof.Desc.Name())+": "+strings.Join(values, ", ")+".")
+	return protogen.Comments(strings.Join(lines, "\n"))
 }
 
 func (g *Generator) generateResetMethod(message *protogen.Message, names *MessageNames) {
