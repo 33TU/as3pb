@@ -12,9 +12,12 @@ package bench
     import as3pb.types.UInt64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64Vector;
+    import as3pb.types.AnyRegistry;
 
     public final class BenchMessage
     {
+        public static const TYPE_URL:String = "type.googleapis.com/bench.BenchMessage";
+
         public var id:String = "";
         public var sequence:uint = 0;
         public var delta:int = 0;
@@ -283,6 +286,10 @@ package bench
                 dst.writeShort(450);
                 Serialize.writeFloatVector(dst, localPositions, vecLength);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

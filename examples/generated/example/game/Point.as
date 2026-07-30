@@ -7,9 +7,12 @@ package example.game
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.types.AnyRegistry;
 
     public final class Point
     {
+        public static const TYPE_URL:String = "type.googleapis.com/example.game.Point";
+
         public var x:Number = 0.0;
         public var y:Number = 0.0;
 
@@ -87,6 +90,10 @@ package example.game
                 dst.writeByte(21);
                 dst.writeFloat(localY);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

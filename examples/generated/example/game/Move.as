@@ -12,9 +12,12 @@ package example.game
     import as3pb.types.UInt64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64Vector;
+    import as3pb.types.AnyRegistry;
 
     public final class Move
     {
+        public static const TYPE_URL:String = "type.googleapis.com/example.game.Move";
+
         public var from:Point = null;
         public var to:Point = null;
         public var tick:Int64 = new Int64();
@@ -125,6 +128,10 @@ package example.game
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

@@ -6,6 +6,7 @@ import "log/slog"
 type Options struct {
 	Debug               bool
 	GenerateAlways      bool
+	GenerateAny         *bool
 	GenerateSerialize   *bool
 	GenerateDeserialize *bool
 	Indent              string
@@ -29,6 +30,10 @@ func (o Options) indent() string {
 
 func (o Options) inlineReset() bool {
 	return o.InlineReset == nil || *o.InlineReset
+}
+
+func (o Options) generateAny() bool {
+	return o.GenerateAny == nil || *o.GenerateAny
 }
 
 func (o Options) generateSerialize() bool {

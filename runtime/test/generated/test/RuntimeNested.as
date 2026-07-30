@@ -8,9 +8,12 @@ package test
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
+    import as3pb.types.AnyRegistry;
 
     public final class RuntimeNested
     {
+        public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeNested";
+
         public var label_:String = "";
         public var flags:uint = 0;
         public var ratio:Number = 0.0;
@@ -103,6 +106,10 @@ package test
                 dst.writeByte(25);
                 dst.writeDouble(localRatio);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

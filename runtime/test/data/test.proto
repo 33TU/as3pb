@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package test;
 
+import "google/protobuf/any.proto";
+
 message RuntimeNested {
   string label = 1;
   fixed32 flags = 2;
@@ -28,4 +30,8 @@ message RuntimeSample {
 message RuntimeNode {
   string value = 1;
   RuntimeNode next = 2;
+}
+
+message RuntimeAnyEnvelope {
+  google.protobuf.Any payload = 1;
 }

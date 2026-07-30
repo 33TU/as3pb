@@ -12,9 +12,12 @@ package example.game
     import as3pb.types.UInt64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64Vector;
+    import as3pb.types.AnyRegistry;
 
     public final class Player
     {
+        public static const TYPE_URL:String = "type.googleapis.com/example.game.Player";
+
         public static const FIELD_MOVE:uint = 7;
         public static const FIELD_CHAT:uint = 8;
 
@@ -216,6 +219,10 @@ package example.game
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

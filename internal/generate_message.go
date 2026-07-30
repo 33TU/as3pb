@@ -54,8 +54,8 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 	if g.generateTrailingComment(true, message.Comments.Trailing) {
 		g.w.BlankLine()
 	}
-	g.generateMessageStaticFields(message)
 	if g.needsMessageStaticFields(message) {
+		g.generateMessageStaticFields(message)
 		g.w.BlankLine()
 	}
 	g.generateMessageFields(message, names)
@@ -70,6 +70,10 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 	if g.opts.generateSerialize() {
 		g.w.BlankLine()
 		g.generateSerializeMethod(message, names)
+	}
+	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
+		g.w.BlankLine()
+		g.generateAnyRegistration()
 	}
 
 	g.w.Dedent()
@@ -98,14 +102,39 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 		g.w.Line("import as3pb.types.Int64Vector;")
 		g.w.Line("import as3pb.types.UInt64Vector;")
 	}
+	if hasAnyFields(message) {
+		g.w.Line("import as3pb.types.Any;")
+	}
+	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
+		g.w.Line("import as3pb.types.AnyRegistry;")
+	}
 	g.w.BlankLine()
 }
 
 func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
+	if g.opts.generateAny() {
+		g.w.Line(
+			`public static const TYPE_URL:String = "type.googleapis.com/%s";`,
+			message.Desc.FullName(),
+		)
+	}
 	if g.opts.generateDeserialize() && hasRepeatedUnpackedVarint64Fields(message) {
 		g.w.Line("private static const TMP_UINT64:UInt64 = new UInt64();")
 		g.w.Line("private static const TMP_INT64:Int64 = new Int64();")
 	}
+}
+
+func (g *Generator) generateAnyRegistration() {
+	g.w.Line("{")
+	g.w.Indent()
+	g.w.Line("AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);")
+	g.w.Dedent()
+	g.w.Line("}")
+}
+
+func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
+	return g.opts.generateAny() ||
+		(g.opts.generateDeserialize() && hasRepeatedUnpackedVarint64Fields(message))
 }
 
 func (g *Generator) needsByteArrayImport(message *protogen.Message) bool {
@@ -116,10 +145,6 @@ func (g *Generator) needsBuffersImport(message *protogen.Message) bool {
 	return hasBytesFields(message) ||
 		(g.opts.generateSerialize() && (hasPackedFields(message) || hasStringFields(message) || hasMessageFields(message))) ||
 		(g.opts.generateDeserialize() && hasRepeatedBytesFields(message))
-}
-
-func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
-	return g.opts.generateDeserialize() && hasRepeatedUnpackedVarint64Fields(message)
 }
 
 func (g *Generator) generateMessageFields(message *protogen.Message, names *MessageNames) {

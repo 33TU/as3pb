@@ -8,9 +8,12 @@ package example.game
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
+    import as3pb.types.AnyRegistry;
 
     public final class GetSnapshotRequest
     {
+        public static const TYPE_URL:String = "type.googleapis.com/example.game.GetSnapshotRequest";
+
         public var matchId:String = "";
 
         /**
@@ -77,6 +80,10 @@ package example.game
                 dst.writeByte(10);
                 Serialize.writeString(dst, localMatchId, reuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

@@ -21,6 +21,10 @@ func main() {
 		inlineReset := parseBool(value)
 		options.InlineReset = &inlineReset
 	}
+	if value := os.Getenv("AS3PB_GENERATE_ANY"); value != "" {
+		generateAny := parseBool(value)
+		options.GenerateAny = &generateAny
+	}
 	if value := os.Getenv("AS3PB_GENERATE_SERIALIZE"); value != "" {
 		generateSerialize := parseBool(value)
 		options.GenerateSerialize = &generateSerialize
@@ -42,6 +46,9 @@ func main() {
 			case "inline_reset":
 				inlineReset := parseBool(value)
 				options.InlineReset = &inlineReset
+			case "generate_any":
+				generateAny := parseBool(value)
+				options.GenerateAny = &generateAny
 			case "generate_serialize":
 				generateSerialize := parseBool(value)
 				options.GenerateSerialize = &generateSerialize

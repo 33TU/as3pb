@@ -8,9 +8,12 @@ package rpc
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
+    import as3pb.types.AnyRegistry;
 
     public final class RpcEchoRequest
     {
+        public static const TYPE_URL:String = "type.googleapis.com/rpc.RpcEchoRequest";
+
         public var message:String = "";
         public var sequence:uint = 0;
 
@@ -90,6 +93,10 @@ package rpc
                 dst.writeByte(16);
                 Serialize.writeVarint32(dst, localSequence);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

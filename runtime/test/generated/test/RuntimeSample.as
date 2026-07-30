@@ -12,9 +12,12 @@ package test
     import as3pb.types.UInt64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64Vector;
+    import as3pb.types.AnyRegistry;
 
     public final class RuntimeSample
     {
+        public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeSample";
+
         public static const FIELD_NAME:uint = 9;
         public static const FIELD_SELECTED:uint = 10;
 
@@ -262,6 +265,10 @@ package test
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

@@ -93,6 +93,7 @@ Generator options can be passed with `--as3_opt`:
 as3-protoc \
   -I proto \
   --as3_out=generated \
+  --as3_opt=generate_any=true \
   --as3_opt=generate_serialize=true \
   --as3_opt=generate_deserialize=true \
   proto/game.proto
@@ -104,6 +105,7 @@ Available options:
 - `generate_always`: generate files even when protoc did not mark them for generation.
 - `indent`: set the generated indentation string. Defaults to four spaces.
 - `inline_reset`: emit `[Inline]` on generated reset methods. Defaults to true.
+- `generate_any`: emit message type URLs and automatic `AnyRegistry` registration. Defaults to true.
 - `generate_serialize`: emit `serializeBytes` methods. Defaults to true.
 - `generate_deserialize`: emit `deserializeBytes` methods. Defaults to true.
 
@@ -113,6 +115,7 @@ The same options can be set with environment variables:
 - `AS3PB_GENERATE_ALWAYS`
 - `AS3PB_INDENT`
 - `AS3PB_INLINE_RESET`
+- `AS3PB_GENERATE_ANY`
 - `AS3PB_GENERATE_SERIALIZE`
 - `AS3PB_GENERATE_DESERIALIZE`
 

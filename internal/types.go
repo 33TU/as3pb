@@ -130,6 +130,9 @@ func as3ElementType(field *protogen.Field, currentProtoPackage string) string {
 	case protoreflect.EnumKind:
 		return "int"
 	case protoreflect.MessageKind:
+		if isAnyField(field) {
+			return "Any"
+		}
 		return as3MessageTypeName(field.Message, currentProtoPackage)
 	default:
 		return "Object"

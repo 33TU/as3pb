@@ -7,6 +7,8 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.types.Any;
+    import as3pb.types.AnyRegistry;
     import as3pb.types.Int64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64;
@@ -30,6 +32,7 @@ package test
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
             testRecursiveMessageRoundTrip();
+            testAnyRegistry();
 
             trace("ok");
         }
@@ -337,6 +340,27 @@ package test
             assertEq("recursive root", out.value, root.value);
             assertEq("recursive middle", out.next.value, root.next.value);
             assertEq("recursive leaf", out.next.next.value, root.next.next.value);
+        }
+
+        private static function testAnyRegistry():void
+        {
+            const msg:RuntimeNested = nested("packed", 0x12345678, 1.5);
+            const packed:Any = AnyRegistry.pack(RuntimeNested.TYPE_URL, msg);
+            assertEq("any type URL", packed.typeUrl, RuntimeNested.TYPE_URL);
+
+            const out:RuntimeNested = AnyRegistry.unpack(packed) as RuntimeNested;
+            assertEq("any nested label", out.label_, msg.label_);
+            assertUintEq("any nested flags", out.flags, msg.flags);
+            assertEq("any nested ratio", out.ratio, msg.ratio);
+
+            const envelope:RuntimeAnyEnvelope = new RuntimeAnyEnvelope();
+            envelope.payload = packed;
+            const buffer:ByteArray = Buffers.newByteArray();
+            RuntimeAnyEnvelope.serializeBytes(envelope, buffer);
+            buffer.position = 0;
+            const decoded:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer);
+            const decodedMessage:RuntimeNested = AnyRegistry.unpack(decoded.payload) as RuntimeNested;
+            assertEq("any wire round trip", decodedMessage.label_, msg.label_);
         }
 
         private static function nested(label:String, flags:uint, ratio:Number):RuntimeNested

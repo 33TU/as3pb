@@ -7,7 +7,9 @@ import (
 	"github.com/33TU/as3pb/internal"
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -93,6 +95,8 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"import as3pb.proto.Serialize;",
 		"import as3pb.proto.Buffers;",
 		"import as3pb.types.Int64;",
+		"import as3pb.types.AnyRegistry;",
+		`public static const TYPE_URL:String = "type.googleapis.com/test.v1.Player";`,
 		"public static const FIELD_MOVE:uint = 5;",
 		"public var raw:ByteArray = Buffers.newByteArray();",
 		"public static function reset(msg:Player):void",
@@ -105,6 +109,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
 		"Serialize.writeInt32Vector(dst, localScores, reuseBuffer, vecLength);",
 		"switch (src.actionCase)",
+		"AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);",
 	}
 	for _, want := range wantParts {
 		if !strings.Contains(content, want) {
@@ -170,6 +175,49 @@ func TestGenerateFileCanDisableDeserialize(t *testing.T) {
 	}
 	if !strings.Contains(content, "public static function serializeBytes") {
 		t.Fatalf("generated content missing serializeBytes:\n%s", content)
+	}
+}
+
+func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
+	plugin := anyPlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[1]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	wantParts := []string{
+		"import as3pb.types.Any;",
+		"public var payload:Any = null;",
+		"dst.payload = Any.deserializeBytes(",
+		"Any.serializeBytes(localPayload, messageReuseBuffer);",
+	}
+	for _, want := range wantParts {
+		if !strings.Contains(content, want) {
+			t.Fatalf("generated Any field missing %q:\n%s", want, content)
+		}
+	}
+}
+
+func TestGenerateFileCanDisableAnyRegistration(t *testing.T) {
+	plugin := anyPlugin(t)
+	generateAny := false
+	generator := internal.NewGenerator(plugin, internal.Options{GenerateAny: &generateAny})
+
+	if err := generator.GenerateFile(plugin.Files[1]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	if strings.Contains(content, "TYPE_URL") {
+		t.Fatalf("generated content contains TYPE_URL:\n%s", content)
+	}
+	if strings.Contains(content, "AnyRegistry") {
+		t.Fatalf("generated content contains AnyRegistry:\n%s", content)
+	}
+	if !strings.Contains(content, "import as3pb.types.Any;") {
+		t.Fatalf("generated content missing Any field support:\n%s", content)
 	}
 }
 
@@ -378,6 +426,42 @@ func messagePlugin(t *testing.T) *protogen.Plugin {
 				}},
 			}},
 		}},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
+func anyPlugin(t *testing.T) *protogen.Plugin {
+	t.Helper()
+
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"test.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{
+			protodesc.ToFileDescriptorProto(anypb.File_google_protobuf_any_proto),
+			{
+				Name:       proto.String("test.proto"),
+				Syntax:     proto.String("proto3"),
+				Package:    proto.String("test.v1"),
+				Dependency: []string{"google/protobuf/any.proto"},
+				Options: &descriptorpb.FileOptions{
+					GoPackage: proto.String("github.com/33TU/as3pb/internal/generatetest;generatetest"),
+				},
+				MessageType: []*descriptorpb.DescriptorProto{{
+					Name: proto.String("Envelope"),
+					Field: []*descriptorpb.FieldDescriptorProto{{
+						Name:     proto.String("payload"),
+						Number:   proto.Int32(1),
+						Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+						TypeName: proto.String(".google.protobuf.Any"),
+					}},
+				}},
+			},
+		},
 	}
 
 	plugin, err := protogen.Options{}.New(req)

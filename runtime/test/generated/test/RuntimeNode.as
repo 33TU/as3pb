@@ -8,9 +8,12 @@ package test
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
+    import as3pb.types.AnyRegistry;
 
     public final class RuntimeNode
     {
+        public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeNode";
+
         public var value:String = "";
         public var next:RuntimeNode = null;
 
@@ -104,6 +107,10 @@ package test
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }

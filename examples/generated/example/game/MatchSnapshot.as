@@ -8,9 +8,12 @@ package example.game
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
+    import as3pb.types.AnyRegistry;
 
     public final class MatchSnapshot
     {
+        public static const TYPE_URL:String = "type.googleapis.com/example.game.MatchSnapshot";
+
         public var matchId:String = "";
         public var state:int = 0;
         public var players:Vector.<Player> = new Vector.<Player>();
@@ -124,6 +127,10 @@ package example.game
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        {
+            AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);
         }
     }
 }
