@@ -46,15 +46,13 @@ package test
             msg.delta.low = 0;
             msg.delta.high = 0;
             msg.scores.length = 0;
-            if (msg.nested)
-                RuntimeNested.reset(msg.nested);
+            msg.nested = null;
             msg.children.length = 0;
             msg.checksum.low = 0;
             msg.checksum.high = 0;
             msg.signedCount = 0;
             msg.name = "";
-            if (msg.selected)
-                RuntimeNested.reset(msg.selected);
+            msg.selected = null;
             msg.choiceCase = 0;
         }
 
@@ -108,7 +106,7 @@ package test
                     case 50:
                     {
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.nested = RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength);
+                            dst.nested = RuntimeNested.deserializeBytes(src, null, src.position + messageLength);
                         break;
                     }
                     case 58:
@@ -139,7 +137,7 @@ package test
                     {
                         dst.choiceCase = 10;
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.selected = RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength);
+                            dst.selected = RuntimeNested.deserializeBytes(src, null, src.position + messageLength);
                         break;
                     }
                     default:

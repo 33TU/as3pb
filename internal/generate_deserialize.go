@@ -138,7 +138,9 @@ func (g *Generator) generateFieldDeserializerForType(field *protogen.Field, fiel
 		messageType := as3ElementType(field, currentPackage)
 		g.w.Line("if ((messageLength = Deserialize.readVarint32(src)) !== 0)")
 		g.w.Indent()
-		g.w.Line("%s = %s.deserializeBytes(src, %s, src.position + messageLength);", fieldName, messageType, fieldName)
+		// Passing the existing field here would allow singular message reuse and merge semantics.
+		// For now, prefer the safer default that pairs with reset assigning message fields to null.
+		g.w.Line("%s = %s.deserializeBytes(src, null, src.position + messageLength);", fieldName, messageType)
 		g.w.Dedent()
 	}
 }

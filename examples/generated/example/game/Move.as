@@ -26,10 +26,8 @@ package example.game
         [Inline]
         public static function reset(msg:Move):void
         {
-            if (msg.from)
-                Point.reset(msg.from);
-            if (msg.to)
-                Point.reset(msg.to);
+            msg.from = null;
+            msg.to = null;
             msg.tick.low = 0;
             msg.tick.high = 0;
         }
@@ -58,13 +56,13 @@ package example.game
                     case 10:
                     {
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength);
+                            dst.from = Point.deserializeBytes(src, null, src.position + messageLength);
                         break;
                     }
                     case 18:
                     {
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength);
+                            dst.to = Point.deserializeBytes(src, null, src.position + messageLength);
                         break;
                     }
                     case 24:

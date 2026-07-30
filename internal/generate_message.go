@@ -181,14 +181,6 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 			continue
 		}
 
-		if field.Desc.Kind() == protoreflect.MessageKind {
-			g.w.Line("if (%s)", fieldName)
-			g.w.Indent()
-			g.w.Line("%s.reset(%s);", AS3Type(field, currentPackage), fieldName)
-			g.w.Dedent()
-			continue
-		}
-
 		g.w.Line("%s = %s;", fieldName, AS3DefaultValue(field, currentPackage))
 	}
 

@@ -28,11 +28,7 @@ package example.game
          * @param onComplete Called with the decoded MatchSnapshot.
          * @param onError Called if the RPC request fails.
          */
-        public function getSnapshot(
-            request:GetSnapshotRequest,
-            onComplete:Function,
-            onError:Function
-        ):void
+        public function getSnapshot(request:GetSnapshotRequest, onComplete:Function, onError:Function):void
         {
             const buffer:ByteArray = BufferPool.acquire();
             GetSnapshotRequest.serializeBytes(request, buffer);
@@ -59,11 +55,7 @@ package example.game
          * @param onComplete Called with the decoded MatchSnapshot.
          * @param onError Called if the RPC request fails.
          */
-        public function sendAction(
-            request:Player,
-            onComplete:Function,
-            onError:Function
-        ):void
+        public function sendAction(request:Player, onComplete:Function, onError:Function):void
         {
             const buffer:ByteArray = BufferPool.acquire();
             Player.serializeBytes(request, buffer);

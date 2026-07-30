@@ -22,8 +22,7 @@ package test
         public static function reset(msg:RuntimeNode):void
         {
             msg.value = "";
-            if (msg.next)
-                RuntimeNode.reset(msg.next);
+            msg.next = null;
         }
 
         /**
@@ -55,7 +54,7 @@ package test
                     case 18:
                     {
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.next = RuntimeNode.deserializeBytes(src, dst.next, src.position + messageLength);
+                            dst.next = RuntimeNode.deserializeBytes(src, null, src.position + messageLength);
                         break;
                     }
                     default:
