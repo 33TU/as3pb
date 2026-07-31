@@ -35,12 +35,13 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:MatchSnapshot = null, limit:uint = 0):MatchSnapshot
+        public static function deserializeBytes(src:ByteArray, dst:MatchSnapshot = null, limit:uint = 0, reset:Boolean = true):MatchSnapshot
         {
             if (!dst)
                 dst = new MatchSnapshot();
-            else
+            else if (reset)
                 MatchSnapshot.reset(dst);
 
             var messageLength:uint = 0;
@@ -94,11 +95,14 @@ package example.game
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:MatchSnapshot, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             var vecIndex:uint = 0;
             var vecLength:uint = 0;
             const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;

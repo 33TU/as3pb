@@ -31,6 +31,12 @@ func hasListOrMapFields(message *protogen.Message) bool {
 	})
 }
 
+func hasRepeatedUnpackedFields(message *protogen.Message) bool {
+	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
+		return (field.Desc.IsList() || field.Desc.IsMap()) && !field.Desc.IsPacked()
+	})
+}
+
 func hasBytesFields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
 		return field.Desc.Kind() == protoreflect.BytesKind

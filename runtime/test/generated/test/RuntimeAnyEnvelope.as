@@ -32,12 +32,13 @@ package test
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeAnyEnvelope = null, limit:uint = 0):RuntimeAnyEnvelope
+        public static function deserializeBytes(src:ByteArray, dst:RuntimeAnyEnvelope = null, limit:uint = 0, reset:Boolean = true):RuntimeAnyEnvelope
         {
             if (!dst)
                 dst = new RuntimeAnyEnvelope();
-            else
+            else if (reset)
                 RuntimeAnyEnvelope.reset(dst);
 
             var messageLength:uint = 0;
@@ -57,7 +58,7 @@ package test
                     case 10:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength);
+                        dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);
                         break;
                     }
                     default:
@@ -79,11 +80,14 @@ package test
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:RuntimeAnyEnvelope, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
             const localPayload:Any = src.payload;

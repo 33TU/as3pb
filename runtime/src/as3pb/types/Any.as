@@ -39,14 +39,15 @@ package as3pb.types
          * @param src The source ByteArray.
          * @param dst Optional reusable destination envelope.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          * @return The deserialized envelope.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Any = null, limit:uint = 0):Any
+        public static function deserializeBytes(src:ByteArray, dst:Any = null, limit:uint = 0, reset:Boolean = true):Any
         {
             if (!dst)
                 dst = new Any();
-            else
-                reset(dst);
+            else if (reset)
+                Any.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -64,6 +65,7 @@ package as3pb.types
                         dst.typeUrl = src.readUTFBytes(Deserialize.readVarint32(src));
                         break;
                     case 18:
+                        dst.value.length = 0;
                         src.readBytes(dst.value, 0, Deserialize.readVarint32(src));
                         break;
                     default:
@@ -83,11 +85,14 @@ package as3pb.types
 
         /**
          * Serializes an Any envelope to protobuf wire format.
-         * @param src The envelope to serialize.
+         * @param src The envelope to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:Any, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             if (src.typeUrl)
             {
                 dst.writeByte(10);

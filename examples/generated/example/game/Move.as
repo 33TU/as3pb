@@ -40,12 +40,13 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Move = null, limit:uint = 0):Move
+        public static function deserializeBytes(src:ByteArray, dst:Move = null, limit:uint = 0, reset:Boolean = true):Move
         {
             if (!dst)
                 dst = new Move();
-            else
+            else if (reset)
                 Move.reset(dst);
 
             var messageLength:uint = 0;
@@ -65,13 +66,13 @@ package example.game
                     case 10:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength);
+                        dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength, false);
                         break;
                     }
                     case 18:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength);
+                        dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength, false);
                         break;
                     }
                     case 24:
@@ -98,11 +99,14 @@ package example.game
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:Move, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
             const localFrom:Point = src.from;

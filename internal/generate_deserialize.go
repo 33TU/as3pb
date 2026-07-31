@@ -15,10 +15,11 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 		"Deserializes the message from protobuf wire format.\n"+
 			"@param src The source ByteArray.\n"+
 			"@param dst Optional reusable destination message.\n"+
-			"@param limit Optional end position; zero means the remaining bytes.",
+			"@param limit Optional end position; zero means the remaining bytes.\n"+
+			"@param reset Whether to reset a reusable destination before decoding.",
 	), false)
 	g.w.Line(
-		"public static function deserializeBytes(src:ByteArray, dst:%s = null, limit:uint = 0):%s",
+		"public static function deserializeBytes(src:ByteArray, dst:%s = null, limit:uint = 0, reset:Boolean = true):%s",
 		messageName,
 		messageName,
 	)
@@ -29,7 +30,7 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Indent()
 	g.w.Line("dst = new %s();", messageName)
 	g.w.Dedent()
-	g.w.Line("else")
+	g.w.Line("else if (reset)")
 	g.w.Indent()
 	g.w.Line("%s.reset(dst);", messageName)
 	g.w.Dedent()
@@ -67,8 +68,13 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 		g.w.Line("{")
 		g.w.Indent()
 
-		if field.Oneof != nil {
-			g.w.Line("dst.%s = %d;", names.OneofCase(field.Oneof), field.Desc.Number())
+		messageReset := "false"
+		if field.Oneof != nil && field.Desc.Kind() == protoreflect.MessageKind {
+			messageReset = fmt.Sprintf(
+				"dst.%s != %s",
+				names.OneofCase(field.Oneof),
+				names.FieldNumber(field),
+			)
 		}
 
 		if field.Desc.IsList() || field.Desc.IsMap() {
@@ -78,7 +84,11 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 				g.generateFieldDeserializerForRepeatedUnpackedType(field, fieldName, currentPackage)
 			}
 		} else {
-			g.generateFieldDeserializerForType(field, fieldName, currentPackage)
+			g.generateFieldDeserializerForType(field, fieldName, currentPackage, messageReset)
+		}
+
+		if field.Oneof != nil {
+			g.w.Line("dst.%s = %s;", names.OneofCase(field.Oneof), names.FieldNumber(field))
 		}
 
 		g.w.Line("break;")
@@ -116,7 +126,12 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Line("}")
 }
 
-func (g *Generator) generateFieldDeserializerForType(field *protogen.Field, fieldName string, currentPackage string) {
+func (g *Generator) generateFieldDeserializerForType(
+	field *protogen.Field,
+	fieldName string,
+	currentPackage string,
+	messageReset string,
+) {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
 		g.w.Line("%s = Deserialize.readVarint32(src) !== 0;", fieldName)
@@ -153,10 +168,11 @@ func (g *Generator) generateFieldDeserializerForType(field *protogen.Field, fiel
 		messageType := as3ElementType(field, currentPackage)
 		g.w.Line("messageLength = Deserialize.readVarint32(src);")
 		g.w.Line(
-			"%s = %s.deserializeBytes(src, %s, src.position + messageLength);",
+			"%s = %s.deserializeBytes(src, %s, src.position + messageLength, %s);",
 			fieldName,
 			messageType,
 			fieldName,
+			messageReset,
 		)
 	}
 }

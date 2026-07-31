@@ -34,6 +34,7 @@ package test
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
             testEmptyMessagePresence();
+            testMessageMerging();
             testRecursiveMessageRoundTrip();
             testAnyRegistry();
 
@@ -401,6 +402,74 @@ package test
             buffer.position = 0;
             const envelope:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer);
             assertTrue("empty Any presence", envelope.payload != null);
+
+            reset(buffer);
+            RuntimeSample.serializeBytes(null, buffer);
+            assertEq("null message bytes", buffer.length, 0);
+
+            reset(buffer);
+            Any.serializeBytes(null, buffer);
+            assertEq("null Any bytes", buffer.length, 0);
+
+            const selected:RuntimeSample = new RuntimeSample();
+            selected.choiceCase = RuntimeSample.FIELD_SELECTED;
+            reset(buffer);
+            RuntimeSample.serializeBytes(selected, buffer);
+            buffer.position = 0;
+            const selectedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("null oneof message case", selectedOut.choiceCase, RuntimeSample.FIELD_SELECTED);
+            assertTrue("null oneof empty message", selectedOut.selected != null);
+        }
+
+        private static function testMessageMerging():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            writeNestedField(buffer, 50, nested("merged", 0, 0.0));
+            writeNestedField(buffer, 50, nested("", 0x12345678, 0.0));
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("merged singular label", out.nested.label_, "merged");
+            assertUintEq("merged singular flags", out.nested.flags, 0x12345678);
+
+            reset(buffer);
+            writeNestedField(buffer, 82, nested("same case", 0, 0.0));
+            writeNestedField(buffer, 82, nested("", 7, 0.0));
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("merged oneof label", out.selected.label_, "same case");
+            assertUintEq("merged oneof flags", out.selected.flags, 7);
+
+            reset(buffer);
+            writeNestedField(buffer, 82, nested("discarded", 0, 0.0));
+            buffer.writeByte(74);
+            Serialize.writeString(buffer, "other case", Buffers.SHARED_BUFFER);
+            writeNestedField(buffer, 82, nested("", 0, 2.5));
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("replaced oneof case", out.choiceCase, RuntimeSample.FIELD_SELECTED);
+            assertEq("replaced oneof label", out.selected.label_, "");
+            assertEq("replaced oneof ratio", out.selected.ratio, 2.5);
+
+            const reusable:RuntimeSample = new RuntimeSample();
+            reusable.scores.push(7);
+            const update:RuntimeSample = new RuntimeSample();
+            update.id = "merged";
+            reset(buffer);
+            RuntimeSample.serializeBytes(update, buffer);
+            buffer.position = 0;
+            RuntimeSample.deserializeBytes(buffer, reusable, 0, false);
+            assertEq("top-level merge id", reusable.id, update.id);
+            assertEq("top-level merge retained scores", reusable.scores.length, 1);
+        }
+
+        private static function writeNestedField(dst:ByteArray, tag:uint, msg:RuntimeNested):void
+        {
+            const payload:ByteArray = Buffers.newByteArray();
+            RuntimeNested.serializeBytes(msg, payload);
+            dst.writeByte(tag);
+            Serialize.writeVarint32(dst, payload.length);
+            dst.writeBytes(payload);
         }
 
         private static function testAnyRegistry():void

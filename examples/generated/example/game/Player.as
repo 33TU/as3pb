@@ -60,12 +60,13 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0):Player
+        public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0, reset:Boolean = true):Player
         {
             if (!dst)
                 dst = new Player();
-            else
+            else if (reset)
                 Player.reset(dst);
 
             var messageLength:uint = 0;
@@ -111,21 +112,21 @@ package example.game
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.position = Point.deserializeBytes(src, dst.position, src.position + messageLength);
+                        dst.position = Point.deserializeBytes(src, dst.position, src.position + messageLength, false);
                         break;
                     }
                     case 58:
                     {
-                        dst.actionCase = 7;
                         messageLength = Deserialize.readVarint32(src);
-                        dst.move = Move.deserializeBytes(src, dst.move, src.position + messageLength);
+                        dst.move = Move.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);
+                        dst.actionCase = FIELD_MOVE;
                         break;
                     }
                     case 66:
                     {
-                        dst.actionCase = 8;
                         messageLength = Deserialize.readVarint32(src);
-                        dst.chat = Chat.deserializeBytes(src, dst.chat, src.position + messageLength);
+                        dst.chat = Chat.deserializeBytes(src, dst.chat, src.position + messageLength, dst.actionCase != FIELD_CHAT);
+                        dst.actionCase = FIELD_CHAT;
                         break;
                     }
                     default:
@@ -147,12 +148,14 @@ package example.game
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:Player, dst:ByteArray):void
         {
-            var vecIndex:uint = 0;
+            if (!src)
+                return;
+
             var vecLength:uint = 0;
             const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
@@ -204,7 +207,7 @@ package example.game
 
                 switch (src.actionCase)
                 {
-                    case 7:
+                    case FIELD_MOVE:
                     {
                         dst.writeByte(58);
                         messageReuseBuffer.length = 0;
@@ -213,7 +216,7 @@ package example.game
                         dst.writeBytes(messageReuseBuffer);
                         break;
                     }
-                    case 8:
+                    case FIELD_CHAT:
                     {
                         dst.writeByte(66);
                         messageReuseBuffer.length = 0;

@@ -101,13 +101,15 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public var raw:ByteArray = Buffers.newByteArray();",
 		"public static function reset(msg:Player):void",
 		"msg.raw.length = 0;",
-		"public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0):Player",
+		"public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0, reset:Boolean = true):Player",
 		`throw new Error("Invalid protobuf message limit");`,
 		`throw new Error("Invalid protobuf field number");`,
 		"else",
-		"dst.actionCase = 5;",
+		"dst.actionCase = FIELD_MOVE;",
+		"dst.move = Player.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
 		"Deserialize.readInt32Vector(src, dst.scores);",
 		"public static function serializeBytes(src:Player, dst:ByteArray):void",
+		"if (!src)",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
 		"Serialize.writeInt32Vector(dst, localScores, reuseBuffer, vecLength);",
 		"if (localRatio != 0.0)",
@@ -118,6 +120,9 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		if !strings.Contains(content, want) {
 			t.Fatalf("generated content missing %q:\n%s", want, content)
 		}
+	}
+	if strings.Contains(content, "var vecIndex:uint") {
+		t.Fatalf("packed-only generated content contains vecIndex:\n%s", content)
 	}
 }
 
@@ -193,7 +198,7 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	wantParts := []string{
 		"import as3pb.types.Any;",
 		"public var payload:Any = null;",
-		"dst.payload = Any.deserializeBytes(src, dst.payload,",
+		"dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);",
 		"Any.serializeBytes(localPayload, messageReuseBuffer);",
 	}
 	for _, want := range wantParts {
@@ -420,7 +425,8 @@ func messagePlugin(t *testing.T) *protogen.Plugin {
 						Name:       proto.String("move"),
 						Number:     proto.Int32(5),
 						Label:      descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
-						Type:       descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+						Type:       descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+						TypeName:   proto.String(".test.v1.Player"),
 						OneofIndex: proto.Int32(0),
 					},
 					{

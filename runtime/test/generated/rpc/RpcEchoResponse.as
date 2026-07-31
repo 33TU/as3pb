@@ -33,12 +33,13 @@ package rpc
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RpcEchoResponse = null, limit:uint = 0):RpcEchoResponse
+        public static function deserializeBytes(src:ByteArray, dst:RpcEchoResponse = null, limit:uint = 0, reset:Boolean = true):RpcEchoResponse
         {
             if (!dst)
                 dst = new RpcEchoResponse();
-            else
+            else if (reset)
                 RpcEchoResponse.reset(dst);
 
             const end:uint = limit
@@ -82,11 +83,14 @@ package rpc
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:RpcEchoResponse, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;
 
             const localMessage:String = src.message;

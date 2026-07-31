@@ -28,16 +28,25 @@ func (g *Generator) generateSerializeMethod(message *protogen.Message, names *Me
 
 	g.generateLeadingComment(protogen.Comments(
 		"Serializes the message to protobuf wire format.\n"+
-			"@param src The message to serialize.\n"+
+			"@param src The message to serialize; null writes an empty payload.\n"+
 			"@param dst The destination ByteArray.",
 	), false)
 	g.w.Line("public static function serializeBytes(src:%s, dst:ByteArray):void", messageName)
 	g.w.Line("{")
 	g.w.Indent()
 
+	g.w.Line("if (!src)")
+	g.w.Indent()
+	g.w.Line("return;")
+	g.w.Dedent()
+	g.w.BlankLine()
+
 	newLine := false
-	if hasListOrMapFields(message) {
+	if hasRepeatedUnpackedFields(message) {
 		g.w.Line("var vecIndex:uint = 0;")
+		newLine = true
+	}
+	if hasListOrMapFields(message) {
 		g.w.Line("var vecLength:uint = 0;")
 		newLine = true
 	}
@@ -86,7 +95,7 @@ func (g *Generator) generateSerializeMethod(message *protogen.Message, names *Me
 		g.w.Line("{")
 		g.w.Indent()
 		for _, field := range oneofGroups[oneof] {
-			g.w.Line("case %d:", field.Desc.Number())
+			g.w.Line("case %s:", names.FieldNumber(field))
 			g.w.Line("{")
 			g.w.Indent()
 			g.generateMessageFieldSerializer(field, localFieldName(field, names), currentPackage)

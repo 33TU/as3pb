@@ -35,12 +35,13 @@ package test
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeNested = null, limit:uint = 0):RuntimeNested
+        public static function deserializeBytes(src:ByteArray, dst:RuntimeNested = null, limit:uint = 0, reset:Boolean = true):RuntimeNested
         {
             if (!dst)
                 dst = new RuntimeNested();
-            else
+            else if (reset)
                 RuntimeNested.reset(dst);
 
             const end:uint = limit
@@ -89,11 +90,14 @@ package test
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:RuntimeNested, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;
 
             const localLabel:String = src.label_;

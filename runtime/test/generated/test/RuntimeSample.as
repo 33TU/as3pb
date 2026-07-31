@@ -67,12 +67,13 @@ package test
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeSample = null, limit:uint = 0):RuntimeSample
+        public static function deserializeBytes(src:ByteArray, dst:RuntimeSample = null, limit:uint = 0, reset:Boolean = true):RuntimeSample
         {
             if (!dst)
                 dst = new RuntimeSample();
-            else
+            else if (reset)
                 RuntimeSample.reset(dst);
 
             var messageLength:uint = 0;
@@ -118,7 +119,7 @@ package test
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.nested = RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength);
+                        dst.nested = RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength, false);
                         break;
                     }
                     case 58:
@@ -141,15 +142,15 @@ package test
                     }
                     case 74:
                     {
-                        dst.choiceCase = 9;
                         dst.name = src.readUTFBytes(Deserialize.readVarint32(src));
+                        dst.choiceCase = FIELD_NAME;
                         break;
                     }
                     case 82:
                     {
-                        dst.choiceCase = 10;
                         messageLength = Deserialize.readVarint32(src);
-                        dst.selected = RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength);
+                        dst.selected = RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
+                        dst.choiceCase = FIELD_SELECTED;
                         break;
                     }
                     default:
@@ -171,11 +172,14 @@ package test
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:RuntimeSample, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             var vecIndex:uint = 0;
             var vecLength:uint = 0;
             const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;
@@ -253,13 +257,13 @@ package test
 
                 switch (src.choiceCase)
                 {
-                    case 9:
+                    case FIELD_NAME:
                     {
                         dst.writeByte(74);
                         Serialize.writeString(dst, localName, reuseBuffer);
                         break;
                     }
-                    case 10:
+                    case FIELD_SELECTED:
                     {
                         dst.writeByte(82);
                         messageReuseBuffer.length = 0;

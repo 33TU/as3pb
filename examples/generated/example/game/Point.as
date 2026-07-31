@@ -32,12 +32,13 @@ package example.game
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
          * @param limit Optional end position; zero means the remaining bytes.
+         * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Point = null, limit:uint = 0):Point
+        public static function deserializeBytes(src:ByteArray, dst:Point = null, limit:uint = 0, reset:Boolean = true):Point
         {
             if (!dst)
                 dst = new Point();
-            else
+            else if (reset)
                 Point.reset(dst);
 
             const end:uint = limit
@@ -81,11 +82,14 @@ package example.game
 
         /**
          * Serializes the message to protobuf wire format.
-         * @param src The message to serialize.
+         * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
         public static function serializeBytes(src:Point, dst:ByteArray):void
         {
+            if (!src)
+                return;
+
             const localX:Number = src.x;
             const localY:Number = src.y;
 
