@@ -40,7 +40,10 @@ package example.game
             else
                 Point.reset(dst);
 
-            const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            const end:uint = limit
+                ? limit
+                : src.position + src.bytesAvailable;
+
             if (end < src.position || end > src.length)
                 throw new Error("Invalid protobuf message limit");
 
@@ -83,12 +86,12 @@ package example.game
             const localX:Number = src.x;
             const localY:Number = src.y;
 
-            if (localX)
+            if (localX != 0.0)
             {
                 dst.writeByte(13);
                 dst.writeFloat(localX);
             }
-            if (localY)
+            if (localY != 0.0)
             {
                 dst.writeByte(21);
                 dst.writeFloat(localY);

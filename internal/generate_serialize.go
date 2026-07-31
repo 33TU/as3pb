@@ -286,6 +286,8 @@ func fieldCondition(field *protogen.Field, fieldName string) string {
 	switch field.Desc.Kind() {
 	case protoreflect.BytesKind:
 		return fieldName + ".length"
+	case protoreflect.FloatKind, protoreflect.DoubleKind:
+		return fieldName + " != 0.0"
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Uint64Kind, protoreflect.Sfixed64Kind, protoreflect.Fixed64Kind:
 		return fmt.Sprintf("%s.low || %s.high", fieldName, fieldName)
 	default:

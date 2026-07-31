@@ -39,7 +39,10 @@ package example.game
             else
                 GetSnapshotRequest.reset(dst);
 
-            const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            const end:uint = limit
+                ? limit
+                : src.position + src.bytesAvailable;
+
             if (end < src.position || end > src.length)
                 throw new Error("Invalid protobuf message limit");
 

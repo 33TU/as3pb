@@ -109,6 +109,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public static function serializeBytes(src:Player, dst:ByteArray):void",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
 		"Serialize.writeInt32Vector(dst, localScores, reuseBuffer, vecLength);",
+		"if (localRatio != 0.0)",
 		"switch (src.actionCase)",
 		"AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);",
 	}
@@ -420,6 +421,12 @@ func messagePlugin(t *testing.T) *protogen.Plugin {
 						Label:      descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 						Type:       descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 						OneofIndex: proto.Int32(0),
+					},
+					{
+						Name:   proto.String("ratio"),
+						Number: proto.Int32(6),
+						Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:   descriptorpb.FieldDescriptorProto_TYPE_FLOAT.Enum(),
 					},
 				},
 				OneofDecl: []*descriptorpb.OneofDescriptorProto{{

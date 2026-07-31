@@ -43,7 +43,10 @@ package test
 
             var messageLength:uint = 0;
 
-            const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            const end:uint = limit
+                ? limit
+                : src.position + src.bytesAvailable;
+
             if (end < src.position || end > src.length)
                 throw new Error("Invalid protobuf message limit");
 

@@ -76,7 +76,10 @@ package bench
             else
                 BenchMessage.reset(dst);
 
-            const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            const end:uint = limit
+                ? limit
+                : src.position + src.bytesAvailable;
+
             if (end < src.position || end > src.length)
                 throw new Error("Invalid protobuf message limit");
 
@@ -244,12 +247,12 @@ package bench
                 dst.writeUnsignedInt(localSignedTick.low);
                 dst.writeInt(localSignedTick.high);
             }
-            if (localX)
+            if (localX != 0.0)
             {
                 dst.writeByte(69);
                 dst.writeFloat(localX);
             }
-            if (localPrecision)
+            if (localPrecision != 0.0)
             {
                 dst.writeByte(73);
                 dst.writeDouble(localPrecision);

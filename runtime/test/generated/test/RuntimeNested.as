@@ -43,7 +43,10 @@ package test
             else
                 RuntimeNested.reset(dst);
 
-            const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            const end:uint = limit
+                ? limit
+                : src.position + src.bytesAvailable;
+
             if (end < src.position || end > src.length)
                 throw new Error("Invalid protobuf message limit");
 
@@ -104,7 +107,7 @@ package test
                 dst.writeByte(21);
                 dst.writeUnsignedInt(localFlags);
             }
-            if (localRatio)
+            if (localRatio != 0.0)
             {
                 dst.writeByte(25);
                 dst.writeDouble(localRatio);
