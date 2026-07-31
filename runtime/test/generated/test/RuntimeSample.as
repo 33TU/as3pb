@@ -117,8 +117,8 @@ package test
                     }
                     case 50:
                     {
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.nested = RuntimeNested.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.nested = RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength);
                         break;
                     }
                     case 58:
@@ -148,8 +148,8 @@ package test
                     case 82:
                     {
                         dst.choiceCase = 10;
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.selected = RuntimeNested.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.selected = RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength);
                         break;
                     }
                     default:

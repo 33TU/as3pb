@@ -56,8 +56,8 @@ package test
                 {
                     case 10:
                     {
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.payload = Any.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength);
                         break;
                     }
                     default:

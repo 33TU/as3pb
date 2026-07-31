@@ -110,22 +110,22 @@ package example.game
                     }
                     case 50:
                     {
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.position = Point.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.position = Point.deserializeBytes(src, dst.position, src.position + messageLength);
                         break;
                     }
                     case 58:
                     {
                         dst.actionCase = 7;
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.move = Move.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.move = Move.deserializeBytes(src, dst.move, src.position + messageLength);
                         break;
                     }
                     case 66:
                     {
                         dst.actionCase = 8;
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.chat = Chat.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.chat = Chat.deserializeBytes(src, dst.chat, src.position + messageLength);
                         break;
                     }
                     default:

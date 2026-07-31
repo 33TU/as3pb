@@ -33,6 +33,7 @@ package test
             testInvalidMessageLimits();
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
+            testEmptyMessagePresence();
             testRecursiveMessageRoundTrip();
             testAnyRegistry();
 
@@ -374,6 +375,32 @@ package test
             assertEq("recursive root", out.value, root.value);
             assertEq("recursive middle", out.next.value, root.next.value);
             assertEq("recursive leaf", out.next.next.value, root.next.next.value);
+        }
+
+        private static function testEmptyMessagePresence():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            buffer.writeByte(50);
+            buffer.writeByte(0);
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertTrue("empty singular message presence", out.nested != null);
+
+            reset(buffer);
+            buffer.writeByte(82);
+            buffer.writeByte(0);
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("empty oneof case", out.choiceCase, RuntimeSample.FIELD_SELECTED);
+            assertTrue("empty oneof message presence", out.selected != null);
+
+            reset(buffer);
+            buffer.writeByte(10);
+            buffer.writeByte(0);
+            buffer.position = 0;
+            const envelope:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer);
+            assertTrue("empty Any presence", envelope.payload != null);
         }
 
         private static function testAnyRegistry():void

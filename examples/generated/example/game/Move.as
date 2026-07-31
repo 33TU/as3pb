@@ -64,14 +64,14 @@ package example.game
                 {
                     case 10:
                     {
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.from = Point.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength);
                         break;
                     }
                     case 18:
                     {
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            dst.to = Point.deserializeBytes(src, null, src.position + messageLength);
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength);
                         break;
                     }
                     case 24:

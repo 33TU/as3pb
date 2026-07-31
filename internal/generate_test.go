@@ -193,7 +193,7 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	wantParts := []string{
 		"import as3pb.types.Any;",
 		"public var payload:Any = null;",
-		"dst.payload = Any.deserializeBytes(",
+		"dst.payload = Any.deserializeBytes(src, dst.payload,",
 		"Any.serializeBytes(localPayload, messageReuseBuffer);",
 	}
 	for _, want := range wantParts {
