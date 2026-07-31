@@ -41,6 +41,11 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	}
 
 	g.w.Line("const end:uint = limit ? limit : src.position + src.bytesAvailable;")
+	g.w.Line("if (end < src.position || end > src.length)")
+	g.w.Indent()
+	g.w.Line(`throw new Error("Invalid protobuf message limit");`)
+	g.w.Dedent()
+	g.w.BlankLine()
 	g.w.Line("while (src.position < end)")
 	g.w.Line("{")
 	g.w.Indent()

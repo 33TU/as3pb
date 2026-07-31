@@ -102,6 +102,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public static function reset(msg:Player):void",
 		"msg.raw.length = 0;",
 		"public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0):Player",
+		`throw new Error("Invalid protobuf message limit");`,
 		"else",
 		"dst.actionCase = 5;",
 		"Deserialize.readInt32Vector(src, dst.scores);",

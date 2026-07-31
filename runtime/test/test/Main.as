@@ -29,6 +29,7 @@ package test
             testPackedVectors();
             testSkipUnknownVarint64();
             testMalformedVarints();
+            testInvalidMessageLimits();
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
             testRecursiveMessageRoundTrip();
@@ -244,6 +245,20 @@ package test
             assertThrows("read malformed varint64", function():void
                 {
                     Deserialize.readVarint64(buffer, new UInt64());
+                });
+        }
+
+        private static function testInvalidMessageLimits():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            assertThrows("generated invalid message limit", function():void
+                {
+                    RuntimeNested.deserializeBytes(buffer, null, 1);
+                });
+            assertThrows("Any invalid message limit", function():void
+                {
+                    Any.deserializeBytes(buffer, null, 1);
                 });
         }
 

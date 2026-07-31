@@ -40,6 +40,9 @@ package example.game
                 GetSnapshotRequest.reset(dst);
 
             const end:uint = limit ? limit : src.position + src.bytesAvailable;
+            if (end < src.position || end > src.length)
+                throw new Error("Invalid protobuf message limit");
+
             while (src.position < end)
             {
                 const tag:uint = Deserialize.readVarint32(src);
