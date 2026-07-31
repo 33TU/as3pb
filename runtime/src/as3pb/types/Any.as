@@ -67,6 +67,9 @@ package as3pb.types
                         src.readBytes(dst.value, 0, Deserialize.readVarint32(src));
                         break;
                     default:
+                        if ((tag >>> 3) == 0)
+                            throw new Error("Invalid protobuf field number");
+
                         Deserialize.skipField(src, tag & 7);
                         break;
                 }

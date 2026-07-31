@@ -29,6 +29,7 @@ package test
             testPackedVectors();
             testSkipUnknownVarint64();
             testMalformedVarints();
+            testInvalidFieldNumbers();
             testInvalidMessageLimits();
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
@@ -259,6 +260,24 @@ package test
             assertThrows("Any invalid message limit", function():void
                 {
                     Any.deserializeBytes(buffer, null, 1);
+                });
+        }
+
+        private static function testInvalidFieldNumbers():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+            buffer.writeByte(0);
+
+            buffer.position = 0;
+            assertThrows("generated invalid field number", function():void
+                {
+                    RuntimeNested.deserializeBytes(buffer);
+                });
+
+            buffer.position = 0;
+            assertThrows("Any invalid field number", function():void
+                {
+                    Any.deserializeBytes(buffer);
                 });
         }
 

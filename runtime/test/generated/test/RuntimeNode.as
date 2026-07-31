@@ -68,6 +68,9 @@ package test
                     }
                     default:
                     {
+                        if ((tag >>> 3) == 0)
+                            throw new Error("Invalid protobuf field number");
+
                         Deserialize.skipField(src, tag & 7);
                         break;
                     }
