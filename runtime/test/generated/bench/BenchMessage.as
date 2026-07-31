@@ -145,9 +145,19 @@ package bench
                         src.readBytes(dst.payload, 0, Deserialize.readVarint32(src));
                         break;
                     }
+                    case 160:
+                    {
+                        dst.samples.push(Deserialize.readVarint32(src));
+                        break;
+                    }
                     case 162:
                     {
                         Deserialize.readVarint32Vector(src, dst.samples);
+                        break;
+                    }
+                    case 168:
+                    {
+                        dst.offsets.push(Deserialize.readSint32(src));
                         break;
                     }
                     case 170:
@@ -155,14 +165,29 @@ package bench
                         Deserialize.readSint32Vector(src, dst.offsets);
                         break;
                     }
+                    case 181:
+                    {
+                        dst.hashes.push(src.readUnsignedInt());
+                        break;
+                    }
                     case 178:
                     {
                         Deserialize.readFixed32Vector(src, dst.hashes);
                         break;
                     }
+                    case 185:
+                    {
+                        dst.ticks.push(src.readUnsignedInt(), src.readInt());
+                        break;
+                    }
                     case 186:
                     {
                         Deserialize.readFixed64sVector(src, dst.ticks);
+                        break;
+                    }
+                    case 197:
+                    {
+                        dst.positions.push(src.readFloat());
                         break;
                     }
                     case 194:

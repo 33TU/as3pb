@@ -27,6 +27,7 @@ package test
             testFixedWidth();
             testStringsAndBytes();
             testPackedVectors();
+            testPackedEncodingCompatibility();
             testSkipUnknownVarint64();
             testMalformedVarints();
             testInvalidFieldNumbers();
@@ -213,6 +214,46 @@ package test
             assertEq("int64 vector length", outInt64s.length, int64s.length);
             assertEq("int64 vector low", outInt64s.low[1], 0);
             assertEq("int64 vector high", outInt64s.high[1], int.MIN_VALUE);
+        }
+
+        private static function testPackedEncodingCompatibility():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+            const values:Vector.<int> = new <int>[-1, 0, 123456];
+
+            for each (var value:int in values)
+            {
+                buffer.writeByte(40);
+                Serialize.writeSint32(buffer, value);
+            }
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("unpacked input length", out.scores.length, values.length);
+            for (var i:uint = 0; i < values.length; i++)
+                assertEq("unpacked input " + i, out.scores[i], values[i]);
+
+            reset(buffer);
+            buffer.writeByte(98);
+            Serialize.writeInt32Vector(buffer, values, Buffers.SHARED_BUFFER, values.length);
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("packed input length", out.expandedScores.length, values.length);
+            for (i = 0; i < values.length; i++)
+                assertEq("packed input " + i, out.expandedScores[i], values[i]);
+
+            const msg:RuntimeSample = new RuntimeSample();
+            msg.scores.push(1);
+            reset(buffer);
+            RuntimeSample.serializeBytes(msg, buffer);
+            buffer.position = 0;
+            assertEq("packed serializer tag", Deserialize.readVarint32(buffer), 42);
+
+            msg.scores.length = 0;
+            msg.expandedScores.push(1);
+            reset(buffer);
+            RuntimeSample.serializeBytes(msg, buffer);
+            buffer.position = 0;
+            assertEq("unpacked serializer tag", Deserialize.readVarint32(buffer), 96);
         }
 
         private static function testSkipUnknownVarint64():void

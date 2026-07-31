@@ -98,6 +98,11 @@ package example.game
                         Deserialize.readVarint64(src, dst.score);
                         break;
                     }
+                    case 32:
+                    {
+                        dst.inventoryItemIds.push(Deserialize.readInt32(src));
+                        break;
+                    }
                     case 34:
                     {
                         Deserialize.readInt32Vector(src, dst.inventoryItemIds);

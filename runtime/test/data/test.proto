@@ -20,6 +20,7 @@ message RuntimeSample {
   repeated RuntimeNested children = 7;
   fixed64 checksum = 8;
   int32 signed_count = 11;
+  repeated int32 expanded_scores = 12 [packed = false];
 
   oneof choice {
     string name = 9;

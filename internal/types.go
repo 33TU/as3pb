@@ -14,8 +14,11 @@ func WireTypeForField(field *protogen.Field) protowire.Type {
 	if field.Desc.IsMap() || field.Desc.IsPacked() {
 		return protowire.BytesType
 	}
+	return wireTypeForKind(field.Desc.Kind())
+}
 
-	switch field.Desc.Kind() {
+func wireTypeForKind(kind protoreflect.Kind) protowire.Type {
+	switch kind {
 	case protoreflect.BoolKind,
 		protoreflect.EnumKind,
 		protoreflect.Int32Kind,

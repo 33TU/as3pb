@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -61,39 +62,19 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Indent()
 
 	for _, field := range message.Fields {
-		tag := (int(field.Desc.Number()) << 3) | int(WireTypeForField(field))
-		fieldName := "dst." + names.Field(field)
-
-		g.w.Line("case %d:", tag)
-		g.w.Line("{")
-		g.w.Indent()
-
-		messageReset := "false"
-		if field.Oneof != nil && field.Desc.Kind() == protoreflect.MessageKind {
-			messageReset = fmt.Sprintf(
-				"dst.%s != %s",
-				names.OneofCase(field.Oneof),
-				names.FieldNumber(field),
-			)
+		if isPackableRepeatedField(field) {
+			g.generateFieldDeserializeCase(field, names, currentPackage, wireTypeForKind(field.Desc.Kind()), false)
+			g.generateFieldDeserializeCase(field, names, currentPackage, protowire.BytesType, true)
+			continue
 		}
 
-		if field.Desc.IsList() || field.Desc.IsMap() {
-			if field.Desc.IsPacked() {
-				g.generateFieldDeserializerForRepeatedPackedType(field, fieldName)
-			} else {
-				g.generateFieldDeserializerForRepeatedUnpackedType(field, fieldName, currentPackage)
-			}
-		} else {
-			g.generateFieldDeserializerForType(field, fieldName, currentPackage, messageReset)
-		}
-
-		if field.Oneof != nil {
-			g.w.Line("dst.%s = %s;", names.OneofCase(field.Oneof), names.FieldNumber(field))
-		}
-
-		g.w.Line("break;")
-		g.w.Dedent()
-		g.w.Line("}")
+		g.generateFieldDeserializeCase(
+			field,
+			names,
+			currentPackage,
+			WireTypeForField(field),
+			field.Desc.IsPacked(),
+		)
 	}
 
 	g.w.Line("default:")
@@ -122,6 +103,48 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.BlankLine()
 
 	g.w.Line("return dst;")
+	g.w.Dedent()
+	g.w.Line("}")
+}
+
+func (g *Generator) generateFieldDeserializeCase(
+	field *protogen.Field,
+	names *MessageNames,
+	currentPackage string,
+	wireType protowire.Type,
+	packed bool,
+) {
+	tag := (int(field.Desc.Number()) << 3) | int(wireType)
+	fieldName := "dst." + names.Field(field)
+
+	g.w.Line("case %d:", tag)
+	g.w.Line("{")
+	g.w.Indent()
+
+	messageReset := "false"
+	if field.Oneof != nil && field.Desc.Kind() == protoreflect.MessageKind {
+		messageReset = fmt.Sprintf(
+			"dst.%s != %s",
+			names.OneofCase(field.Oneof),
+			names.FieldNumber(field),
+		)
+	}
+
+	if field.Desc.IsList() || field.Desc.IsMap() {
+		if packed {
+			g.generateFieldDeserializerForRepeatedPackedType(field, fieldName)
+		} else {
+			g.generateFieldDeserializerForRepeatedUnpackedType(field, fieldName, currentPackage)
+		}
+	} else {
+		g.generateFieldDeserializerForType(field, fieldName, currentPackage, messageReset)
+	}
+
+	if field.Oneof != nil {
+		g.w.Line("dst.%s = %s;", names.OneofCase(field.Oneof), names.FieldNumber(field))
+	}
+
+	g.w.Line("break;")
 	g.w.Dedent()
 	g.w.Line("}")
 }
@@ -228,9 +251,9 @@ func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *prot
 
 func (g *Generator) generateFieldDeserializerForRepeatedPackedType(field *protogen.Field, fieldName string) {
 	switch field.Desc.Kind() {
-	case protoreflect.EnumKind, protoreflect.Uint32Kind:
+	case protoreflect.Uint32Kind:
 		g.w.Line("Deserialize.readVarint32Vector(src, %s);", fieldName)
-	case protoreflect.Int32Kind:
+	case protoreflect.EnumKind, protoreflect.Int32Kind:
 		g.w.Line("Deserialize.readInt32Vector(src, %s);", fieldName)
 	case protoreflect.Sint32Kind:
 		g.w.Line("Deserialize.readSint32Vector(src, %s);", fieldName)

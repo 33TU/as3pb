@@ -106,6 +106,8 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		`throw new Error("Invalid protobuf field number");`,
 		"else",
 		"dst.actionCase = FIELD_MOVE;",
+		"case 32:",
+		"dst.scores.push(Deserialize.readInt32(src));",
 		"dst.move = Player.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
 		"Deserialize.readInt32Vector(src, dst.scores);",
 		"public static function serializeBytes(src:Player, dst:ByteArray):void",

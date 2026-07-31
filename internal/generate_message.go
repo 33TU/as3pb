@@ -118,7 +118,7 @@ func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
 			message.Desc.FullName(),
 		)
 	}
-	if g.opts.generateDeserialize() && hasRepeatedUnpackedVarint64Fields(message) {
+	if g.opts.generateDeserialize() && hasRepeatedVarint64Fields(message) {
 		g.w.Line("private static const TMP_UINT64:UInt64 = new UInt64();")
 		g.w.Line("private static const TMP_INT64:Int64 = new Int64();")
 	}
@@ -134,7 +134,7 @@ func (g *Generator) generateAnyRegistration() {
 
 func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
 	return g.opts.generateAny() ||
-		(g.opts.generateDeserialize() && hasRepeatedUnpackedVarint64Fields(message))
+		(g.opts.generateDeserialize() && hasRepeatedVarint64Fields(message))
 }
 
 func (g *Generator) needsByteArrayImport(message *protogen.Message) bool {

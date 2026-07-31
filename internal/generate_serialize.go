@@ -236,9 +236,9 @@ func (g *Generator) generateFieldSerializerForRepeatedPackedType(field *protogen
 	g.generateWriteTag(field)
 
 	switch field.Desc.Kind() {
-	case protoreflect.EnumKind, protoreflect.Uint32Kind:
+	case protoreflect.Uint32Kind:
 		g.w.Line("Serialize.writeVarint32Vector(dst, %s, reuseBuffer, vecLength);", locName)
-	case protoreflect.Int32Kind:
+	case protoreflect.EnumKind, protoreflect.Int32Kind:
 		g.w.Line("Serialize.writeInt32Vector(dst, %s, reuseBuffer, vecLength);", locName)
 	case protoreflect.Sint32Kind:
 		g.w.Line("Serialize.writeSint32Vector(dst, %s, reuseBuffer, vecLength);", locName)

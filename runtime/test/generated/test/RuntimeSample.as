@@ -30,6 +30,7 @@ package test
         public var children:Vector.<RuntimeNested> = new Vector.<RuntimeNested>();
         public var checksum:UInt64 = new UInt64();
         public var signedCount:int = 0;
+        public var expandedScores:Vector.<int> = new Vector.<int>();
         public var name:String = "";
         public var selected:RuntimeNested = null;
 
@@ -57,6 +58,7 @@ package test
             msg.checksum.low = 0;
             msg.checksum.high = 0;
             msg.signedCount = 0;
+            msg.expandedScores.length = 0;
             msg.name = "";
             msg.selected = null;
             msg.choiceCase = 0;
@@ -111,6 +113,11 @@ package test
                         Deserialize.readSint64(src, dst.delta);
                         break;
                     }
+                    case 40:
+                    {
+                        dst.scores.push(Deserialize.readSint32(src));
+                        break;
+                    }
                     case 42:
                     {
                         Deserialize.readSint32Vector(src, dst.scores);
@@ -138,6 +145,16 @@ package test
                     case 88:
                     {
                         dst.signedCount = Deserialize.readInt32(src);
+                        break;
+                    }
+                    case 96:
+                    {
+                        dst.expandedScores.push(Deserialize.readInt32(src));
+                        break;
+                    }
+                    case 98:
+                    {
+                        Deserialize.readInt32Vector(src, dst.expandedScores);
                         break;
                     }
                     case 74:
@@ -194,6 +211,7 @@ package test
             const localChildren:Vector.<RuntimeNested> = src.children;
             const localChecksum:UInt64 = src.checksum;
             const localSignedCount:int = src.signedCount;
+            const localExpandedScores:Vector.<int> = src.expandedScores;
             const localName:String = src.name;
             const localSelected:RuntimeNested = src.selected;
 
@@ -253,6 +271,14 @@ package test
                 {
                     dst.writeByte(88);
                     Serialize.writeInt32(dst, localSignedCount);
+                }
+                if ((vecLength = localExpandedScores.length) !== 0)
+                {
+                    for (vecIndex = 0; vecIndex < vecLength; vecIndex++)
+                    {
+                        dst.writeByte(96);
+                        Serialize.writeInt32(dst, localExpandedScores[vecIndex]);
+                    }
                 }
 
                 switch (src.choiceCase)
