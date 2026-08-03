@@ -448,8 +448,8 @@ package as3pb.types
          */
         public static function fromNumber(n:Number):Int64
         {
-            const high:int = int(n / 4294967296 /* TWO32 */);
-            const low:uint = uint(n % 4294967296 /* TWO32 */);
+            const high:int = int(Math.floor(n / 4294967296 /* TWO32 */));
+            const low:uint = uint(n - high * 4294967296 /* TWO32 */);
             return new Int64(low, high);
         }
 

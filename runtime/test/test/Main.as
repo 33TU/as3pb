@@ -477,6 +477,11 @@ package test
 
         private static function testTimestampUtils():void
         {
+            const negativeOne:Int64 = Int64.fromNumber(-1);
+            assertUintEq("int64 negative number low", negativeOne.low, uint.MAX_VALUE);
+            assertEq("int64 negative number high", negativeOne.high, -1);
+            assertEq("int64 negative number round trip", negativeOne.toNumber(), -1);
+
             var timestamp:Timestamp = TimestampUtils.fromDate(new Date(1234));
             assertEq("timestamp positive seconds", timestamp.seconds.toNumber(), 1);
             assertEq("timestamp positive nanos", timestamp.nanos, 234000000);
