@@ -1,6 +1,7 @@
 package as3pb.types
 {
     import flash.utils.ByteArray;
+    import google.protobuf.Any;
 
     /**
      * Explicit registry for packing and unpacking protobuf Any values.

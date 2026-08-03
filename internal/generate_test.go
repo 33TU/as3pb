@@ -198,7 +198,7 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 
 	content := plugin.Response().GetFile()[0].GetContent()
 	wantParts := []string{
-		"import as3pb.types.Any;",
+		"import google.protobuf.Any;",
 		"public var payload:Any = null;",
 		"dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);",
 		"Any.serializeBytes(localPayload, messageReuseBuffer);",
@@ -207,6 +207,18 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 		if !strings.Contains(content, want) {
 			t.Fatalf("generated Any field missing %q:\n%s", want, content)
 		}
+	}
+}
+
+func TestGenerateFileSkipsRuntimeProvidedAny(t *testing.T) {
+	plugin := anyPlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{GenerateAlways: true})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+	if files := plugin.Response().GetFile(); len(files) != 0 {
+		t.Fatalf("GenerateFile() generated %d files for runtime-provided Any, want 0", len(files))
 	}
 }
 
@@ -226,7 +238,7 @@ func TestGenerateFileCanDisableAnyRegistration(t *testing.T) {
 	if strings.Contains(content, "AnyRegistry") {
 		t.Fatalf("generated content contains AnyRegistry:\n%s", content)
 	}
-	if !strings.Contains(content, "import as3pb.types.Any;") {
+	if !strings.Contains(content, "import google.protobuf.Any;") {
 		t.Fatalf("generated content missing Any field support:\n%s", content)
 	}
 }

@@ -1,4 +1,4 @@
-package as3pb.types
+package google.protobuf
 {
     import flash.utils.ByteArray;
 

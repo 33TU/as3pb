@@ -10,6 +10,10 @@ import (
 
 // GenerateFile emits ActionScript 3 code for one protobuf file.
 func (g *Generator) GenerateFile(file *protogen.File) error {
+	if file.Desc.Path() == "google/protobuf/any.proto" {
+		g.log.Debug("skipping runtime-provided file", "path", file.Desc.Path())
+		return nil
+	}
 	if !file.Generate && !g.opts.GenerateAlways {
 		g.log.Debug("skipping file", "path", file.Desc.Path())
 		return nil

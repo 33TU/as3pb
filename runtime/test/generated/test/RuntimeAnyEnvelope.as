@@ -8,7 +8,7 @@ package test
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.Any;
+    import google.protobuf.Any;
     import as3pb.types.AnyRegistry;
 
     public final class RuntimeAnyEnvelope
