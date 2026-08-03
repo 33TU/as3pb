@@ -54,7 +54,7 @@ package as3pb.rpc
          * @param path The RPC method path (e.g., "/example.ExampleService/ExampleMethod")
          * @param payload The serialized protobuf request payload.
          * @param onComplete Called with the response ByteArray when the request completes successfully.
-         * @param onError Called with the error event if the request fails due to a network or security error.
+         * @param onError Called with the error event for network, security, or timeout failures.
          */
         protected function $callUnary(
                 path:String,

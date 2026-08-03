@@ -6,6 +6,7 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.rpc.HttpTransport;
     import as3pb.wkt.AnyRegistry;
     import google.protobuf.Any;
     import as3pb.types.Int64;
@@ -14,9 +15,11 @@ package test
     import as3pb.types.OptionalInt;
     import as3pb.types.OptionalNumber;
     import as3pb.types.OptionalUint;
+    import as3pb.wkt.DurationUtils;
     import as3pb.wkt.TimestampUtils;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
+    import google.protobuf.Duration;
     import google.protobuf.Timestamp;
 
     public final class Main extends Sprite
@@ -47,6 +50,8 @@ package test
             runTest("testOptionalScalarKinds", testOptionalScalarKinds);
             runTest("testSingularLastValueWins", testSingularLastValueWins);
             runTest("testTimestampUtils", testTimestampUtils);
+            runTest("testDurationUtils", testDurationUtils);
+            runTest("testHttpTransportConfiguration", testHttpTransportConfiguration);
             runTest("testEmptyMessagePresence", testEmptyMessagePresence);
             runTest("testMessageMerging", testMessageMerging);
             runTest("testOneofReferenceReplacement", testOneofReferenceReplacement);
@@ -356,6 +361,15 @@ package test
             const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
             assertEq("known field after unknown wire types", out.id, "after");
             assertEq("unknown fields consumed", buffer.position, buffer.length);
+
+            reset(buffer);
+            Serialize.writeVarint32(buffer, (100 << 3) | 2);
+            Serialize.writeVarint32(buffer, uint.MAX_VALUE);
+            buffer.position = 0;
+            assertThrows("unknown length-delimited field overflow", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer);
+                });
 
             reset(buffer);
             Serialize.writeVarint32(buffer, (100 << 3) | 3);
@@ -804,6 +818,50 @@ package test
 
             const current:Timestamp = TimestampUtils.now();
             assertTrue("timestamp now valid", TimestampUtils.isValid(current));
+        }
+
+        private static function testDurationUtils():void
+        {
+            var duration:Duration = DurationUtils.fromMilliseconds(1234.5);
+            assertEq("duration positive seconds", duration.seconds.toNumber(), 1);
+            assertEq("duration positive nanos", duration.nanos, 234500000);
+            assertEq("duration positive round trip", DurationUtils.toMilliseconds(duration), 1234.5);
+
+            duration = DurationUtils.fromMilliseconds(-1234.5, duration);
+            assertEq("duration negative seconds", duration.seconds.toNumber(), -1);
+            assertEq("duration negative nanos", duration.nanos, -234500000);
+            assertEq("duration negative round trip", DurationUtils.toMilliseconds(duration), -1234.5);
+
+            duration.seconds.copyFrom(Int64.fromNumber(1));
+            duration.nanos = -1;
+            DurationUtils.normalize(duration);
+            assertEq("duration positive normalize seconds", duration.seconds.toNumber(), 0);
+            assertEq("duration positive normalize nanos", duration.nanos, 999999999);
+            assertTrue("duration positive normalize valid", DurationUtils.isValid(duration));
+
+            duration.seconds.copyFrom(Int64.fromNumber(-1));
+            duration.nanos = 1;
+            DurationUtils.normalize(duration);
+            assertEq("duration negative normalize seconds", duration.seconds.toNumber(), 0);
+            assertEq("duration negative normalize nanos", duration.nanos, -999999999);
+            assertTrue("duration negative normalize valid", DurationUtils.isValid(duration));
+
+            duration.seconds.reset();
+            duration.nanos = 1000000000;
+            assertEq("duration invalid nanos", DurationUtils.isValid(duration), false);
+            duration.seconds.copyFrom(Int64.fromNumber(1));
+            duration.nanos = -1;
+            assertEq("duration inconsistent signs", DurationUtils.isValid(duration), false);
+            assertEq("duration null invalid", DurationUtils.isValid(null), false);
+        }
+
+        private static function testHttpTransportConfiguration():void
+        {
+            const transport:HttpTransport = new HttpTransport(5000);
+            assertEq("HTTP transport timeout", transport.timeoutMilliseconds, 5000);
+            transport.timeoutMilliseconds = 1000;
+            assertEq("HTTP transport mutable timeout", transport.timeoutMilliseconds, 1000);
+            assertEq("HTTP transport default timeout", new HttpTransport().timeoutMilliseconds, 0);
         }
 
         private static function testEmptyMessagePresence():void

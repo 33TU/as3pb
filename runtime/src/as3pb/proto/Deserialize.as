@@ -878,6 +878,8 @@ package as3pb.proto
                 case 2: // LENGTH_DELIMITED
                 {
                     const length:uint = readVarint32(src);
+                    if (length > src.bytesAvailable)
+                        throw new IOError("Truncated length-delimited field");
                     src.position += length;
                     return;
                 }
