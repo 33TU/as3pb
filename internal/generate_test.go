@@ -219,6 +219,39 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	}
 }
 
+func TestGenerateFileProto3OptionalFields(t *testing.T) {
+	plugin := optionalPlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	wantParts := []string{
+		"import as3pb.types.OptionalInt;",
+		"import as3pb.types.OptionalUInt64;",
+		"public var count:OptionalInt = null;",
+		"public var label_:String = null;",
+		"public var total:OptionalUInt64 = null;",
+		"msg.count = null;",
+		"if (dst.count == null)",
+		"dst.count = new OptionalInt();",
+		"if (localCount != null)",
+		"Serialize.writeInt32(dst, localCount.value);",
+	}
+	for _, want := range wantParts {
+		if !strings.Contains(content, want) {
+			t.Fatalf("generated optional field missing %q:\n%s", want, content)
+		}
+	}
+	for _, unwanted := range []string{"FIELD_COUNT", "countCase", "_countCase"} {
+		if strings.Contains(content, unwanted) {
+			t.Fatalf("generated optional field exposes synthetic oneof %q:\n%s", unwanted, content)
+		}
+	}
+}
+
 func TestGenerateFileSkipsRuntimeProvidedAny(t *testing.T) {
 	plugin := anyPlugin(t)
 	generator := internal.NewGenerator(plugin, internal.Options{GenerateAlways: true})
@@ -521,6 +554,51 @@ func anyPlugin(t *testing.T) *protogen.Plugin {
 		t.Fatalf("protogen plugin: %v", err)
 	}
 	return plugin
+}
+
+func optionalPlugin(t *testing.T) *protogen.Plugin {
+	t.Helper()
+
+	fields := []*descriptorpb.FieldDescriptorProto{
+		optionalField("count", 1, descriptorpb.FieldDescriptorProto_TYPE_INT32, 0),
+		optionalField("label", 2, descriptorpb.FieldDescriptorProto_TYPE_STRING, 1),
+		optionalField("total", 3, descriptorpb.FieldDescriptorProto_TYPE_UINT64, 2),
+	}
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"optional.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{{
+			Name:    proto.String("optional.proto"),
+			Syntax:  proto.String("proto3"),
+			Package: proto.String("test.v1"),
+			Options: &descriptorpb.FileOptions{GoPackage: proto.String("example.com/test;test")},
+			MessageType: []*descriptorpb.DescriptorProto{{
+				Name:  proto.String("OptionalValues"),
+				Field: fields,
+				OneofDecl: []*descriptorpb.OneofDescriptorProto{
+					{Name: proto.String("_count")},
+					{Name: proto.String("_label")},
+					{Name: proto.String("_total")},
+				},
+			}},
+		}},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
+func optionalField(name string, number int32, kind descriptorpb.FieldDescriptorProto_Type, oneof int32) *descriptorpb.FieldDescriptorProto {
+	return &descriptorpb.FieldDescriptorProto{
+		Name:           proto.String(name),
+		Number:         proto.Int32(number),
+		Label:          descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+		Type:           kind.Enum(),
+		OneofIndex:     proto.Int32(oneof),
+		Proto3Optional: proto.Bool(true),
+	}
 }
 
 func highTagPlugin(t *testing.T) *protogen.Plugin {

@@ -122,7 +122,7 @@ func (g *Generator) generateFieldDeserializeCase(
 	g.w.Indent()
 
 	messageReset := "false"
-	if field.Oneof != nil && field.Desc.Kind() == protoreflect.MessageKind {
+	if isRealOneof(field) && field.Desc.Kind() == protoreflect.MessageKind {
 		messageReset = fmt.Sprintf(
 			"dst.%s != %s",
 			names.OneofCase(field.Oneof),
@@ -137,10 +137,27 @@ func (g *Generator) generateFieldDeserializeCase(
 			g.generateFieldDeserializerForRepeatedUnpackedType(field, fieldName, currentPackage)
 		}
 	} else {
-		g.generateFieldDeserializerForType(field, fieldName, currentPackage, messageReset)
+		valueName := fieldName
+		if field.Desc.HasOptionalKeyword() {
+			switch field.Desc.Kind() {
+			case protoreflect.StringKind, protoreflect.MessageKind:
+			case protoreflect.BytesKind:
+				g.w.Line("if (%s == null)", fieldName)
+				g.w.Indent()
+				g.w.Line("%s = Buffers.newByteArray();", fieldName)
+				g.w.Dedent()
+			default:
+				g.w.Line("if (%s == null)", fieldName)
+				g.w.Indent()
+				g.w.Line("%s = new %s();", fieldName, AS3Type(field, currentPackage))
+				g.w.Dedent()
+				valueName += ".value"
+			}
+		}
+		g.generateFieldDeserializerForType(field, valueName, currentPackage, messageReset)
 	}
 
-	if field.Oneof != nil {
+	if isRealOneof(field) {
 		g.w.Line("dst.%s = %s;", names.OneofCase(field.Oneof), names.FieldNumber(field))
 	}
 

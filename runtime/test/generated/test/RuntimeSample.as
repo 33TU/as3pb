@@ -10,6 +10,9 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
     import as3pb.types.UInt64;
+    import as3pb.types.OptionalInt;
+    import as3pb.types.OptionalBoolean;
+    import as3pb.types.OptionalUInt64;
     import as3pb.types.AnyRegistry;
 
     public final class RuntimeSample
@@ -29,6 +32,12 @@ package test
         public var checksum:UInt64 = new UInt64();
         public var signedCount:int = 0;
         public var expandedScores:Vector.<int> = new Vector.<int>();
+        public var optionalCount:OptionalInt = null;
+        public var optionalEnabled:OptionalBoolean = null;
+        public var optionalLabel:String = null;
+        public var optionalPayload:ByteArray = null;
+        public var optionalTotal:OptionalUInt64 = null;
+        public var optionalNested:RuntimeNested = null;
         public var name:String = "";
         public var selected:RuntimeNested = null;
 
@@ -57,6 +66,12 @@ package test
             msg.checksum.high = 0;
             msg.signedCount = 0;
             msg.expandedScores.length = 0;
+            msg.optionalCount = null;
+            msg.optionalEnabled = null;
+            msg.optionalLabel = null;
+            msg.optionalPayload = null;
+            msg.optionalTotal = null;
+            msg.optionalNested = null;
             msg.name = "";
             msg.selected = null;
             msg.choiceCase = 0;
@@ -155,6 +170,46 @@ package test
                         Deserialize.readInt32Vector(src, dst.expandedScores);
                         break;
                     }
+                    case 104:
+                    {
+                        if (dst.optionalCount == null)
+                            dst.optionalCount = new OptionalInt();
+                        dst.optionalCount.value = Deserialize.readInt32(src);
+                        break;
+                    }
+                    case 112:
+                    {
+                        if (dst.optionalEnabled == null)
+                            dst.optionalEnabled = new OptionalBoolean();
+                        dst.optionalEnabled.value = Deserialize.readVarint32(src) !== 0;
+                        break;
+                    }
+                    case 122:
+                    {
+                        dst.optionalLabel = src.readUTFBytes(Deserialize.readVarint32(src));
+                        break;
+                    }
+                    case 130:
+                    {
+                        if (dst.optionalPayload == null)
+                            dst.optionalPayload = Buffers.newByteArray();
+                        dst.optionalPayload.length = 0;
+                        src.readBytes(dst.optionalPayload, 0, Deserialize.readVarint32(src));
+                        break;
+                    }
+                    case 136:
+                    {
+                        if (dst.optionalTotal == null)
+                            dst.optionalTotal = new OptionalUInt64();
+                        Deserialize.readVarint64(src, dst.optionalTotal.value);
+                        break;
+                    }
+                    case 146:
+                    {
+                        messageLength = Deserialize.readVarint32(src);
+                        dst.optionalNested = RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
+                        break;
+                    }
                     case 74:
                     {
                         dst.name = src.readUTFBytes(Deserialize.readVarint32(src));
@@ -210,6 +265,12 @@ package test
             const localChecksum:UInt64 = src.checksum;
             const localSignedCount:int = src.signedCount;
             const localExpandedScores:Vector.<int> = src.expandedScores;
+            const localOptionalCount:OptionalInt = src.optionalCount;
+            const localOptionalEnabled:OptionalBoolean = src.optionalEnabled;
+            const localOptionalLabel:String = src.optionalLabel;
+            const localOptionalPayload:ByteArray = src.optionalPayload;
+            const localOptionalTotal:OptionalUInt64 = src.optionalTotal;
+            const localOptionalNested:RuntimeNested = src.optionalNested;
             const localName:String = src.name;
             const localSelected:RuntimeNested = src.selected;
 
@@ -277,6 +338,39 @@ package test
                         dst.writeByte(96);
                         Serialize.writeInt32(dst, localExpandedScores[vecIndex]);
                     }
+                }
+                if (localOptionalCount != null)
+                {
+                    dst.writeByte(104);
+                    Serialize.writeInt32(dst, localOptionalCount.value);
+                }
+                if (localOptionalEnabled != null)
+                {
+                    dst.writeByte(112);
+                    dst.writeByte(localOptionalEnabled.value ? 1 : 0);
+                }
+                if (localOptionalLabel != null)
+                {
+                    dst.writeByte(122);
+                    Serialize.writeString(dst, localOptionalLabel, reuseBuffer);
+                }
+                if (localOptionalPayload != null)
+                {
+                    dst.writeShort(386);
+                    Serialize.writeBytes(dst, localOptionalPayload);
+                }
+                if (localOptionalTotal != null)
+                {
+                    dst.writeShort(392);
+                    Serialize.writeVarint64(dst, localOptionalTotal.value.low, localOptionalTotal.value.high);
+                }
+                if (localOptionalNested != null)
+                {
+                    dst.writeShort(402);
+                    messageReuseBuffer.length = 0;
+                    RuntimeNested.serializeBytes(localOptionalNested, messageReuseBuffer);
+                    Serialize.writeVarint32(dst, messageReuseBuffer.length);
+                    dst.writeBytes(messageReuseBuffer);
                 }
 
                 switch (src.choiceCase)

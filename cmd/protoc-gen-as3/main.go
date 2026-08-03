@@ -9,6 +9,7 @@ import (
 
 	"github.com/33TU/as3pb/internal"
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/types/pluginpb"
 )
 
 func main() {
@@ -61,6 +62,7 @@ func main() {
 			return nil
 		},
 	}.Run(func(plugin *protogen.Plugin) error {
+		plugin.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 		options.Logger = logger(options.Debug)
 		generator := internal.NewGenerator(plugin, options)
 		for _, file := range plugin.Files {

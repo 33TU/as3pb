@@ -16,10 +16,13 @@ func (g *Generator) generateSerializeMethod(message *protogen.Message, names *Me
 	oneofGroups := make(map[*protogen.Oneof][]*protogen.Field)
 	oneofs := make([]*protogen.Oneof, 0, len(message.Oneofs))
 	for _, oneof := range message.Oneofs {
+		if oneof.Desc.IsSynthetic() {
+			continue
+		}
 		oneofs = append(oneofs, oneof)
 	}
 	for _, field := range message.Fields {
-		if field.Oneof != nil {
+		if isRealOneof(field) {
 			oneofGroups[field.Oneof] = append(oneofGroups[field.Oneof], field)
 			continue
 		}
@@ -288,10 +291,13 @@ func (g *Generator) generateMessageFieldSerializer(field *protogen.Field, fieldN
 	}
 
 	g.generateWriteTag(field)
-	g.generateFieldSerializerForType(field, fieldName, currentPackage)
+	g.generateFieldSerializerForType(field, optionalValueExpression(field, fieldName), currentPackage)
 }
 
 func fieldCondition(field *protogen.Field, fieldName string) string {
+	if field.Desc.HasOptionalKeyword() {
+		return fieldName + " != null"
+	}
 	switch field.Desc.Kind() {
 	case protoreflect.BytesKind:
 		return fieldName + ".length"
@@ -301,6 +307,18 @@ func fieldCondition(field *protogen.Field, fieldName string) string {
 		return fmt.Sprintf("%s.low || %s.high", fieldName, fieldName)
 	default:
 		return fieldName
+	}
+}
+
+func optionalValueExpression(field *protogen.Field, fieldName string) string {
+	if !field.Desc.HasOptionalKeyword() {
+		return fieldName
+	}
+	switch field.Desc.Kind() {
+	case protoreflect.StringKind, protoreflect.BytesKind, protoreflect.MessageKind:
+		return fieldName
+	default:
+		return fieldName + ".value"
 	}
 }
 

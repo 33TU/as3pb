@@ -28,6 +28,9 @@ func NewMessageNames(message *protogen.Message) *MessageNames {
 	}
 
 	for _, oneof := range message.Oneofs {
+		if oneof.Desc.IsSynthetic() {
+			continue
+		}
 		names.oneofCases[oneof] = uniqueName(OneofCaseName(oneof), names.used)
 	}
 	for _, field := range message.Fields {

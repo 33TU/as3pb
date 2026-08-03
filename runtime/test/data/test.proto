@@ -21,6 +21,12 @@ message RuntimeSample {
   fixed64 checksum = 8;
   int32 signed_count = 11;
   repeated int32 expanded_scores = 12 [packed = false];
+  optional int32 optional_count = 13;
+  optional bool optional_enabled = 14;
+  optional string optional_label = 15;
+  optional bytes optional_payload = 16;
+  optional uint64 optional_total = 17;
+  optional RuntimeNested optional_nested = 18;
 
   oneof choice {
     string name = 9;

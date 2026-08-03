@@ -59,7 +59,7 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 		g.w.BlankLine()
 	}
 	g.generateMessageFields(message, names)
-	if len(message.Fields) > 0 || len(message.Oneofs) > 0 {
+	if len(message.Fields) > 0 || hasRealOneofs(message) {
 		g.w.BlankLine()
 	}
 	g.generateResetMethod(message, names)
@@ -109,6 +109,22 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 	}
 	if hasRepeatedUnsigned64Fields(message) {
 		g.w.Line("import as3pb.types.UInt64Vector;")
+	}
+	optionalImports := []struct {
+		name  string
+		kinds []protoreflect.Kind
+	}{
+		{"OptionalInt", []protoreflect.Kind{protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.EnumKind}},
+		{"OptionalUint", []protoreflect.Kind{protoreflect.Uint32Kind, protoreflect.Fixed32Kind}},
+		{"OptionalNumber", []protoreflect.Kind{protoreflect.FloatKind, protoreflect.DoubleKind}},
+		{"OptionalBoolean", []protoreflect.Kind{protoreflect.BoolKind}},
+		{"OptionalInt64", []protoreflect.Kind{protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind}},
+		{"OptionalUInt64", []protoreflect.Kind{protoreflect.Uint64Kind, protoreflect.Fixed64Kind}},
+	}
+	for _, optionalImport := range optionalImports {
+		if hasOptionalKind(message, optionalImport.kinds...) {
+			g.w.Line("import as3pb.types.%s;", optionalImport.name)
+		}
 	}
 	if hasAnyFields(message) {
 		g.w.Line("import google.protobuf.Any;")
@@ -162,12 +178,12 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 	currentPackage := string(message.Desc.ParentFile().Package())
 
 	for _, field := range message.Fields {
-		if field.Oneof == nil {
+		if !isRealOneof(field) {
 			continue
 		}
 		g.w.Line("public static const %s:uint = %d;", names.FieldNumber(field), field.Desc.Number())
 	}
-	if len(message.Oneofs) > 0 {
+	if hasRealOneofs(message) {
 		g.w.BlankLine()
 	}
 
@@ -188,6 +204,9 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 	}
 
 	for _, oneof := range message.Oneofs {
+		if oneof.Desc.IsSynthetic() {
+			continue
+		}
 		g.w.BlankLine()
 		g.generateLeadingComment(oneofCaseComment(oneof, names), false)
 		g.w.Line("public var %s:uint;", names.OneofCase(oneof))
@@ -218,6 +237,10 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 
 	for _, field := range message.Fields {
 		fieldName := "msg." + names.Field(field)
+		if field.Desc.HasOptionalKeyword() {
+			g.w.Line("%s = null;", fieldName)
+			continue
+		}
 
 		if field.Desc.IsList() || field.Desc.IsMap() || field.Desc.Kind() == protoreflect.BytesKind {
 			g.w.Line("%s.length = 0;", fieldName)
@@ -234,9 +257,21 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 	}
 
 	for _, oneof := range message.Oneofs {
+		if oneof.Desc.IsSynthetic() {
+			continue
+		}
 		g.w.Line("msg.%s = 0;", names.OneofCase(oneof))
 	}
 
 	g.w.Dedent()
 	g.w.Line("}")
+}
+
+func hasRealOneofs(message *protogen.Message) bool {
+	for _, oneof := range message.Oneofs {
+		if !oneof.Desc.IsSynthetic() {
+			return true
+		}
+	}
+	return false
 }

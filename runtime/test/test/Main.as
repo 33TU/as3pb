@@ -11,6 +11,9 @@ package test
     import google.protobuf.Any;
     import as3pb.types.Int64;
     import as3pb.types.Int64Vector;
+    import as3pb.types.OptionalBoolean;
+    import as3pb.types.OptionalInt;
+    import as3pb.types.OptionalUInt64;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
 
@@ -34,6 +37,7 @@ package test
             testInvalidMessageLimits();
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
+            testOptionalPresence();
             testEmptyMessagePresence();
             testMessageMerging();
             testRecursiveMessageRoundTrip();
@@ -417,6 +421,47 @@ package test
             assertEq("recursive root", out.value, root.value);
             assertEq("recursive middle", out.next.value, root.next.value);
             assertEq("recursive leaf", out.next.next.value, root.next.next.value);
+        }
+
+        private static function testOptionalPresence():void
+        {
+            const msg:RuntimeSample = new RuntimeSample();
+            assertEq("optional int absent", msg.optionalCount, null);
+            assertEq("optional bool absent", msg.optionalEnabled, null);
+            assertEq("optional string absent", msg.optionalLabel, null);
+            assertEq("optional bytes absent", msg.optionalPayload, null);
+            assertEq("optional uint64 absent", msg.optionalTotal, null);
+            assertEq("optional message absent", msg.optionalNested, null);
+
+            msg.optionalCount = new OptionalInt(0);
+            msg.optionalEnabled = new OptionalBoolean(false);
+            msg.optionalLabel = "";
+            msg.optionalPayload = Buffers.newByteArray();
+            msg.optionalTotal = new OptionalUInt64();
+            msg.optionalNested = new RuntimeNested();
+
+            const buffer:ByteArray = Buffers.newByteArray();
+            RuntimeSample.serializeBytes(msg, buffer);
+            assertTrue("present optional defaults serialized", buffer.length > 0);
+            buffer.position = 0;
+
+            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertTrue("optional int present", out.optionalCount != null);
+            assertEq("optional int default", out.optionalCount.value, 0);
+            assertTrue("optional bool present", out.optionalEnabled != null);
+            assertEq("optional bool default", out.optionalEnabled.value, false);
+            assertTrue("optional string present", out.optionalLabel != null);
+            assertEq("optional string default", out.optionalLabel, "");
+            assertTrue("optional bytes present", out.optionalPayload != null);
+            assertEq("optional bytes default", out.optionalPayload.length, 0);
+            assertTrue("optional uint64 present", out.optionalTotal != null);
+            assertUintEq("optional uint64 low", out.optionalTotal.value.low, 0);
+            assertUintEq("optional uint64 high", out.optionalTotal.value.high, 0);
+            assertTrue("optional message present", out.optionalNested != null);
+
+            RuntimeSample.reset(out);
+            assertEq("optional int reset", out.optionalCount, null);
+            assertEq("optional message reset", out.optionalNested, null);
         }
 
         private static function testEmptyMessagePresence():void

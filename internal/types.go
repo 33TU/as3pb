@@ -47,6 +47,9 @@ func wireTypeForKind(kind protoreflect.Kind) protowire.Type {
 
 // AS3DefaultValue returns the default ActionScript expression for field.
 func AS3DefaultValue(field *protogen.Field, currentProtoPackage string) string {
+	if field.Desc.HasOptionalKeyword() {
+		return "null"
+	}
 	if field.Desc.IsList() || field.Desc.IsMap() {
 		switch field.Desc.Kind() {
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
@@ -89,6 +92,22 @@ func AS3DefaultValue(field *protogen.Field, currentProtoPackage string) string {
 
 // AS3Type returns the ActionScript type for a protobuf field.
 func AS3Type(field *protogen.Field, currentProtoPackage string) string {
+	if field.Desc.HasOptionalKeyword() {
+		switch field.Desc.Kind() {
+		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.EnumKind:
+			return "OptionalInt"
+		case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
+			return "OptionalUint"
+		case protoreflect.FloatKind, protoreflect.DoubleKind:
+			return "OptionalNumber"
+		case protoreflect.BoolKind:
+			return "OptionalBoolean"
+		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
+			return "OptionalInt64"
+		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
+			return "OptionalUInt64"
+		}
+	}
 	if field.Desc.IsMap() {
 		return "Vector.<" + as3MessageTypeName(field.Message, currentProtoPackage) + ">"
 	}
