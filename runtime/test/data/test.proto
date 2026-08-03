@@ -56,3 +56,27 @@ message RuntimeNode {
 message RuntimeAnyEnvelope {
   google.protobuf.Any payload = 1;
 }
+
+message RuntimeIntegers {
+  int32 int32_value = 1;
+  uint32 uint32_value = 2;
+  sint32 sint32_value = 3;
+  fixed32 fixed32_value = 4;
+  sfixed32 sfixed32_value = 5;
+  int64 int64_value = 6;
+  uint64 uint64_value = 7;
+  sint64 sint64_value = 8;
+  fixed64 fixed64_value = 9;
+  sfixed64 sfixed64_value = 10;
+
+  repeated int32 int32_values = 11;
+  repeated uint32 uint32_values = 12;
+  repeated sint32 sint32_values = 13;
+  repeated fixed32 fixed32_values = 14;
+  repeated sfixed32 sfixed32_values = 15;
+  repeated int64 int64_values = 16;
+  repeated uint64 uint64_values = 17;
+  repeated sint64 sint64_values = 18;
+  repeated fixed64 fixed64_values = 19;
+  repeated sfixed64 sfixed64_values = 20;
+}

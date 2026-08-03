@@ -381,6 +381,64 @@ func TestGenerateFileService(t *testing.T) {
 	}
 }
 
+func TestGenerateFileIntegerKindsUseCorrectCodecs(t *testing.T) {
+	plugin := integerKindsPlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	wantParts := []string{
+		"dst.int32Value = Deserialize.readInt32(src);",
+		"dst.uint32Value = Deserialize.readVarint32(src);",
+		"dst.sint32Value = Deserialize.readSint32(src);",
+		"dst.fixed32Value = src.readUnsignedInt();",
+		"dst.sfixed32Value = src.readInt();",
+		"Deserialize.readVarint64s(src, dst.int64Value);",
+		"Deserialize.readVarint64(src, dst.uint64Value);",
+		"Deserialize.readSint64(src, dst.sint64Value);",
+		"Deserialize.readFixed64(src, dst.fixed64Value);",
+		"Deserialize.readSfixed64(src, dst.sfixed64Value);",
+		"Serialize.writeInt32(dst, localInt32Value);",
+		"Serialize.writeVarint32(dst, localUint32Value);",
+		"Serialize.writeSint32(dst, localSint32Value);",
+		"dst.writeUnsignedInt(localFixed32Value);",
+		"dst.writeInt(localSfixed32Value);",
+		"Serialize.writeVarint64s(dst, localInt64Value.low, localInt64Value.high);",
+		"Serialize.writeVarint64(dst, localUint64Value.low, localUint64Value.high);",
+		"Serialize.writeSint64(dst, localSint64Value.low, localSint64Value.high);",
+		"dst.writeUnsignedInt(localFixed64Value.low);",
+		"dst.writeInt(localSfixed64Value.high);",
+		"Deserialize.readInt32Vector(src, dst.int32Values);",
+		"Deserialize.readVarint32Vector(src, dst.uint32Values);",
+		"Deserialize.readSint32Vector(src, dst.sint32Values);",
+		"Deserialize.readFixed32Vector(src, dst.fixed32Values);",
+		"Deserialize.readFixed32sVector(src, dst.sfixed32Values);",
+		"Deserialize.readVarint64sVector(src, dst.int64Values);",
+		"Deserialize.readVarint64Vector(src, dst.uint64Values);",
+		"Deserialize.readSint64Vector(src, dst.sint64Values);",
+		"Deserialize.readFixed64Vector(src, dst.fixed64Values);",
+		"Deserialize.readFixed64sVector(src, dst.sfixed64Values);",
+		"Serialize.writeInt32Vector(dst, localInt32Values, reuseBuffer, vecLength);",
+		"Serialize.writeVarint32Vector(dst, localUint32Values, reuseBuffer, vecLength);",
+		"Serialize.writeSint32Vector(dst, localSint32Values, reuseBuffer, vecLength);",
+		"Serialize.writeFixed32Vector(dst, localFixed32Values, vecLength);",
+		"Serialize.writeSfixed32Vector(dst, localSfixed32Values, vecLength);",
+		"Serialize.writeVarint64sVector(dst, localInt64Values, reuseBuffer, vecLength);",
+		"Serialize.writeVarint64Vector(dst, localUint64Values, reuseBuffer, vecLength);",
+		"Serialize.writeSint64Vector(dst, localSint64Values, reuseBuffer, vecLength);",
+		"Serialize.writeFixed64Vector(dst, localFixed64Values, vecLength);",
+		"Serialize.writeSfixed64Vector(dst, localSfixed64Values, vecLength);",
+	}
+	for _, want := range wantParts {
+		if !strings.Contains(content, want) {
+			t.Fatalf("generated integer message missing %q:\n%s", want, content)
+		}
+	}
+}
+
 func TestGenerateFileRejectsStreamingServices(t *testing.T) {
 	tests := []struct {
 		name            string
@@ -734,6 +792,58 @@ func servicePlugin(t *testing.T) *protogen.Plugin {
 					OutputType: proto.String(".test.v1.HelloResponse"),
 				}},
 			}},
+		}},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
+func integerKindsPlugin(t *testing.T) *protogen.Plugin {
+	t.Helper()
+
+	names := []string{"int32", "uint32", "sint32", "fixed32", "sfixed32", "int64", "uint64", "sint64", "fixed64", "sfixed64"}
+	kinds := []descriptorpb.FieldDescriptorProto_Type{
+		descriptorpb.FieldDescriptorProto_TYPE_INT32,
+		descriptorpb.FieldDescriptorProto_TYPE_UINT32,
+		descriptorpb.FieldDescriptorProto_TYPE_SINT32,
+		descriptorpb.FieldDescriptorProto_TYPE_FIXED32,
+		descriptorpb.FieldDescriptorProto_TYPE_SFIXED32,
+		descriptorpb.FieldDescriptorProto_TYPE_INT64,
+		descriptorpb.FieldDescriptorProto_TYPE_UINT64,
+		descriptorpb.FieldDescriptorProto_TYPE_SINT64,
+		descriptorpb.FieldDescriptorProto_TYPE_FIXED64,
+		descriptorpb.FieldDescriptorProto_TYPE_SFIXED64,
+	}
+	fields := make([]*descriptorpb.FieldDescriptorProto, 0, len(kinds)*2)
+	for i, kind := range kinds {
+		fields = append(fields, &descriptorpb.FieldDescriptorProto{
+			Name:   proto.String(names[i] + "_value"),
+			Number: proto.Int32(int32(i + 1)),
+			Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+			Type:   kind.Enum(),
+		})
+		fields = append(fields, &descriptorpb.FieldDescriptorProto{
+			Name:   proto.String(names[i] + "_values"),
+			Number: proto.Int32(int32(i + 11)),
+			Label:  descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(),
+			Type:   kind.Enum(),
+		})
+	}
+
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"integers.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{{
+			Name:    proto.String("integers.proto"),
+			Syntax:  proto.String("proto3"),
+			Package: proto.String("test"),
+			Options: &descriptorpb.FileOptions{
+				GoPackage: proto.String("github.com/33TU/as3pb/internal/generatetest;generatetest"),
+			},
+			MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Integers"), Field: fields}},
 		}},
 	}
 

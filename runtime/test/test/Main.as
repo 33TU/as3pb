@@ -42,6 +42,7 @@ package test
             runTest("testTruncatedLengthDelimitedFields", testTruncatedLengthDelimitedFields);
             runTest("testInt64FixedIO", testInt64FixedIO);
             runTest("testGeneratedMessageRoundTrip", testGeneratedMessageRoundTrip);
+            runTest("testGeneratedIntegerKinds", testGeneratedIntegerKinds);
             runTest("testOptionalPresence", testOptionalPresence);
             runTest("testOptionalScalarKinds", testOptionalScalarKinds);
             runTest("testSingularLastValueWins", testSingularLastValueWins);
@@ -572,6 +573,74 @@ package test
             RuntimeSample.deserializeBytes(buffer, out);
             assertEq("generated reuse reset id", out.id, "reuse");
             assertEq("generated reuse reset payload", out.payload.length, 0);
+        }
+
+        private static function testGeneratedIntegerKinds():void
+        {
+            const msg:RuntimeIntegers = new RuntimeIntegers();
+            msg.int32Value = -1;
+            msg.uint32Value = uint.MAX_VALUE;
+            msg.sint32Value = int.MIN_VALUE;
+            msg.fixed32Value = 0x89abcdef;
+            msg.sfixed32Value = -123456789;
+            msg.int64Value = new Int64(0xffffffff, -1);
+            msg.uint64Value = new UInt64(0xffffffff, 0xffffffff);
+            msg.sint64Value = new Int64(0, int.MIN_VALUE);
+            msg.fixed64Value = new UInt64(0x01234567, 0x89abcdef);
+            msg.sfixed64Value = new Int64(0x89abcdef, -123456789);
+
+            msg.int32Values.push(-1, int.MAX_VALUE);
+            msg.uint32Values.push(0, uint.MAX_VALUE);
+            msg.sint32Values.push(int.MIN_VALUE, int.MAX_VALUE);
+            msg.fixed32Values.push(0x01234567, 0x89abcdef);
+            msg.sfixed32Values.push(int.MIN_VALUE, -1);
+            msg.int64Values.push(0xffffffff, -1);
+            msg.int64Values.push(0, int.MIN_VALUE);
+            msg.uint64Values.push(0xffffffff, 0xffffffff);
+            msg.uint64Values.push(0, 1);
+            msg.sint64Values.push(0xffffffff, -1);
+            msg.sint64Values.push(0, int.MIN_VALUE);
+            msg.fixed64Values.push(0x01234567, 0x89abcdef);
+            msg.fixed64Values.push(0xffffffff, 0xffffffff);
+            msg.sfixed64Values.push(0xffffffff, -1);
+            msg.sfixed64Values.push(0, int.MIN_VALUE);
+
+            const buffer:ByteArray = Buffers.newByteArray();
+            RuntimeIntegers.serializeBytes(msg, buffer);
+            buffer.position = 0;
+            const out:RuntimeIntegers = RuntimeIntegers.deserializeBytes(buffer);
+
+            assertEq("integer int32", out.int32Value, msg.int32Value);
+            assertUintEq("integer uint32", out.uint32Value, msg.uint32Value);
+            assertEq("integer sint32", out.sint32Value, msg.sint32Value);
+            assertUintEq("integer fixed32", out.fixed32Value, msg.fixed32Value);
+            assertEq("integer sfixed32", out.sfixed32Value, msg.sfixed32Value);
+            assertTrue("integer int64", out.int64Value.eq(msg.int64Value));
+            assertTrue("integer uint64", out.uint64Value.eq(msg.uint64Value));
+            assertTrue("integer sint64", out.sint64Value.eq(msg.sint64Value));
+            assertTrue("integer fixed64", out.fixed64Value.eq(msg.fixed64Value));
+            assertTrue("integer sfixed64", out.sfixed64Value.eq(msg.sfixed64Value));
+
+            assertEq("integer int32 vector length", out.int32Values.length, 2);
+            assertEq("integer uint32 vector length", out.uint32Values.length, 2);
+            assertEq("integer sint32 vector length", out.sint32Values.length, 2);
+            assertEq("integer fixed32 vector length", out.fixed32Values.length, 2);
+            assertEq("integer sfixed32 vector length", out.sfixed32Values.length, 2);
+            assertEq("integer int64 vector length", out.int64Values.length, 2);
+            assertEq("integer uint64 vector length", out.uint64Values.length, 2);
+            assertEq("integer sint64 vector length", out.sint64Values.length, 2);
+            assertEq("integer fixed64 vector length", out.fixed64Values.length, 2);
+            assertEq("integer sfixed64 vector length", out.sfixed64Values.length, 2);
+            assertEq("integer int32 vector", out.int32Values[0], -1);
+            assertUintEq("integer uint32 vector", out.uint32Values[1], uint.MAX_VALUE);
+            assertEq("integer sint32 vector", out.sint32Values[0], int.MIN_VALUE);
+            assertUintEq("integer fixed32 vector", out.fixed32Values[1], 0x89abcdef);
+            assertEq("integer sfixed32 vector", out.sfixed32Values[0], int.MIN_VALUE);
+            assertEq("integer int64 vector high", out.int64Values.high[1], int.MIN_VALUE);
+            assertUintEq("integer uint64 vector high", out.uint64Values.high[0], 0xffffffff);
+            assertEq("integer sint64 vector high", out.sint64Values.high[1], int.MIN_VALUE);
+            assertUintEq("integer fixed64 vector low", out.fixed64Values.low[0], 0x01234567);
+            assertEq("integer sfixed64 vector high", out.sfixed64Values.high[1], int.MIN_VALUE);
         }
 
         private static function testRecursiveMessageRoundTrip():void
