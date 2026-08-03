@@ -416,7 +416,9 @@ package test
                             Serialize.writeString(dst, localName, reuseBuffer);
                         }
                         else
+                        {
                             Serialize.writeVarint32(dst, 0);
+                        }
                         break;
                     }
                     case FIELD_SELECTED:
@@ -442,7 +444,9 @@ package test
                             Serialize.writeBytes(dst, localChoicePayload);
                         }
                         else
+                        {
                             Serialize.writeVarint32(dst, 0);
+                        }
                         break;
                     }
                 }

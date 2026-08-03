@@ -208,7 +208,9 @@ package google.protobuf
                             Serialize.writeString(dst, localStringValue, reuseBuffer);
                         }
                         else
+                        {
                             Serialize.writeVarint32(dst, 0);
+                        }
                         break;
                     }
                     case FIELD_BOOL_VALUE:

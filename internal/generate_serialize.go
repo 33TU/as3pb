@@ -262,9 +262,11 @@ func (g *Generator) generateNullableOneofLengthDelimited(valueExpr string, write
 	g.w.Dedent()
 	g.w.Line("}")
 	g.w.Line("else")
+	g.w.Line("{")
 	g.w.Indent()
 	g.w.Line("Serialize.writeVarint32(dst, 0);")
 	g.w.Dedent()
+	g.w.Line("}")
 }
 
 func (g *Generator) generateFieldSerializerForRepeatedPackedType(field *protogen.Field, locName string) {
