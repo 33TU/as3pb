@@ -140,8 +140,7 @@ package bench
                     }
                     case 90:
                     {
-                        dst.payload.length = 0;
-                        src.readBytes(dst.payload, 0, Deserialize.readVarint32(src));
+                        Deserialize.readBytesInto(src, dst.payload);
                         break;
                     }
                     case 160:

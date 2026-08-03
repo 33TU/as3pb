@@ -112,8 +112,7 @@ package test
                     }
                     case 18:
                     {
-                        dst.payload.length = 0;
-                        src.readBytes(dst.payload, 0, Deserialize.readVarint32(src));
+                        Deserialize.readBytesInto(src, dst.payload);
                         break;
                     }
                     case 24:
@@ -193,8 +192,7 @@ package test
                     {
                         if (dst.optionalPayload == null)
                             dst.optionalPayload = Buffers.newByteArray();
-                        dst.optionalPayload.length = 0;
-                        src.readBytes(dst.optionalPayload, 0, Deserialize.readVarint32(src));
+                        Deserialize.readBytesInto(src, dst.optionalPayload);
                         break;
                     }
                     case 136:

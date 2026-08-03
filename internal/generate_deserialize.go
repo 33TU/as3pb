@@ -202,8 +202,7 @@ func (g *Generator) generateFieldDeserializerForType(
 	case protoreflect.StringKind:
 		g.w.Line("%s = src.readUTFBytes(Deserialize.readVarint32(src));", fieldName)
 	case protoreflect.BytesKind:
-		g.w.Line("%s.length = 0;", fieldName)
-		g.w.Line("src.readBytes(%s, 0, Deserialize.readVarint32(src));", fieldName)
+		g.w.Line("Deserialize.readBytesInto(src, %s);", fieldName)
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
 		g.w.Line("messageLength = Deserialize.readVarint32(src);")

@@ -839,7 +839,10 @@ package as3pb.proto
         [Inline]
         public static function readBytesInto(src:ByteArray, dest:ByteArray):void
         {
-            src.readBytes(dest, 0, readVarint32(src));
+            const length:uint = readVarint32(src);
+            dest.length = 0;
+            if (length)
+                src.readBytes(dest, 0, length);
         }
 
         /**

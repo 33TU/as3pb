@@ -178,6 +178,14 @@ package test
             assertEq("bytes[0]", out.readUnsignedByte(), 1);
             assertEq("bytes[1]", out.readUnsignedByte(), 2);
             assertEq("bytes[2]", out.readUnsignedByte(), 255);
+
+            reset(buffer);
+            buffer.writeByte(0);
+            buffer.writeByte(42);
+            buffer.position = 0;
+            Deserialize.readBytesInto(buffer, out);
+            assertEq("empty bytes length", out.length, 0);
+            assertEq("empty bytes preserves following data", buffer.readUnsignedByte(), 42);
         }
 
         private static function testPackedVectors():void
