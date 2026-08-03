@@ -128,7 +128,7 @@ package example.game
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
-                if (localTick && (localTick.low || localTick.high))
+                if (localTick.low || localTick.high)
                 {
                     dst.writeByte(24);
                     Serialize.writeSint64(dst, localTick.low, localTick.high);

@@ -182,7 +182,7 @@ package example.game
                     dst.writeByte(18);
                     Serialize.writeString(dst, localDisplayName, reuseBuffer);
                 }
-                if (localScore && (localScore.low || localScore.high))
+                if (localScore.low || localScore.high)
                 {
                     dst.writeByte(24);
                     Serialize.writeVarint64(dst, localScore.low, localScore.high);

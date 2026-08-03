@@ -255,12 +255,12 @@ package bench
                 dst.writeByte(24);
                 Serialize.writeSint32(dst, localDelta);
             }
-            if (localAccountId && (localAccountId.low || localAccountId.high))
+            if (localAccountId.low || localAccountId.high)
             {
                 dst.writeByte(32);
                 Serialize.writeVarint64(dst, localAccountId.low, localAccountId.high);
             }
-            if (localScoreDelta && (localScoreDelta.low || localScoreDelta.high))
+            if (localScoreDelta.low || localScoreDelta.high)
             {
                 dst.writeByte(40);
                 Serialize.writeSint64(dst, localScoreDelta.low, localScoreDelta.high);
@@ -270,7 +270,7 @@ package bench
                 dst.writeByte(53);
                 dst.writeUnsignedInt(localChecksum);
             }
-            if (localSignedTick && (localSignedTick.low || localSignedTick.high))
+            if (localSignedTick.low || localSignedTick.high)
             {
                 dst.writeByte(57);
                 dst.writeUnsignedInt(localSignedTick.low);

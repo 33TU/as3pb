@@ -113,7 +113,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public static function serializeBytes(src:Player, dst:ByteArray):void",
 		"if (!src)",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
-		"if (localAmount && (localAmount.low || localAmount.high))",
+		"if (localAmount.low || localAmount.high)",
 		"Serialize.writeVarint64s(dst, localChoiceAmount ? localChoiceAmount.low : 0, localChoiceAmount ? localChoiceAmount.high : 0);",
 		"if (localChoiceText != null)",
 		"Serialize.writeString(dst, localChoiceText, reuseBuffer);",

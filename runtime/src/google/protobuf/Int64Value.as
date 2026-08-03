@@ -95,7 +95,7 @@ package google.protobuf
 
             const localValue:Int64 = src.value;
 
-            if (localValue && (localValue.low || localValue.high))
+            if (localValue.low || localValue.high)
             {
                 dst.writeByte(8);
                 Serialize.writeVarint64s(dst, localValue.low, localValue.high);
