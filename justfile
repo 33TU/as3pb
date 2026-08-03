@@ -83,7 +83,7 @@ build-runtime-test: generate-runtime-test-data
         -compiler.strict=true \
         -compiler.inline={{ AS3_INLINE }} \
         -compiler.float={{ AS3_FLOAT }} \
-        -debug={{ AS3_DEBUG }} \
+        -debug=true \
         runtime/test/test/Main.as
 
 build-runtime-bench: generate-runtime-test-data
