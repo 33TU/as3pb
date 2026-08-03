@@ -8,22 +8,23 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-var runtimeProvidedFiles = map[string]bool{
-	"google/protobuf/any.proto":            true,
-	"google/protobuf/api.proto":            true,
-	"google/protobuf/duration.proto":       true,
-	"google/protobuf/empty.proto":          true,
-	"google/protobuf/field_mask.proto":     true,
-	"google/protobuf/source_context.proto": true,
-	"google/protobuf/struct.proto":         true,
-	"google/protobuf/timestamp.proto":      true,
-	"google/protobuf/type.proto":           true,
-	"google/protobuf/wrappers.proto":       true,
+var runtimeProvidedFiles = map[string]struct{}{
+	"google/protobuf/any.proto":            {},
+	"google/protobuf/api.proto":            {},
+	"google/protobuf/duration.proto":       {},
+	"google/protobuf/empty.proto":          {},
+	"google/protobuf/field_mask.proto":     {},
+	"google/protobuf/source_context.proto": {},
+	"google/protobuf/struct.proto":         {},
+	"google/protobuf/timestamp.proto":      {},
+	"google/protobuf/type.proto":           {},
+	"google/protobuf/wrappers.proto":       {},
 }
 
 // GenerateFile emits ActionScript 3 code for one protobuf file.
 func (g *Generator) GenerateFile(file *protogen.File) error {
-	if runtimeProvidedFiles[file.Desc.Path()] && !file.Generate {
+	_, runtimeProvided := runtimeProvidedFiles[file.Desc.Path()]
+	if runtimeProvided && !file.Generate {
 		g.log.Debug("skipping runtime-provided file", "path", file.Desc.Path())
 		return nil
 	}
