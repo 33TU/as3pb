@@ -146,6 +146,12 @@ func (g *Generator) generateFieldDeserializeCase(
 				g.w.Indent()
 				g.w.Line("%s = Buffers.newByteArray();", fieldName)
 				g.w.Dedent()
+			case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Uint64Kind,
+				protoreflect.Sfixed64Kind, protoreflect.Fixed64Kind:
+				g.w.Line("if (%s == null)", fieldName)
+				g.w.Indent()
+				g.w.Line("%s = new %s();", fieldName, AS3Type(field, currentPackage))
+				g.w.Dedent()
 			default:
 				g.w.Line("if (%s == null)", fieldName)
 				g.w.Indent()

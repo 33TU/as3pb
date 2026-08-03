@@ -12,7 +12,6 @@ package test
     import as3pb.types.UInt64;
     import as3pb.types.OptionalInt;
     import as3pb.types.OptionalBoolean;
-    import as3pb.types.OptionalUInt64;
     import as3pb.wkt.AnyRegistry;
 
     public final class RuntimeSample
@@ -36,8 +35,9 @@ package test
         public var optionalEnabled:OptionalBoolean = null;
         public var optionalLabel:String = null;
         public var optionalPayload:ByteArray = null;
-        public var optionalTotal:OptionalUInt64 = null;
+        public var optionalTotal:UInt64 = null;
         public var optionalNested:RuntimeNested = null;
+        public var optionalDelta:Int64 = null;
         public var name:String = "";
         public var selected:RuntimeNested = null;
 
@@ -72,6 +72,7 @@ package test
             msg.optionalPayload = null;
             msg.optionalTotal = null;
             msg.optionalNested = null;
+            msg.optionalDelta = null;
             msg.name = "";
             msg.selected = null;
             msg.choiceCase = 0;
@@ -198,14 +199,21 @@ package test
                     case 136:
                     {
                         if (dst.optionalTotal == null)
-                            dst.optionalTotal = new OptionalUInt64();
-                        Deserialize.readVarint64(src, dst.optionalTotal.value);
+                            dst.optionalTotal = new UInt64();
+                        Deserialize.readVarint64(src, dst.optionalTotal);
                         break;
                     }
                     case 146:
                     {
                         messageLength = Deserialize.readVarint32(src);
                         dst.optionalNested = RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
+                        break;
+                    }
+                    case 152:
+                    {
+                        if (dst.optionalDelta == null)
+                            dst.optionalDelta = new Int64();
+                        Deserialize.readSint64(src, dst.optionalDelta);
                         break;
                     }
                     case 74:
@@ -267,8 +275,9 @@ package test
             const localOptionalEnabled:OptionalBoolean = src.optionalEnabled;
             const localOptionalLabel:String = src.optionalLabel;
             const localOptionalPayload:ByteArray = src.optionalPayload;
-            const localOptionalTotal:OptionalUInt64 = src.optionalTotal;
+            const localOptionalTotal:UInt64 = src.optionalTotal;
             const localOptionalNested:RuntimeNested = src.optionalNested;
+            const localOptionalDelta:Int64 = src.optionalDelta;
             const localName:String = src.name;
             const localSelected:RuntimeNested = src.selected;
 
@@ -360,7 +369,7 @@ package test
                 if (localOptionalTotal != null)
                 {
                     dst.writeShort(392);
-                    Serialize.writeVarint64(dst, localOptionalTotal.value.low, localOptionalTotal.value.high);
+                    Serialize.writeVarint64(dst, localOptionalTotal.low, localOptionalTotal.high);
                 }
                 if (localOptionalNested != null)
                 {
@@ -369,6 +378,11 @@ package test
                     RuntimeNested.serializeBytes(localOptionalNested, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
+                }
+                if (localOptionalDelta != null)
+                {
+                    dst.writeShort(408);
+                    Serialize.writeSint64(dst, localOptionalDelta.low, localOptionalDelta.high);
                 }
 
                 switch (src.choiceCase)

@@ -118,8 +118,6 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 		{"OptionalUint", []protoreflect.Kind{protoreflect.Uint32Kind, protoreflect.Fixed32Kind}},
 		{"OptionalNumber", []protoreflect.Kind{protoreflect.FloatKind, protoreflect.DoubleKind}},
 		{"OptionalBoolean", []protoreflect.Kind{protoreflect.BoolKind}},
-		{"OptionalInt64", []protoreflect.Kind{protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind}},
-		{"OptionalUInt64", []protoreflect.Kind{protoreflect.Uint64Kind, protoreflect.Fixed64Kind}},
 	}
 	for _, optionalImport := range optionalImports {
 		if hasOptionalKind(message, optionalImport.kinds...) {

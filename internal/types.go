@@ -103,9 +103,9 @@ func AS3Type(field *protogen.Field, currentProtoPackage string) string {
 		case protoreflect.BoolKind:
 			return "OptionalBoolean"
 		case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-			return "OptionalInt64"
+			return "Int64"
 		case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-			return "OptionalUInt64"
+			return "UInt64"
 		}
 	}
 	if field.Desc.IsMap() {

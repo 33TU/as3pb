@@ -13,7 +13,6 @@ package test
     import as3pb.types.Int64Vector;
     import as3pb.types.OptionalBoolean;
     import as3pb.types.OptionalInt;
-    import as3pb.types.OptionalUInt64;
     import as3pb.wkt.TimestampUtils;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
@@ -443,13 +442,15 @@ package test
             assertEq("optional bytes absent", msg.optionalPayload, null);
             assertEq("optional uint64 absent", msg.optionalTotal, null);
             assertEq("optional message absent", msg.optionalNested, null);
+            assertEq("optional int64 absent", msg.optionalDelta, null);
 
             msg.optionalCount = new OptionalInt(0);
             msg.optionalEnabled = new OptionalBoolean(false);
             msg.optionalLabel = "";
             msg.optionalPayload = Buffers.newByteArray();
-            msg.optionalTotal = new OptionalUInt64();
+            msg.optionalTotal = new UInt64();
             msg.optionalNested = new RuntimeNested();
+            msg.optionalDelta = new Int64();
 
             const buffer:ByteArray = Buffers.newByteArray();
             RuntimeSample.serializeBytes(msg, buffer);
@@ -466,9 +467,12 @@ package test
             assertTrue("optional bytes present", out.optionalPayload != null);
             assertEq("optional bytes default", out.optionalPayload.length, 0);
             assertTrue("optional uint64 present", out.optionalTotal != null);
-            assertUintEq("optional uint64 low", out.optionalTotal.value.low, 0);
-            assertUintEq("optional uint64 high", out.optionalTotal.value.high, 0);
+            assertUintEq("optional uint64 low", out.optionalTotal.low, 0);
+            assertUintEq("optional uint64 high", out.optionalTotal.high, 0);
             assertTrue("optional message present", out.optionalNested != null);
+            assertTrue("optional int64 present", out.optionalDelta != null);
+            assertUintEq("optional int64 low", out.optionalDelta.low, 0);
+            assertEq("optional int64 high", out.optionalDelta.high, 0);
 
             RuntimeSample.reset(out);
             assertEq("optional int reset", out.optionalCount, null);

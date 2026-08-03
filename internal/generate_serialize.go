@@ -315,7 +315,9 @@ func optionalValueExpression(field *protogen.Field, fieldName string) string {
 		return fieldName
 	}
 	switch field.Desc.Kind() {
-	case protoreflect.StringKind, protoreflect.BytesKind, protoreflect.MessageKind:
+	case protoreflect.StringKind, protoreflect.BytesKind, protoreflect.MessageKind,
+		protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Uint64Kind,
+		protoreflect.Sfixed64Kind, protoreflect.Fixed64Kind:
 		return fieldName
 	default:
 		return fieldName + ".value"

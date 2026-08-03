@@ -88,9 +88,9 @@ protoc \
 Direct `protoc` usage requires imported proto files to have usable Go package metadata or explicit `Mfile.proto=package` mappings. The `as3-protoc` wrapper adds those mappings automatically by scanning include paths.
 
 Proto3 `optional` fields preserve presence. Scalar values use nullable wrappers such
-as `OptionalInt`, `OptionalBoolean`, and `OptionalUInt64`; strings, bytes, and
-messages use `null` for absence. A non-null wrapper is serialized even when its
-value is the protobuf default.
+as `OptionalInt` and `OptionalBoolean`; 64-bit values, strings, bytes, and
+messages are nullable reference types. A non-null value is serialized even when
+it contains the protobuf default.
 
 Generator options can be passed with `--as3_opt`:
 

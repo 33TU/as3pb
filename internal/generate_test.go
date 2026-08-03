@@ -230,10 +230,10 @@ func TestGenerateFileProto3OptionalFields(t *testing.T) {
 	content := plugin.Response().GetFile()[0].GetContent()
 	wantParts := []string{
 		"import as3pb.types.OptionalInt;",
-		"import as3pb.types.OptionalUInt64;",
+		"import as3pb.types.UInt64;",
 		"public var count:OptionalInt = null;",
 		"public var label_:String = null;",
-		"public var total:OptionalUInt64 = null;",
+		"public var total:UInt64 = null;",
 		"msg.count = null;",
 		"if (dst.count == null)",
 		"dst.count = new OptionalInt();",

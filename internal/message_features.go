@@ -15,13 +15,13 @@ func hasPackedFields(message *protogen.Message) bool {
 
 func hasSingularSigned64Fields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return !field.Desc.IsList() && !field.Desc.HasOptionalKeyword() && isSigned64(field.Desc.Kind())
+		return !field.Desc.IsList() && isSigned64(field.Desc.Kind())
 	})
 }
 
 func hasSingularUnsigned64Fields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return !field.Desc.IsList() && !field.Desc.HasOptionalKeyword() && isUnsigned64(field.Desc.Kind())
+		return !field.Desc.IsList() && isUnsigned64(field.Desc.Kind())
 	})
 }
 

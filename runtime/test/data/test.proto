@@ -27,6 +27,7 @@ message RuntimeSample {
   optional bytes optional_payload = 16;
   optional uint64 optional_total = 17;
   optional RuntimeNested optional_nested = 18;
+  optional sint64 optional_delta = 19;
 
   oneof choice {
     string name = 9;
