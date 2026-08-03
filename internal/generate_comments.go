@@ -23,7 +23,11 @@ func (g *Generator) generateLeadingComment(comments protogen.Comments, trailingN
 
 	g.w.Line("/**")
 	for _, line := range lines {
-		g.w.Line(" * %s", line)
+		if line == "" {
+			g.w.Line(" *")
+		} else {
+			g.w.Line(" * %s", line)
+		}
 	}
 	g.w.Line(" */")
 	if trailingNewline {
@@ -55,18 +59,18 @@ func (g *Generator) generateTrailingComment(indentFirstLine bool, comments proto
 }
 
 func commentLines(comments protogen.Comments) []string {
-	raw := strings.TrimRightFunc(comments.String(), unicode.IsSpace)
+	raw := strings.TrimRightFunc(string(comments), unicode.IsSpace)
 	if raw == "" {
 		return nil
 	}
 
-	var lines []string
-	for _, line := range strings.Split(raw, "\n") {
-		line = strings.TrimSpace(line)
-		line = strings.TrimSpace(strings.TrimPrefix(line, "//"))
-		if line != "" {
-			lines = append(lines, line)
-		}
+	lines := strings.Split(raw, "\n")
+	for i, line := range lines {
+		line = strings.TrimRightFunc(line, unicode.IsSpace)
+		// protoc preserves the space between a line-comment marker and its
+		// contents. Remove that padding while retaining intentional indentation.
+		line = strings.TrimPrefix(line, " ")
+		lines[i] = line
 	}
 	return lines
 }
