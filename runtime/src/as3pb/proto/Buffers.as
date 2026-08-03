@@ -26,6 +26,7 @@ package as3pb.proto
 
         /**
          * Creates a new ByteArray instance with little-endian byte order.
+         * @return A new little-endian buffer.
          */
         [Inline]
         public static function newByteArray():ByteArray
@@ -37,6 +38,7 @@ package as3pb.proto
 
         /**
          * Acquires a reusable message serialization buffer for the current nesting depth.
+         * @return A reusable message buffer.
          */
         [Inline]
         public static function acquireMessageBuffer():ByteArray
@@ -51,6 +53,7 @@ package as3pb.proto
 
         /**
          * Releases a message serialization buffer acquired by acquireMessageBuffer.
+         * @param buffer Buffer to release.
          */
         [Inline]
         public static function releaseMessageBuffer(buffer:ByteArray):void

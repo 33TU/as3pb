@@ -20,6 +20,7 @@ package as3pb.rpc
 
         /**
          * Acquires a ByteArray from the pool or creates a new one if the pool is empty.
+         * @return An available little-endian buffer.
          */
         public static function acquire():ByteArray
         {

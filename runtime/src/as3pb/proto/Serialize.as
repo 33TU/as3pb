@@ -71,6 +71,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit unsigned integers to encode as varints
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeVarint32Vector(dst:ByteArray, vec:Vector.<uint>, reuseBuffer:ByteArray, n:uint):void
         {
@@ -88,6 +89,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit signed integers to encode as varints
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeVarint32sVector(dst:ByteArray, vec:Vector.<int>, reuseBuffer:ByteArray, n:uint):void
         {
@@ -177,6 +179,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of unsigned 64-bit numbers to encode as varints
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeVarint64Vector(dst:ByteArray, vec:UInt64Vector, reuseBuffer:ByteArray, n:uint):void
         {
@@ -269,6 +272,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of signed 64-bit numbers to encode as varints
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeVarint64sVector(dst:ByteArray, vec:Int64Vector, reuseBuffer:ByteArray, n:uint):void
         {
@@ -352,6 +356,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit signed integers to encode as varints
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeInt32Vector(dst:ByteArray, vec:Vector.<int>, reuseBuffer:ByteArray, n:uint):void
         {
@@ -380,6 +385,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit signed integers to encode using zigzag + varint encoding
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeSint32Vector(dst:ByteArray, vec:Vector.<int>, reuseBuffer:ByteArray, n:uint):void
         {
@@ -396,6 +402,8 @@ package as3pb.proto
          * Write a zigzag-encoded signed 64-bit integer
          * @param dst The destination ByteArray to write to
          * @param value The signed 64-bit number value to encode with zigzag encoding
+         * @param low Parameter.
+         * @param high Parameter.
          */
         [Inline]
         public static function writeSint64(dst:ByteArray, low:uint, high:int):void
@@ -475,6 +483,7 @@ package as3pb.proto
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 64-bit signed integers to encode using zigzag + varint encoding
          * @param reuseBuffer A ByteArray to reuse for encoding the varints to reduce allocations
+         * @param n Parameter.
          */
         public static function writeSint64Vector(dst:ByteArray, vec:Int64Vector, reuseBuffer:ByteArray, n:uint):void
         {
@@ -505,6 +514,7 @@ package as3pb.proto
          * Write a fixed-size vector of 32-bit unsigned integers as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit unsigned integers to write
+         * @param n Parameter.
          */
         public static function writeFixed32Vector(dst:ByteArray, vec:Vector.<uint>, n:uint):void
         {
@@ -542,6 +552,7 @@ package as3pb.proto
          * Write a fixed-size vector of 32-bit signed integers as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 32-bit signed integers to write
+         * @param n Parameter.
          */
         public static function writeSfixed32Vector(dst:ByteArray, vec:Vector.<int>, n:uint):void
         {
@@ -568,6 +579,8 @@ package as3pb.proto
          * Codegen inlines this method for better performance
          * @param dst The destination ByteArray to write to
          * @param value The 64-bit number value to write
+         * @param low Parameter.
+         * @param high Parameter.
          */
         [Inline]
         public static function writeFixed64(dst:ByteArray, low:uint, high:uint):void
@@ -580,6 +593,7 @@ package as3pb.proto
          * Write a fixed-size vector of 64-bit unsigned integers as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 64-bit unsigned integers to write
+         * @param n Parameter.
          */
         public static function writeFixed64Vector(dst:ByteArray, vec:UInt64Vector, n:uint):void
         {
@@ -619,6 +633,8 @@ package as3pb.proto
          * Codegen inlines this method for better performance
          * @param dst The destination ByteArray to write to
          * @param value The 64-bit signed number value to write
+         * @param low Parameter.
+         * @param high Parameter.
          */
         [Inline]
         public static function writeSfixed64(dst:ByteArray, low:uint, high:int):void
@@ -631,6 +647,7 @@ package as3pb.proto
          * Write a fixed-size vector of 64-bit signed integers as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of 64-bit signed integers to write
+         * @param n Parameter.
          */
         public static function writeSfixed64Vector(dst:ByteArray, vec:Int64Vector, n:uint):void
         {
@@ -682,6 +699,7 @@ package as3pb.proto
          * Write a vector of 32-bit IEEE 754 floats as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of float values to write
+         * @param n Parameter.
          */
         public static function writeFloatVector(dst:ByteArray, vec:Vector.<Number>, n:uint):void
         {
@@ -721,6 +739,7 @@ package as3pb.proto
          * Write a vector of 64-bit IEEE 754 doubles as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of double values to write
+         * @param n Parameter.
          */
         public static function writeDoubleVector(dst:ByteArray, vec:Vector.<Number>, n:uint):void
         {
@@ -758,6 +777,7 @@ package as3pb.proto
          * Write a vector of boolean values as a length-delimited field
          * @param dst The destination ByteArray to write to
          * @param vec The vector of boolean values to write (true = 1, false = 0)
+         * @param n Parameter.
          */
         public static function writeBoolVector(dst:ByteArray, vec:Vector.<Boolean>, n:uint):void
         {

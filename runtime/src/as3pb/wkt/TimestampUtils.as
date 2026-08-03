@@ -3,7 +3,9 @@ package as3pb.wkt
     import as3pb.types.Int64;
     import google.protobuf.Timestamp;
 
-    /** Conversion, validation, and normalization helpers for protobuf timestamps. */
+    /**
+     * Conversion, validation, and normalization helpers for protobuf timestamps.
+     */
     public final class TimestampUtils
     {
         private static const MIN_SECONDS:Number = -62135596800;
@@ -11,7 +13,12 @@ package as3pb.wkt
         private static const NANOS_PER_SECOND:Number = 1000000000;
         private static const NANOS_PER_MILLISECOND:Number = 1000000;
 
-        /** Converts an AS3 Date to a protobuf Timestamp. */
+        /**
+         * Converts an AS3 Date to a protobuf Timestamp.
+         * @param date Date to convert.
+         * @param dst Optional reusable destination.
+         * @return The converted timestamp.
+         */
         public static function fromDate(date:Date, dst:Timestamp = null):Timestamp
         {
             if (!date || isNaN(date.time))
@@ -29,7 +36,11 @@ package as3pb.wkt
             return dst;
         }
 
-        /** Converts a valid protobuf Timestamp to an AS3 Date, truncating sub-millisecond precision. */
+        /**
+         * Converts a valid timestamp to a Date, truncating sub-millisecond precision.
+         * @param timestamp Timestamp to convert.
+         * @return The converted Date.
+         */
         public static function toDate(timestamp:Timestamp):Date
         {
             if (!isValid(timestamp))
@@ -41,13 +52,21 @@ package as3pb.wkt
             );
         }
 
-        /** Returns the current time as a protobuf Timestamp. */
+        /**
+         * Returns the current time as a protobuf Timestamp.
+         * @param dst Optional reusable destination.
+         * @return The current timestamp.
+         */
         public static function now(dst:Timestamp = null):Timestamp
         {
             return fromDate(new Date(), dst);
         }
 
-        /** Returns whether a timestamp is within the protobuf-defined range. */
+        /**
+         * Returns whether a timestamp is within the protobuf-defined range.
+         * @param timestamp Timestamp to validate.
+         * @return True when the timestamp is valid.
+         */
         public static function isValid(timestamp:Timestamp):Boolean
         {
             if (!timestamp || !timestamp.seconds)
@@ -58,7 +77,11 @@ package as3pb.wkt
                 timestamp.nanos >= 0 && timestamp.nanos < NANOS_PER_SECOND;
         }
 
-        /** Normalizes nanos into the range 0 through 999,999,999. */
+        /**
+         * Normalizes nanos into the range 0 through 999,999,999.
+         * @param timestamp Timestamp to normalize in place.
+         * @return The normalized timestamp.
+         */
         public static function normalize(timestamp:Timestamp):Timestamp
         {
             if (!timestamp || !timestamp.seconds)

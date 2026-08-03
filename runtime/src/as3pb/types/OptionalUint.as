@@ -1,12 +1,19 @@
 package as3pb.types
 {
-    /** Nullable presence wrapper for unsigned 32-bit protobuf values. */
+    /**
+     * Nullable presence wrapper for unsigned 32-bit protobuf values.
+     */
     public final class OptionalUint
     {
-        /** The present unsigned 32-bit value. */
+        /**
+         * The present unsigned 32-bit value.
+         */
         public var value:uint;
 
-        /** Creates a present optional unsigned 32-bit value. */
+        /**
+         * Creates a present optional unsigned 32-bit value.
+         * @param value Initial value.
+         */
         public function OptionalUint(value:uint = 0)
         {
             this.value = value;

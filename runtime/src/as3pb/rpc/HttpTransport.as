@@ -19,6 +19,8 @@ package as3pb.rpc
          * Sends a protobuf payload to the specified URL using HTTP POST.
          *
          * @param url The endpoint URL to which the request will be sent.
+         * @param contentType HTTP content type for the request.
+         * @param headers HTTP request headers.
          * @param payload The serialized protobuf request payload as a ByteArray.
          * @param onComplete Callback invoked when the request completes successfully.
          * @param onError Callback invoked if the request fails due to a network or security error.

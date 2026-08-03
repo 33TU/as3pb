@@ -27,6 +27,7 @@ package as3pb.proto
         /**
          * Read a varint-encoded 32-bit unsigned integer
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readVarint32(src:ByteArray):uint
@@ -101,6 +102,7 @@ package as3pb.proto
          * Read a varint-encoded signed 32-bit integer.
          * Canonical protobuf negative int32 values can use 10 bytes.
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readInt32(src:ByteArray):int
@@ -435,6 +437,7 @@ package as3pb.proto
         /**
          * Read a zigzag-encoded signed 32-bit integer
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readSint32(src:ByteArray):int
@@ -530,6 +533,7 @@ package as3pb.proto
          * Read a 32-bit fixed-size little-endian unsigned integer
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readFixed32(src:ByteArray):uint
@@ -569,6 +573,7 @@ package as3pb.proto
          * Read a 64-bit fixed-size little-endian number
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @param out Destination value.
          */
         [Inline]
         public static function readFixed64(src:ByteArray, out:UInt64):void
@@ -623,6 +628,7 @@ package as3pb.proto
          * Read a 32-bit fixed-size little-endian signed integer
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readSfixed32(src:ByteArray):int
@@ -662,6 +668,7 @@ package as3pb.proto
          * Read a 64-bit fixed-size little-endian signed number
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @param out Destination value.
          */
         [Inline]
         public static function readSfixed64(src:ByteArray, out:Int64):void
@@ -717,6 +724,7 @@ package as3pb.proto
          * ActionScript uses little-endian IEEE 754 format
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readFloat(src:ByteArray):Number
@@ -756,6 +764,7 @@ package as3pb.proto
          * ActionScript uses little-endian IEEE 754 format
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readDouble(src:ByteArray):Number
@@ -795,6 +804,7 @@ package as3pb.proto
          * Read a boolean value (varint 0 or 1)
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded value.
          */
         [Inline]
         public static function readBool(src:ByteArray):Boolean
@@ -823,6 +833,7 @@ package as3pb.proto
          * Read a length-delimited UTF-8 string
          * Codegen inlines this method for better performance
          * @param src The source ByteArray to read from
+         * @return The decoded string.
          */
         [Inline]
         public static function readString(src:ByteArray):String
