@@ -7,6 +7,8 @@ AS3_INLINE := env("AS3_INLINE", "true")
 AS3_FLOAT := env("AS3_FLOAT", "false")
 AS3_DEBUG := env("AS3_DEBUG", "false")
 SDK_DIR := env("SDK_DIR", "sdk")
+GOOGLE_PROTOBUF_PATH := env("GOOGLE_PROTOBUF_PATH", "/usr/include/google/protobuf")
+GOOGLE_PROTOBUF_INCLUDE := parent_directory(parent_directory(GOOGLE_PROTOBUF_PATH))
 EXAMPLES_OUT := "examples/generated"
 RUNTIME_TEST_PROTOS := "runtime/test/data/test.proto runtime/test/data/bench.proto runtime/test/data/rpc.proto"
 RUNTIME_TEST_GENERATED := "runtime/test/generated"
@@ -27,6 +29,23 @@ build-as3-protoc:
     mkdir -p {{ BIN_DIR }}
     go build -o {{ BIN_DIR }}/as3-protoc ./cmd/as3-protoc
 
+# Regenerate the runtime-provided Google protobuf types
+generate-google-protobuf: build-protoc-gen-as3 build-as3-protoc
+    {{ BIN_DIR }}/as3-protoc \
+        --protoc_gen_as3_bin={{ BIN_DIR }}/protoc-gen-as3 \
+        --as3_out=runtime/src \
+        -I {{ GOOGLE_PROTOBUF_INCLUDE }} \
+        {{ GOOGLE_PROTOBUF_PATH }}/any.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/api.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/duration.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/empty.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/field_mask.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/source_context.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/struct.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/timestamp.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/type.proto \
+        {{ GOOGLE_PROTOBUF_PATH }}/wrappers.proto
+
 # Download AIR SDK for current OS, or one of: linux, mac, windows
 download-air-sdk os="" sdk_dir=SDK_DIR:
     go run ./cmd/air-sdk-downloader -dir {{ sdk_dir }} {{ if os == "" { "" } else { "-os " + os } }}
@@ -36,7 +55,6 @@ build-swc:
     compc \
         -source-path runtime/src \
         -include-sources runtime/src \
-        -library-path runtime/libs \
         -output {{ AS3_BIN_DIR }}/as3pb.swc \
         -optimize={{ AS3_OPTIMIZE }} \
         -compiler.strict=true \

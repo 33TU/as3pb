@@ -184,6 +184,19 @@ Build the runtime SWC:
 just build-swc
 ```
 
+Regenerate the runtime-provided Google protobuf types:
+
+```sh
+just generate-google-protobuf
+```
+
+This uses `/usr/include/google/protobuf` by default. Set `GOOGLE_PROTOBUF_PATH`
+when the protobuf include files are installed elsewhere:
+
+```sh
+GOOGLE_PROTOBUF_PATH=/path/to/include/google/protobuf just generate-google-protobuf
+```
+
 ## Runtime Tests And Samples
 
 Generate AS3 runtime fixture code:

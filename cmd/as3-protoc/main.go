@@ -117,7 +117,7 @@ func executablePath(name string) (string, error) {
 }
 
 func protoMappings(includes []string) ([]string, error) {
-	const goPackage = "as3.pb"
+	const goPackage = "as3.pb;as3pb"
 
 	protoFiles, err := collectProtoFiles(includes)
 	if err != nil {
