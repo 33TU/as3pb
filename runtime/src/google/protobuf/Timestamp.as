@@ -200,7 +200,7 @@ package google.protobuf
             const localSeconds:Int64 = src.seconds;
             const localNanos:int = src.nanos;
 
-            if (localSeconds.low || localSeconds.high)
+            if (localSeconds && (localSeconds.low || localSeconds.high))
             {
                 dst.writeByte(8);
                 Serialize.writeVarint64s(dst, localSeconds.low, localSeconds.high);

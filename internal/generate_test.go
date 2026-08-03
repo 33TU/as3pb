@@ -113,6 +113,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public static function serializeBytes(src:Player, dst:ByteArray):void",
 		"if (!src)",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
+		"if (localAmount && (localAmount.low || localAmount.high))",
 		"Serialize.writeInt32Vector(dst, localScores, reuseBuffer, vecLength);",
 		"if (localRatio != 0.0)",
 		"switch (src.actionCase)",
@@ -238,6 +239,7 @@ func TestGenerateFileProto3OptionalFields(t *testing.T) {
 		"if (dst.count == null)",
 		"dst.count = new OptionalInt();",
 		"if (localCount != null)",
+		"if (localTotal != null)",
 		"Serialize.writeInt32(dst, localCount.value);",
 	}
 	for _, want := range wantParts {

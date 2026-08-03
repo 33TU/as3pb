@@ -293,12 +293,12 @@ package test
                     dst.writeByte(18);
                     Serialize.writeBytes(dst, localPayload);
                 }
-                if (localCount.low || localCount.high)
+                if (localCount && (localCount.low || localCount.high))
                 {
                     dst.writeByte(24);
                     Serialize.writeVarint64(dst, localCount.low, localCount.high);
                 }
-                if (localDelta.low || localDelta.high)
+                if (localDelta && (localDelta.low || localDelta.high))
                 {
                     dst.writeByte(32);
                     Serialize.writeSint64(dst, localDelta.low, localDelta.high);
@@ -327,7 +327,7 @@ package test
                         dst.writeBytes(messageReuseBuffer);
                     }
                 }
-                if (localChecksum.low || localChecksum.high)
+                if (localChecksum && (localChecksum.low || localChecksum.high))
                 {
                     dst.writeByte(65);
                     dst.writeUnsignedInt(localChecksum.low);
