@@ -203,7 +203,12 @@ package google.protobuf
                     case FIELD_STRING_VALUE:
                     {
                         dst.writeByte(26);
-                        Serialize.writeString(dst, localStringValue, reuseBuffer);
+                        if (localStringValue != null)
+                        {
+                            Serialize.writeString(dst, localStringValue, reuseBuffer);
+                        }
+                        else
+                            Serialize.writeVarint32(dst, 0);
                         break;
                     }
                     case FIELD_BOOL_VALUE:

@@ -203,11 +203,11 @@ func (g *Generator) generateFieldSerializerForType(field *protogen.Field, valueE
 	case protoreflect.Sint32Kind:
 		g.w.Line("Serialize.writeSint32(dst, %s);", valueExpr)
 	case protoreflect.Int64Kind:
-		g.w.Line("Serialize.writeVarint64s(dst, %s.low, %s.high);", valueExpr, valueExpr)
+		g.w.Line("Serialize.writeVarint64s(dst, %s, %s);", int64WordExpression(field, valueExpr, "low"), int64WordExpression(field, valueExpr, "high"))
 	case protoreflect.Uint64Kind:
-		g.w.Line("Serialize.writeVarint64(dst, %s.low, %s.high);", valueExpr, valueExpr)
+		g.w.Line("Serialize.writeVarint64(dst, %s, %s);", int64WordExpression(field, valueExpr, "low"), int64WordExpression(field, valueExpr, "high"))
 	case protoreflect.Sint64Kind:
-		g.w.Line("Serialize.writeSint64(dst, %s.low, %s.high);", valueExpr, valueExpr)
+		g.w.Line("Serialize.writeSint64(dst, %s, %s);", int64WordExpression(field, valueExpr, "low"), int64WordExpression(field, valueExpr, "high"))
 	case protoreflect.Sfixed32Kind:
 		g.w.Line("dst.writeInt(%s);", valueExpr)
 	case protoreflect.Fixed32Kind:
@@ -215,17 +215,29 @@ func (g *Generator) generateFieldSerializerForType(field *protogen.Field, valueE
 	case protoreflect.FloatKind:
 		g.w.Line("dst.writeFloat(%s);", valueExpr)
 	case protoreflect.Sfixed64Kind:
-		g.w.Line("dst.writeUnsignedInt(%s.low);", valueExpr)
-		g.w.Line("dst.writeInt(%s.high);", valueExpr)
+		g.w.Line("dst.writeUnsignedInt(%s);", int64WordExpression(field, valueExpr, "low"))
+		g.w.Line("dst.writeInt(%s);", int64WordExpression(field, valueExpr, "high"))
 	case protoreflect.Fixed64Kind:
-		g.w.Line("dst.writeUnsignedInt(%s.low);", valueExpr)
-		g.w.Line("dst.writeUnsignedInt(%s.high);", valueExpr)
+		g.w.Line("dst.writeUnsignedInt(%s);", int64WordExpression(field, valueExpr, "low"))
+		g.w.Line("dst.writeUnsignedInt(%s);", int64WordExpression(field, valueExpr, "high"))
 	case protoreflect.DoubleKind:
 		g.w.Line("dst.writeDouble(%s);", valueExpr)
 	case protoreflect.StringKind:
-		g.w.Line("Serialize.writeString(dst, %s, reuseBuffer);", valueExpr)
+		if isRealOneof(field) {
+			g.generateNullableOneofLengthDelimited(valueExpr, func() {
+				g.w.Line("Serialize.writeString(dst, %s, reuseBuffer);", valueExpr)
+			})
+		} else {
+			g.w.Line("Serialize.writeString(dst, %s, reuseBuffer);", valueExpr)
+		}
 	case protoreflect.BytesKind:
-		g.w.Line("Serialize.writeBytes(dst, %s);", valueExpr)
+		if isRealOneof(field) {
+			g.generateNullableOneofLengthDelimited(valueExpr, func() {
+				g.w.Line("Serialize.writeBytes(dst, %s);", valueExpr)
+			})
+		} else {
+			g.w.Line("Serialize.writeBytes(dst, %s);", valueExpr)
+		}
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
 		g.w.Line("messageReuseBuffer.length = 0;")
@@ -233,6 +245,26 @@ func (g *Generator) generateFieldSerializerForType(field *protogen.Field, valueE
 		g.w.Line("Serialize.writeVarint32(dst, messageReuseBuffer.length);")
 		g.w.Line("dst.writeBytes(messageReuseBuffer);")
 	}
+}
+
+func int64WordExpression(field *protogen.Field, valueExpr, word string) string {
+	if isRealOneof(field) {
+		return fmt.Sprintf("%s ? %s.%s : 0", valueExpr, valueExpr, word)
+	}
+	return valueExpr + "." + word
+}
+
+func (g *Generator) generateNullableOneofLengthDelimited(valueExpr string, writeValue func()) {
+	g.w.Line("if (%s != null)", valueExpr)
+	g.w.Line("{")
+	g.w.Indent()
+	writeValue()
+	g.w.Dedent()
+	g.w.Line("}")
+	g.w.Line("else")
+	g.w.Indent()
+	g.w.Line("Serialize.writeVarint32(dst, 0);")
+	g.w.Dedent()
 }
 
 func (g *Generator) generateFieldSerializerForRepeatedPackedType(field *protogen.Field, locName string) {

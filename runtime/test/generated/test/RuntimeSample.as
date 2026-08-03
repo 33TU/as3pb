@@ -20,6 +20,8 @@ package test
 
         public static const FIELD_NAME:uint = 9;
         public static const FIELD_SELECTED:uint = 10;
+        public static const FIELD_CHOICE_DELTA:uint = 20;
+        public static const FIELD_CHOICE_PAYLOAD:uint = 21;
 
         public var id:String = "";
         public var payload:ByteArray = Buffers.newByteArray();
@@ -40,9 +42,11 @@ package test
         public var optionalDelta:Int64 = null;
         public var name:String = "";
         public var selected:RuntimeNested = null;
+        public var choiceDelta:Int64 = new Int64();
+        public var choicePayload:ByteArray = Buffers.newByteArray();
 
         /**
-         * Active case for choice: FIELD_NAME, FIELD_SELECTED.
+         * Active case for choice: FIELD_NAME, FIELD_SELECTED, FIELD_CHOICE_DELTA, FIELD_CHOICE_PAYLOAD.
          */
         public var choiceCase:uint;
 
@@ -75,6 +79,9 @@ package test
             msg.optionalDelta = null;
             msg.name = "";
             msg.selected = null;
+            msg.choiceDelta.low = 0;
+            msg.choiceDelta.high = 0;
+            msg.choicePayload.length = 0;
             msg.choiceCase = 0;
         }
 
@@ -229,6 +236,18 @@ package test
                         dst.choiceCase = FIELD_SELECTED;
                         break;
                     }
+                    case 160:
+                    {
+                        Deserialize.readVarint64s(src, dst.choiceDelta);
+                        dst.choiceCase = FIELD_CHOICE_DELTA;
+                        break;
+                    }
+                    case 170:
+                    {
+                        Deserialize.readBytesInto(src, dst.choicePayload);
+                        dst.choiceCase = FIELD_CHOICE_PAYLOAD;
+                        break;
+                    }
                     default:
                     {
                         if ((tag >>> 3) == 0)
@@ -280,6 +299,8 @@ package test
             const localOptionalDelta:Int64 = src.optionalDelta;
             const localName:String = src.name;
             const localSelected:RuntimeNested = src.selected;
+            const localChoiceDelta:Int64 = src.choiceDelta;
+            const localChoicePayload:ByteArray = src.choicePayload;
 
             try
             {
@@ -390,7 +411,12 @@ package test
                     case FIELD_NAME:
                     {
                         dst.writeByte(74);
-                        Serialize.writeString(dst, localName, reuseBuffer);
+                        if (localName != null)
+                        {
+                            Serialize.writeString(dst, localName, reuseBuffer);
+                        }
+                        else
+                            Serialize.writeVarint32(dst, 0);
                         break;
                     }
                     case FIELD_SELECTED:
@@ -400,6 +426,23 @@ package test
                         RuntimeNested.serializeBytes(localSelected, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
+                        break;
+                    }
+                    case FIELD_CHOICE_DELTA:
+                    {
+                        dst.writeShort(416);
+                        Serialize.writeVarint64s(dst, localChoiceDelta ? localChoiceDelta.low : 0, localChoiceDelta ? localChoiceDelta.high : 0);
+                        break;
+                    }
+                    case FIELD_CHOICE_PAYLOAD:
+                    {
+                        dst.writeShort(426);
+                        if (localChoicePayload != null)
+                        {
+                            Serialize.writeBytes(dst, localChoicePayload);
+                        }
+                        else
+                            Serialize.writeVarint32(dst, 0);
                         break;
                     }
                 }

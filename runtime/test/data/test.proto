@@ -32,6 +32,8 @@ message RuntimeSample {
   oneof choice {
     string name = 9;
     RuntimeNested selected = 10;
+    int64 choice_delta = 20;
+    bytes choice_payload = 21;
   }
 }
 

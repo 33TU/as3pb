@@ -552,6 +552,38 @@ package test
             const selectedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
             assertEq("null oneof message case", selectedOut.choiceCase, RuntimeSample.FIELD_SELECTED);
             assertTrue("null oneof empty message", selectedOut.selected != null);
+
+            const named:RuntimeSample = new RuntimeSample();
+            named.choiceCase = RuntimeSample.FIELD_NAME;
+            named.name = null;
+            reset(buffer);
+            RuntimeSample.serializeBytes(named, buffer);
+            buffer.position = 0;
+            const namedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("null oneof string case", namedOut.choiceCase, RuntimeSample.FIELD_NAME);
+            assertEq("null oneof empty string", namedOut.name, "");
+
+            const delta:RuntimeSample = new RuntimeSample();
+            delta.choiceCase = RuntimeSample.FIELD_CHOICE_DELTA;
+            delta.choiceDelta = null;
+            reset(buffer);
+            RuntimeSample.serializeBytes(delta, buffer);
+            buffer.position = 0;
+            const deltaOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("null oneof int64 case", deltaOut.choiceCase, RuntimeSample.FIELD_CHOICE_DELTA);
+            assertTrue("null oneof int64 value", deltaOut.choiceDelta != null);
+            assertEq("null oneof int64 zero", deltaOut.choiceDelta.toNumber(), 0);
+
+            const payload:RuntimeSample = new RuntimeSample();
+            payload.choiceCase = RuntimeSample.FIELD_CHOICE_PAYLOAD;
+            payload.choicePayload = null;
+            reset(buffer);
+            RuntimeSample.serializeBytes(payload, buffer);
+            buffer.position = 0;
+            const payloadOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("null oneof bytes case", payloadOut.choiceCase, RuntimeSample.FIELD_CHOICE_PAYLOAD);
+            assertTrue("null oneof bytes value", payloadOut.choicePayload != null);
+            assertEq("null oneof empty bytes", payloadOut.choicePayload.length, 0);
         }
 
         private static function testMessageMerging():void
