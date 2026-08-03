@@ -31,6 +31,24 @@ package test
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:RuntimeNested):RuntimeNested
+        {
+            if (!src)
+                return null;
+
+            const dst:RuntimeNested = new RuntimeNested();
+            dst.label_ = src.label_;
+            dst.flags = src.flags;
+            dst.ratio = src.ratio;
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

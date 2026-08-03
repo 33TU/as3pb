@@ -101,6 +101,15 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"public var raw:ByteArray = Buffers.newByteArray();",
 		"public static function reset(msg:Player):void",
 		"msg.raw.length = 0;",
+		"public static function clone(src:Player):Player",
+		"const dst:Player = new Player();",
+		"dst.raw = Buffers.cloneByteArray(src.raw);",
+		"dst.amount.copyFrom(src.amount);",
+		"dst.move = Player.clone(src.move);",
+		"if (src.choiceAmount)",
+		"dst.choiceAmount.copyFrom(src.choiceAmount);",
+		"if (src.choiceBytes)",
+		"dst.choiceBytes = Buffers.cloneByteArray(src.choiceBytes);",
 		"public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0, reset:Boolean = true):Player",
 		`throw new Error("Invalid protobuf message limit");`,
 		`throw new Error("Invalid protobuf field number");`,
@@ -431,6 +440,11 @@ func TestGenerateFileIntegerKindsUseCorrectCodecs(t *testing.T) {
 		"Serialize.writeSint64Vector(dst, localSint64Values, reuseBuffer, vecLength);",
 		"Serialize.writeFixed64Vector(dst, localFixed64Values, vecLength);",
 		"Serialize.writeSfixed64Vector(dst, localSfixed64Values, vecLength);",
+		"dst.int64Values.copyFrom(src.int64Values);",
+		"dst.uint64Values.copyFrom(src.uint64Values);",
+		"dst.sint64Values.copyFrom(src.sint64Values);",
+		"dst.fixed64Values.copyFrom(src.fixed64Values);",
+		"dst.sfixed64Values.copyFrom(src.sfixed64Values);",
 	}
 	for _, want := range wantParts {
 		if !strings.Contains(content, want) {

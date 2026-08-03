@@ -18,5 +18,14 @@ package as3pb.types
         {
             this.value = value;
         }
+
+        /**
+         * Creates a copy of this optional value.
+         * @return A new copy.
+         */
+        public function clone():OptionalInt
+        {
+            return new OptionalInt(value);
+        }
     }
 }

@@ -37,6 +37,22 @@ package as3pb.proto
         }
 
         /**
+         * Creates a copy of a byte array while preserving its position.
+         * @param src Source byte array; null returns null.
+         * @return A new byte array containing the same bytes.
+         */
+        public static function cloneByteArray(src:ByteArray):ByteArray
+        {
+            if (!src)
+                return null;
+
+            const result:ByteArray = newByteArray();
+            result.writeBytes(src, 0, src.length);
+            result.position = src.position;
+            return result;
+        }
+
+        /**
          * Acquires a reusable message serialization buffer for the current nesting depth.
          * @return A reusable message buffer.
          */

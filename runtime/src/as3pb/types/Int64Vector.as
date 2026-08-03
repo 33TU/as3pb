@@ -109,5 +109,34 @@ package as3pb.types
             low.length = 0;
             high.length = 0;
         }
+
+        /**
+         * Copies another vector into this instance.
+         * @param src Source vector to copy.
+         * @return This instance.
+         */
+        public function copyFrom(src:Int64Vector):Int64Vector
+        {
+            if (src === this)
+                return this;
+
+            const n:uint = src.length;
+            length = n;
+            for (var i:uint = 0; i < n; i++)
+            {
+                low[i] = src.low[i];
+                high[i] = src.high[i];
+            }
+            return this;
+        }
+
+        /**
+         * Creates a copy of this vector.
+         * @return A new copy.
+         */
+        public function clone():Int64Vector
+        {
+            return new Int64Vector().copyFrom(this);
+        }
     }
 }

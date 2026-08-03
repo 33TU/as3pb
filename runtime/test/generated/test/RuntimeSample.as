@@ -100,6 +100,75 @@ package test
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:RuntimeSample):RuntimeSample
+        {
+            if (!src)
+                return null;
+
+            const dst:RuntimeSample = new RuntimeSample();
+            dst.id = src.id;
+            dst.payload = Buffers.cloneByteArray(src.payload);
+            dst.count.copyFrom(src.count);
+            dst.delta.copyFrom(src.delta);
+            dst.scores = src.scores.concat();
+            dst.nested = RuntimeNested.clone(src.nested);
+            const cloneSource6:Vector.<RuntimeNested> = src.children;
+            const cloneTarget6:Vector.<RuntimeNested> = dst.children;
+            cloneTarget6.length = cloneSource6.length;
+            for (var cloneIndex6:uint = 0; cloneIndex6 < cloneSource6.length; cloneIndex6++)
+                cloneTarget6[cloneIndex6] = RuntimeNested.clone(cloneSource6[cloneIndex6]);
+            dst.checksum.copyFrom(src.checksum);
+            dst.signedCount = src.signedCount;
+            dst.expandedScores = src.expandedScores.concat();
+            dst.optionalCount = src.optionalCount ? src.optionalCount.clone() : null;
+            dst.optionalEnabled = src.optionalEnabled ? src.optionalEnabled.clone() : null;
+            dst.optionalLabel = src.optionalLabel;
+            dst.optionalPayload = Buffers.cloneByteArray(src.optionalPayload);
+            dst.optionalTotal = src.optionalTotal ? src.optionalTotal.clone() : null;
+            dst.optionalNested = RuntimeNested.clone(src.optionalNested);
+            dst.optionalDelta = src.optionalDelta ? src.optionalDelta.clone() : null;
+            dst.optionalStatus = src.optionalStatus ? src.optionalStatus.clone() : null;
+            dst.optionalFloat = src.optionalFloat ? src.optionalFloat.clone() : null;
+            dst.optionalDouble = src.optionalDouble ? src.optionalDouble.clone() : null;
+            dst.optionalFixed32 = src.optionalFixed32 ? src.optionalFixed32.clone() : null;
+            dst.optionalFixed64 = src.optionalFixed64 ? src.optionalFixed64.clone() : null;
+            dst.optionalInt64 = src.optionalInt64 ? src.optionalInt64.clone() : null;
+
+            dst.choiceCase = src.choiceCase;
+            switch (src.choiceCase)
+            {
+                case FIELD_NAME:
+                {
+                    dst.name = src.name;
+                    break;
+                }
+                case FIELD_SELECTED:
+                {
+                    dst.selected = RuntimeNested.clone(src.selected);
+                    break;
+                }
+                case FIELD_CHOICE_DELTA:
+                {
+                    if (src.choiceDelta)
+                        dst.choiceDelta.copyFrom(src.choiceDelta);
+                    break;
+                }
+                case FIELD_CHOICE_PAYLOAD:
+                {
+                    if (src.choicePayload)
+                        dst.choicePayload = Buffers.cloneByteArray(src.choicePayload);
+                    break;
+                }
+            }
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

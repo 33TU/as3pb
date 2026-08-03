@@ -97,6 +97,40 @@ package google.protobuf
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:Api):Api
+        {
+            if (!src)
+                return null;
+
+            const dst:Api = new Api();
+            dst.name = src.name;
+            const cloneSource1:Vector.<Method> = src.methods;
+            const cloneTarget1:Vector.<Method> = dst.methods;
+            cloneTarget1.length = cloneSource1.length;
+            for (var cloneIndex1:uint = 0; cloneIndex1 < cloneSource1.length; cloneIndex1++)
+                cloneTarget1[cloneIndex1] = Method.clone(cloneSource1[cloneIndex1]);
+            const cloneSource2:Vector.<Option> = src.options;
+            const cloneTarget2:Vector.<Option> = dst.options;
+            cloneTarget2.length = cloneSource2.length;
+            for (var cloneIndex2:uint = 0; cloneIndex2 < cloneSource2.length; cloneIndex2++)
+                cloneTarget2[cloneIndex2] = Option.clone(cloneSource2[cloneIndex2]);
+            dst.version = src.version;
+            dst.sourceContext = SourceContext.clone(src.sourceContext);
+            const cloneSource5:Vector.<Mixin> = src.mixins;
+            const cloneTarget5:Vector.<Mixin> = dst.mixins;
+            cloneTarget5.length = cloneSource5.length;
+            for (var cloneIndex5:uint = 0; cloneIndex5 < cloneSource5.length; cloneIndex5++)
+                cloneTarget5[cloneIndex5] = Mixin.clone(cloneSource5[cloneIndex5]);
+            dst.syntax = src.syntax;
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

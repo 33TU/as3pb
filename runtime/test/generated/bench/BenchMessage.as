@@ -63,6 +63,37 @@ package bench
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:BenchMessage):BenchMessage
+        {
+            if (!src)
+                return null;
+
+            const dst:BenchMessage = new BenchMessage();
+            dst.id = src.id;
+            dst.sequence = src.sequence;
+            dst.delta = src.delta;
+            dst.accountId.copyFrom(src.accountId);
+            dst.scoreDelta.copyFrom(src.scoreDelta);
+            dst.checksum = src.checksum;
+            dst.signedTick.copyFrom(src.signedTick);
+            dst.x = src.x;
+            dst.precision = src.precision;
+            dst.active = src.active;
+            dst.payload = Buffers.cloneByteArray(src.payload);
+            dst.samples = src.samples.concat();
+            dst.offsets = src.offsets.concat();
+            dst.hashes = src.hashes.concat();
+            dst.ticks.copyFrom(src.ticks);
+            dst.positions = src.positions.concat();
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

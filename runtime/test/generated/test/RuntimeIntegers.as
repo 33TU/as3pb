@@ -76,6 +76,41 @@ package test
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:RuntimeIntegers):RuntimeIntegers
+        {
+            if (!src)
+                return null;
+
+            const dst:RuntimeIntegers = new RuntimeIntegers();
+            dst.int32Value = src.int32Value;
+            dst.uint32Value = src.uint32Value;
+            dst.sint32Value = src.sint32Value;
+            dst.fixed32Value = src.fixed32Value;
+            dst.sfixed32Value = src.sfixed32Value;
+            dst.int64Value.copyFrom(src.int64Value);
+            dst.uint64Value.copyFrom(src.uint64Value);
+            dst.sint64Value.copyFrom(src.sint64Value);
+            dst.fixed64Value.copyFrom(src.fixed64Value);
+            dst.sfixed64Value.copyFrom(src.sfixed64Value);
+            dst.int32Values = src.int32Values.concat();
+            dst.uint32Values = src.uint32Values.concat();
+            dst.sint32Values = src.sint32Values.concat();
+            dst.fixed32Values = src.fixed32Values.concat();
+            dst.sfixed32Values = src.sfixed32Values.concat();
+            dst.int64Values.copyFrom(src.int64Values);
+            dst.uint64Values.copyFrom(src.uint64Values);
+            dst.sint64Values.copyFrom(src.sint64Values);
+            dst.fixed64Values.copyFrom(src.fixed64Values);
+            dst.sfixed64Values.copyFrom(src.sfixed64Values);
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

@@ -28,6 +28,23 @@ package example.game
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:Point):Point
+        {
+            if (!src)
+                return null;
+
+            const dst:Point = new Point();
+            dst.x = src.x;
+            dst.y = src.y;
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

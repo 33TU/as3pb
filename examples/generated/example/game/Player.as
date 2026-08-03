@@ -53,6 +53,42 @@ package example.game
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:Player):Player
+        {
+            if (!src)
+                return null;
+
+            const dst:Player = new Player();
+            dst.id = src.id;
+            dst.displayName = src.displayName;
+            dst.score.copyFrom(src.score);
+            dst.inventoryItemIds = src.inventoryItemIds.concat();
+            dst.avatar = Buffers.cloneByteArray(src.avatar);
+            dst.position = Point.clone(src.position);
+
+            dst.actionCase = src.actionCase;
+            switch (src.actionCase)
+            {
+                case FIELD_MOVE:
+                {
+                    dst.move = Move.clone(src.move);
+                    break;
+                }
+                case FIELD_CHAT:
+                {
+                    dst.chat = Chat.clone(src.chat);
+                    break;
+                }
+            }
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

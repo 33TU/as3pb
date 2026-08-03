@@ -27,6 +27,7 @@ func TestMessageNames(t *testing.T) {
 	resetField := message.Fields[0]
 	actionCaseField := message.Fields[1]
 	httpServerField := message.Fields[3]
+	cloneField := message.Fields[4]
 
 	if got, want := names.OneofCase(oneof), "actionCase"; got != want {
 		t.Fatalf("OneofCase() = %q, want %q", got, want)
@@ -45,6 +46,9 @@ func TestMessageNames(t *testing.T) {
 	}
 	if got, want := names.FieldNumber(httpServerField), "FIELD_HTTP_SERVER"; got != want {
 		t.Fatalf("FieldNumber(http_server) = %q, want %q", got, want)
+	}
+	if got, want := names.Field(cloneField), "clone_"; got != want {
+		t.Fatalf("Field(clone) = %q, want %q", got, want)
 	}
 	if got, want := names.Field(actionCaseField), "actionCase_"; got != want {
 		t.Fatalf("Field(action_case) second call = %q, want %q", got, want)
@@ -88,6 +92,12 @@ func testMessage(t *testing.T) *protogen.Message {
 					{
 						Name:   new("http_server"),
 						Number: proto.Int32(4),
+						Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:   descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+					},
+					{
+						Name:   new("clone"),
+						Number: proto.Int32(5),
 						Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 						Type:   descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 					},

@@ -18,6 +18,7 @@ type MessageNames struct {
 func NewMessageNames(message *protogen.Message) *MessageNames {
 	names := &MessageNames{
 		used: map[string]struct{}{
+			"clone":       {},
 			"deserialize": {},
 			"reset":       {},
 			"serialize":   {},

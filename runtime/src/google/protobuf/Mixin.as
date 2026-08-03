@@ -117,6 +117,23 @@ package google.protobuf
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:Mixin):Mixin
+        {
+            if (!src)
+                return null;
+
+            const dst:Mixin = new Mixin();
+            dst.name = src.name;
+            dst.root = src.root;
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

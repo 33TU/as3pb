@@ -29,6 +29,23 @@ package rpc
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:RpcEchoRequest):RpcEchoRequest
+        {
+            if (!src)
+                return null;
+
+            const dst:RpcEchoRequest = new RpcEchoRequest();
+            dst.message = src.message;
+            dst.sequence = src.sequence;
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

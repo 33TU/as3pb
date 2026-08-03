@@ -45,6 +45,7 @@ package test
             runTest("testTruncatedLengthDelimitedFields", testTruncatedLengthDelimitedFields);
             runTest("testInt64FixedIO", testInt64FixedIO);
             runTest("testGeneratedMessageRoundTrip", testGeneratedMessageRoundTrip);
+            runTest("testGeneratedMessageClone", testGeneratedMessageClone);
             runTest("testGeneratedIntegerKinds", testGeneratedIntegerKinds);
             runTest("testOptionalPresence", testOptionalPresence);
             runTest("testOptionalScalarKinds", testOptionalScalarKinds);
@@ -589,6 +590,90 @@ package test
             assertEq("generated reuse reset payload", out.payload.length, 0);
         }
 
+        private static function testGeneratedMessageClone():void
+        {
+            const msg:RuntimeSample = new RuntimeSample();
+            msg.id = "source";
+            msg.payload.writeByte(7);
+            msg.payload.position = 0;
+            msg.count.set(0x89abcdef, 0x01234567);
+            msg.scores.push(-1, 2);
+            msg.nested = nested("nested", 3, 1.5);
+            msg.children.push(nested("child", 4, 2.5));
+            msg.optionalCount = new OptionalInt(5);
+            msg.optionalPayload = bytes(6);
+            msg.optionalTotal = new UInt64(7, 8);
+            msg.optionalNested = nested("optional", 9, 3.5);
+            msg.choiceCase = RuntimeSample.FIELD_SELECTED;
+            msg.selected = nested("selected", 10, 4.5);
+
+            const copy:RuntimeSample = RuntimeSample.clone(msg);
+            assertTrue("clone message identity", copy !== msg);
+            assertEq("clone scalar", copy.id, msg.id);
+            assertTrue("clone bytes identity", copy.payload !== msg.payload);
+            assertBytesEq("clone bytes", copy.payload, msg.payload);
+            assertTrue("clone int64 identity", copy.count !== msg.count);
+            assertTrue("clone int64 value", copy.count.eq(msg.count));
+            assertTrue("clone vector identity", copy.scores !== msg.scores);
+            assertEq("clone vector value", copy.scores[1], 2);
+            assertTrue("clone message field identity", copy.nested !== msg.nested);
+            assertEq("clone message field value", copy.nested.label_, "nested");
+            assertTrue("clone repeated message identity", copy.children[0] !== msg.children[0]);
+            assertEq("clone repeated message value", copy.children[0].label_, "child");
+            assertTrue("clone optional wrapper identity", copy.optionalCount !== msg.optionalCount);
+            assertEq("clone optional wrapper value", copy.optionalCount.value, 5);
+            assertTrue("clone optional bytes identity", copy.optionalPayload !== msg.optionalPayload);
+            assertTrue("clone optional uint64 identity", copy.optionalTotal !== msg.optionalTotal);
+            assertTrue("clone optional message identity", copy.optionalNested !== msg.optionalNested);
+            assertEq("clone oneof case", copy.choiceCase, RuntimeSample.FIELD_SELECTED);
+            assertTrue("clone oneof message identity", copy.selected !== msg.selected);
+
+            copy.payload[0] = 8;
+            copy.scores[1] = 12;
+            copy.nested.label_ = "changed";
+            copy.children[0].label_ = "changed";
+            copy.optionalCount.value = 15;
+            copy.optionalPayload[0] = 16;
+            copy.optionalTotal.low = 17;
+            copy.optionalNested.label_ = "changed";
+            copy.selected.label_ = "changed";
+            assertEq("clone source bytes independent", msg.payload[0], 7);
+            assertEq("clone source vector independent", msg.scores[1], 2);
+            assertEq("clone source message independent", msg.nested.label_, "nested");
+            assertEq("clone source repeated message independent", msg.children[0].label_, "child");
+            assertEq("clone source optional wrapper independent", msg.optionalCount.value, 5);
+            assertEq("clone source optional bytes independent", msg.optionalPayload[0], 6);
+            assertUintEq("clone source optional uint64 independent", msg.optionalTotal.low, 7);
+            assertEq("clone source optional message independent", msg.optionalNested.label_, "optional");
+            assertEq("clone source oneof independent", msg.selected.label_, "selected");
+
+            const payloadChoice:RuntimeSample = new RuntimeSample();
+            payloadChoice.choiceCase = RuntimeSample.FIELD_CHOICE_PAYLOAD;
+            payloadChoice.choicePayload.writeByte(20);
+            const payloadCopy:RuntimeSample = RuntimeSample.clone(payloadChoice);
+            assertTrue("clone oneof bytes identity", payloadCopy.choicePayload !== payloadChoice.choicePayload);
+            assertEq("clone oneof bytes value", payloadCopy.choicePayload[0], 20);
+
+            const nullDelta:RuntimeSample = new RuntimeSample();
+            nullDelta.choiceCase = RuntimeSample.FIELD_CHOICE_DELTA;
+            nullDelta.choiceDelta = null;
+            const nullDeltaCopy:RuntimeSample = RuntimeSample.clone(nullDelta);
+            assertEq("clone null oneof int64 case", nullDeltaCopy.choiceCase, RuntimeSample.FIELD_CHOICE_DELTA);
+            assertTrue("clone null oneof int64 default", nullDeltaCopy.choiceDelta != null);
+            assertEq("clone null oneof int64 value", nullDeltaCopy.choiceDelta.toNumber(), 0);
+            RuntimeSample.reset(nullDeltaCopy);
+
+            const nullPayload:RuntimeSample = new RuntimeSample();
+            nullPayload.choiceCase = RuntimeSample.FIELD_CHOICE_PAYLOAD;
+            nullPayload.choicePayload = null;
+            const nullPayloadCopy:RuntimeSample = RuntimeSample.clone(nullPayload);
+            assertEq("clone null oneof bytes case", nullPayloadCopy.choiceCase, RuntimeSample.FIELD_CHOICE_PAYLOAD);
+            assertTrue("clone null oneof bytes default", nullPayloadCopy.choicePayload != null);
+            assertEq("clone null oneof bytes value", nullPayloadCopy.choicePayload.length, 0);
+            RuntimeSample.reset(nullPayloadCopy);
+            assertEq("clone null", RuntimeSample.clone(null), null);
+        }
+
         private static function testGeneratedIntegerKinds():void
         {
             const msg:RuntimeIntegers = new RuntimeIntegers();
@@ -655,6 +740,31 @@ package test
             assertEq("integer sint64 vector high", out.sint64Values.high[1], int.MIN_VALUE);
             assertUintEq("integer fixed64 vector low", out.fixed64Values.low[0], 0x01234567);
             assertEq("integer sfixed64 vector high", out.sfixed64Values.high[1], int.MIN_VALUE);
+
+            const copy:RuntimeIntegers = RuntimeIntegers.clone(out);
+            assertTrue("integer int64 vector clone identity", copy.int64Values !== out.int64Values);
+            assertTrue("integer int64 low vector clone identity", copy.int64Values.low !== out.int64Values.low);
+            assertTrue("integer uint64 high vector clone identity", copy.uint64Values.high !== out.uint64Values.high);
+            copy.int64Values.high[1] = 0;
+            assertEq("integer vector clone independent", out.int64Values.high[1], int.MIN_VALUE);
+
+            const reusedInt64:Int64Vector = new Int64Vector();
+            const reusedInt64Low:Vector.<uint> = reusedInt64.low;
+            const reusedInt64High:Vector.<int> = reusedInt64.high;
+            assertTrue("int64 vector copy result", reusedInt64.copyFrom(out.int64Values) === reusedInt64);
+            assertTrue("int64 vector copy reuses low", reusedInt64.low === reusedInt64Low);
+            assertTrue("int64 vector copy reuses high", reusedInt64.high === reusedInt64High);
+            assertEq("int64 vector copy length", reusedInt64.length, out.int64Values.length);
+            assertEq("int64 vector copy value", reusedInt64.high[1], int.MIN_VALUE);
+
+            const reusedUInt64:UInt64Vector = new UInt64Vector();
+            const reusedUInt64Low:Vector.<uint> = reusedUInt64.low;
+            const reusedUInt64High:Vector.<uint> = reusedUInt64.high;
+            assertTrue("uint64 vector copy result", reusedUInt64.copyFrom(out.uint64Values) === reusedUInt64);
+            assertTrue("uint64 vector copy reuses low", reusedUInt64.low === reusedUInt64Low);
+            assertTrue("uint64 vector copy reuses high", reusedUInt64.high === reusedUInt64High);
+            assertEq("uint64 vector copy length", reusedUInt64.length, out.uint64Values.length);
+            assertUintEq("uint64 vector copy value", reusedUInt64.high[0], 0xffffffff);
         }
 
         private static function testRecursiveMessageRoundTrip():void

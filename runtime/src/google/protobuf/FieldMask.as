@@ -231,6 +231,22 @@ package google.protobuf
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:FieldMask):FieldMask
+        {
+            if (!src)
+                return null;
+
+            const dst:FieldMask = new FieldMask();
+            dst.paths = src.paths.concat();
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.

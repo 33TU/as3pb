@@ -40,6 +40,26 @@ package google.protobuf
         }
 
         /**
+         * Creates a deep copy of a message.
+         * @param src Message to clone.
+         * @return A new deep copy, or null when src is null.
+         */
+        public static function clone(src:Struct):Struct
+        {
+            if (!src)
+                return null;
+
+            const dst:Struct = new Struct();
+            const cloneSource0:Vector.<StructFieldsEntry> = src.fields;
+            const cloneTarget0:Vector.<StructFieldsEntry> = dst.fields;
+            cloneTarget0.length = cloneSource0.length;
+            for (var cloneIndex0:uint = 0; cloneIndex0 < cloneSource0.length; cloneIndex0++)
+                cloneTarget0[cloneIndex0] = StructFieldsEntry.clone(cloneSource0[cloneIndex0]);
+
+            return dst;
+        }
+
+        /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
          * @param dst Optional reusable destination message.
