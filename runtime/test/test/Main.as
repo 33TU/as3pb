@@ -14,8 +14,10 @@ package test
     import as3pb.types.OptionalBoolean;
     import as3pb.types.OptionalInt;
     import as3pb.types.OptionalUInt64;
+    import as3pb.types.TimestampUtils;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
+    import google.protobuf.Timestamp;
 
     public final class Main extends Sprite
     {
@@ -38,6 +40,7 @@ package test
             testInt64FixedIO();
             testGeneratedMessageRoundTrip();
             testOptionalPresence();
+            testTimestampUtils();
             testEmptyMessagePresence();
             testMessageMerging();
             testRecursiveMessageRoundTrip();
@@ -470,6 +473,33 @@ package test
             RuntimeSample.reset(out);
             assertEq("optional int reset", out.optionalCount, null);
             assertEq("optional message reset", out.optionalNested, null);
+        }
+
+        private static function testTimestampUtils():void
+        {
+            var timestamp:Timestamp = TimestampUtils.fromDate(new Date(1234));
+            assertEq("timestamp positive seconds", timestamp.seconds.toNumber(), 1);
+            assertEq("timestamp positive nanos", timestamp.nanos, 234000000);
+            assertEq("timestamp positive round trip", TimestampUtils.toDate(timestamp).time, 1234);
+
+            timestamp = TimestampUtils.fromDate(new Date(-1), timestamp);
+            assertEq("timestamp negative seconds", timestamp.seconds.toNumber(), -1);
+            assertEq("timestamp negative nanos", timestamp.nanos, 999000000);
+            assertEq("timestamp negative round trip", TimestampUtils.toDate(timestamp).time, -1);
+
+            timestamp.seconds.reset();
+            timestamp.nanos = -1;
+            TimestampUtils.normalize(timestamp);
+            assertEq("timestamp normalized seconds", timestamp.seconds.toNumber(), -1);
+            assertEq("timestamp normalized nanos", timestamp.nanos, 999999999);
+            assertTrue("timestamp normalized valid", TimestampUtils.isValid(timestamp));
+
+            timestamp.nanos = 1000000000;
+            assertEq("timestamp invalid nanos", TimestampUtils.isValid(timestamp), false);
+            assertEq("timestamp null invalid", TimestampUtils.isValid(null), false);
+
+            const current:Timestamp = TimestampUtils.now();
+            assertTrue("timestamp now valid", TimestampUtils.isValid(current));
         }
 
         private static function testEmptyMessagePresence():void
