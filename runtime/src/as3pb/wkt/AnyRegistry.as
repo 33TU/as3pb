@@ -1,4 +1,4 @@
-package as3pb.types
+package as3pb.wkt
 {
     import flash.utils.ByteArray;
     import google.protobuf.Any;

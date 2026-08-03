@@ -8,7 +8,7 @@ package rpc
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class RpcEchoResponse
     {

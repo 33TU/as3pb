@@ -130,7 +130,7 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 		g.w.Line("import google.protobuf.Any;")
 	}
 	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
-		g.w.Line("import as3pb.types.AnyRegistry;")
+		g.w.Line("import as3pb.wkt.AnyRegistry;")
 	}
 	g.w.BlankLine()
 }

@@ -7,14 +7,14 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
     import google.protobuf.Any;
     import as3pb.types.Int64;
     import as3pb.types.Int64Vector;
     import as3pb.types.OptionalBoolean;
     import as3pb.types.OptionalInt;
     import as3pb.types.OptionalUInt64;
-    import as3pb.types.TimestampUtils;
+    import as3pb.wkt.TimestampUtils;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
     import google.protobuf.Timestamp;

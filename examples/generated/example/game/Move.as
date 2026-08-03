@@ -9,10 +9,7 @@ package example.game
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
-    import as3pb.types.UInt64;
-    import as3pb.types.Int64Vector;
-    import as3pb.types.UInt64Vector;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class Move
     {

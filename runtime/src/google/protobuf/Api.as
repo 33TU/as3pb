@@ -8,7 +8,7 @@ package google.protobuf
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     /**
      * Api is a light-weight descriptor for an API Interface.

@@ -8,7 +8,7 @@ package google.protobuf
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     /**
      * `Any` contains an arbitrary serialized protocol buffer message along with a
@@ -178,8 +178,7 @@ package google.protobuf
                     }
                     case 18:
                     {
-                        dst.value.length = 0;
-                        src.readBytes(dst.value, 0, Deserialize.readVarint32(src));
+                        Deserialize.readBytesInto(src, dst.value);
                         break;
                     }
                     default:

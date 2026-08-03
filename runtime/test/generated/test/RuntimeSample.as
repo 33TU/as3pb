@@ -13,7 +13,7 @@ package test
     import as3pb.types.OptionalInt;
     import as3pb.types.OptionalBoolean;
     import as3pb.types.OptionalUInt64;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class RuntimeSample
     {

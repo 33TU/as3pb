@@ -8,7 +8,7 @@ package google.protobuf
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.types.Int64;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     /**
      * A Timestamp represents a point in time independent of any time zone or local

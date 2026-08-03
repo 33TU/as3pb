@@ -8,11 +8,8 @@ package example.game
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.Int64;
     import as3pb.types.UInt64;
-    import as3pb.types.Int64Vector;
-    import as3pb.types.UInt64Vector;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class Player
     {
@@ -110,8 +107,7 @@ package example.game
                     }
                     case 42:
                     {
-                        dst.avatar.length = 0;
-                        src.readBytes(dst.avatar, 0, Deserialize.readVarint32(src));
+                        Deserialize.readBytesInto(src, dst.avatar);
                         break;
                     }
                     case 50:

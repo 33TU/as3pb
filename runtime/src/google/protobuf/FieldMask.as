@@ -8,7 +8,7 @@ package google.protobuf
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     /**
      * `FieldMask` represents a set of symbolic field paths, for example:

@@ -7,7 +7,7 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     /**
      * Wrapper message for `double`.

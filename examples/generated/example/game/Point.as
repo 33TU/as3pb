@@ -7,7 +7,7 @@ package example.game
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class Point
     {

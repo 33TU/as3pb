@@ -1,5 +1,6 @@
-package as3pb.types
+package as3pb.wkt
 {
+    import as3pb.types.Int64;
     import google.protobuf.Timestamp;
 
     /** Conversion, validation, and normalization helpers for protobuf timestamps. */

@@ -95,7 +95,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"import as3pb.proto.Serialize;",
 		"import as3pb.proto.Buffers;",
 		"import as3pb.types.Int64;",
-		"import as3pb.types.AnyRegistry;",
+		"import as3pb.wkt.AnyRegistry;",
 		`public static const TYPE_URL:String = "type.googleapis.com/test.v1.Player";`,
 		"public static const FIELD_MOVE:uint = 5;",
 		"public var raw:ByteArray = Buffers.newByteArray();",

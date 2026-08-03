@@ -9,7 +9,7 @@ package test
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import google.protobuf.Any;
-    import as3pb.types.AnyRegistry;
+    import as3pb.wkt.AnyRegistry;
 
     public final class RuntimeAnyEnvelope
     {
