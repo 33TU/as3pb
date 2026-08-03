@@ -381,6 +381,36 @@ func TestGenerateFileService(t *testing.T) {
 	}
 }
 
+func TestGenerateFileRejectsStreamingServices(t *testing.T) {
+	tests := []struct {
+		name            string
+		clientStreaming bool
+		serverStreaming bool
+		wantKind        string
+	}{
+		{name: "client", clientStreaming: true, wantKind: "client-streaming"},
+		{name: "server", serverStreaming: true, wantKind: "server-streaming"},
+		{name: "bidirectional", clientStreaming: true, serverStreaming: true, wantKind: "bidirectional-streaming"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			plugin := streamingServicePlugin(t, tt.clientStreaming, tt.serverStreaming)
+			generator := internal.NewGenerator(plugin, internal.Options{})
+
+			err := generator.GenerateFile(plugin.Files[0])
+			if err == nil {
+				t.Fatal("GenerateFile() error = nil, want streaming RPC rejection")
+			}
+			if !strings.Contains(err.Error(), "RPC method test.v1.Greeter.SayHello is "+tt.wantKind) {
+				t.Fatalf("GenerateFile() error = %q, want %s rejection", err, tt.wantKind)
+			}
+			if files := plugin.Response().GetFile(); len(files) != 0 {
+				t.Fatalf("GenerateFile() generated %d files before rejecting streaming RPC", len(files))
+			}
+		})
+	}
+}
+
 func TestGenerateFileRejectsOutputFileCollision(t *testing.T) {
 	plugin := fileCollisionPlugin(t)
 	generator := internal.NewGenerator(plugin, internal.Options{})
@@ -708,6 +738,21 @@ func servicePlugin(t *testing.T) *protogen.Plugin {
 	}
 
 	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
+func streamingServicePlugin(t *testing.T, clientStreaming, serverStreaming bool) *protogen.Plugin {
+	t.Helper()
+
+	plugin := servicePlugin(t)
+	method := plugin.Request.ProtoFile[0].Service[0].Method[0]
+	method.ClientStreaming = proto.Bool(clientStreaming)
+	method.ServerStreaming = proto.Bool(serverStreaming)
+
+	plugin, err := protogen.Options{}.New(plugin.Request)
 	if err != nil {
 		t.Fatalf("protogen plugin: %v", err)
 	}

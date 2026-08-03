@@ -1,7 +1,6 @@
 package test
 {
     import flash.display.Sprite;
-    import flash.errors.IOError;
     import flash.utils.ByteArray;
 
     import as3pb.proto.Buffers;
@@ -13,6 +12,8 @@ package test
     import as3pb.types.Int64Vector;
     import as3pb.types.OptionalBoolean;
     import as3pb.types.OptionalInt;
+    import as3pb.types.OptionalNumber;
+    import as3pb.types.OptionalUint;
     import as3pb.wkt.TimestampUtils;
     import as3pb.types.UInt64;
     import as3pb.types.UInt64Vector;
@@ -24,28 +25,41 @@ package test
         {
             trace("as3pb runtime tests");
 
-            testVarint32();
-            testVarint64();
-            testSint32();
-            testSint64();
-            testFixedWidth();
-            testStringsAndBytes();
-            testPackedVectors();
-            testPackedEncodingCompatibility();
-            testSkipUnknownVarint64();
-            testMalformedVarints();
-            testInvalidFieldNumbers();
-            testInvalidMessageLimits();
-            testInt64FixedIO();
-            testGeneratedMessageRoundTrip();
-            testOptionalPresence();
-            testTimestampUtils();
-            testEmptyMessagePresence();
-            testMessageMerging();
-            testRecursiveMessageRoundTrip();
-            testAnyRegistry();
+            runTest("testVarint32", testVarint32);
+            runTest("testVarint64", testVarint64);
+            runTest("testSignedVarint64", testSignedVarint64);
+            runTest("testSint32", testSint32);
+            runTest("testSint64", testSint64);
+            runTest("testFixedWidth", testFixedWidth);
+            runTest("testStringsAndBytes", testStringsAndBytes);
+            runTest("testPackedVectors", testPackedVectors);
+            runTest("testPackedEncodingCompatibility", testPackedEncodingCompatibility);
+            runTest("testSkipUnknownVarint64", testSkipUnknownVarint64);
+            runTest("testGeneratedUnknownFields", testGeneratedUnknownFields);
+            runTest("testMalformedVarints", testMalformedVarints);
+            runTest("testInvalidFieldNumbers", testInvalidFieldNumbers);
+            runTest("testInvalidMessageLimits", testInvalidMessageLimits);
+            runTest("testTruncatedLengthDelimitedFields", testTruncatedLengthDelimitedFields);
+            runTest("testInt64FixedIO", testInt64FixedIO);
+            runTest("testGeneratedMessageRoundTrip", testGeneratedMessageRoundTrip);
+            runTest("testOptionalPresence", testOptionalPresence);
+            runTest("testOptionalScalarKinds", testOptionalScalarKinds);
+            runTest("testSingularLastValueWins", testSingularLastValueWins);
+            runTest("testTimestampUtils", testTimestampUtils);
+            runTest("testEmptyMessagePresence", testEmptyMessagePresence);
+            runTest("testMessageMerging", testMessageMerging);
+            runTest("testOneofReferenceReplacement", testOneofReferenceReplacement);
+            runTest("testRecursiveMessageRoundTrip", testRecursiveMessageRoundTrip);
+            runTest("testAnyRegistry", testAnyRegistry);
+            runTest("testAnyRegistryFailure", testAnyRegistryFailure);
 
             trace("ok");
+        }
+
+        private static function runTest(name:String, test:Function):void
+        {
+            trace(name);
+            test();
         }
 
         private static function testVarint32():void
@@ -84,6 +98,40 @@ package test
                 assertTrue("varint64 " + value.toHex(), value.eq(out));
                 assertEq("varint64 consumed " + value.toHex(), buffer.position, buffer.length);
             }
+        }
+
+        private static function testSignedVarint64():void
+        {
+            const values:Array = [
+                    new Int64(0, 0),
+                    new Int64(127, 0),
+                    new Int64(128, 0),
+                    new Int64(0xffffffff, -1),
+                    new Int64(0, int.MIN_VALUE)
+                ];
+            const lengths:Array = [1, 1, 2, 10, 10];
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            for (var i:uint = 0; i < values.length; i++)
+            {
+                const value:Int64 = values[i];
+                reset(buffer);
+                Serialize.writeVarint64s(buffer, value.low, value.high);
+                assertEq("signed varint64 length " + value.toHex(), buffer.length, lengths[i]);
+
+                buffer.position = 0;
+                const out:Int64 = new Int64();
+                Deserialize.readVarint64s(buffer, out);
+                assertTrue("signed varint64 round trip " + value.toHex(), value.eq(out));
+                assertEq("signed varint64 consumed " + value.toHex(), buffer.position, buffer.length);
+            }
+
+            reset(buffer);
+            Serialize.writeVarint64s(buffer, 0xffffffff, -1);
+            buffer.position = 0;
+            for (i = 0; i < 9; i++)
+                assertEq("negative one varint byte " + i, buffer.readUnsignedByte(), 0xff);
+            assertEq("negative one varint final byte", buffer.readUnsignedByte(), 0x01);
         }
 
         private static function testSint32():void
@@ -282,6 +330,49 @@ package test
             assertEq("skip varint64 tail", buffer.readUnsignedByte(), 7);
         }
 
+        private static function testGeneratedUnknownFields():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+            buffer.writeByte(10);
+            Serialize.writeString(buffer, "before", Buffers.SHARED_BUFFER);
+
+            Serialize.writeVarint32(buffer, (100 << 3) | 0);
+            Serialize.writeVarint64(buffer, 0xffffffff, 0xffffffff);
+            Serialize.writeVarint32(buffer, (101 << 3) | 1);
+            buffer.writeUnsignedInt(0x01234567);
+            buffer.writeUnsignedInt(0x89abcdef);
+            Serialize.writeVarint32(buffer, (102 << 3) | 2);
+            Serialize.writeVarint32(buffer, 3);
+            buffer.writeByte(1);
+            buffer.writeByte(2);
+            buffer.writeByte(3);
+            Serialize.writeVarint32(buffer, (103 << 3) | 5);
+            buffer.writeUnsignedInt(0x12345678);
+
+            buffer.writeByte(10);
+            Serialize.writeString(buffer, "after", Buffers.SHARED_BUFFER);
+            buffer.position = 0;
+            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("known field after unknown wire types", out.id, "after");
+            assertEq("unknown fields consumed", buffer.position, buffer.length);
+
+            reset(buffer);
+            Serialize.writeVarint32(buffer, (100 << 3) | 3);
+            buffer.position = 0;
+            assertThrows("start group wire type rejected", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer);
+                });
+
+            reset(buffer);
+            Serialize.writeVarint32(buffer, (100 << 3) | 4);
+            buffer.position = 0;
+            assertThrows("end group wire type rejected", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer);
+                });
+        }
+
         private static function testMalformedVarints():void
         {
             const buffer:ByteArray = Buffers.newByteArray();
@@ -304,6 +395,27 @@ package test
                 {
                     Deserialize.readVarint64(buffer, new UInt64());
                 });
+
+            reset(buffer);
+            for (i = 0; i < 5; i++)
+                buffer.writeByte(0x80);
+            buffer.position = 0;
+            assertThrows("read varint32 longer than five bytes", function():void
+                {
+                    Deserialize.readVarint32(buffer);
+                });
+
+            reset(buffer);
+            buffer.writeByte(0xff);
+            buffer.writeByte(0xff);
+            buffer.writeByte(0xff);
+            buffer.writeByte(0xff);
+            buffer.writeByte(0x10);
+            buffer.position = 0;
+            assertThrows("read varint32 overflow bits", function():void
+                {
+                    Deserialize.readVarint32(buffer);
+                });
         }
 
         private static function testInvalidMessageLimits():void
@@ -317,6 +429,54 @@ package test
             assertThrows("Any invalid message limit", function():void
                 {
                     Any.deserializeBytes(buffer, null, 1);
+                });
+        }
+
+        private static function testTruncatedLengthDelimitedFields():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            buffer.writeByte(10);
+            buffer.writeByte(3);
+            buffer.writeUTFBytes("abc");
+            buffer.position = 0;
+            assertThrows("string length beyond message boundary", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer, null, 4);
+                });
+
+            reset(buffer);
+            buffer.writeByte(18);
+            buffer.writeByte(3);
+            buffer.writeByte(1);
+            buffer.writeByte(2);
+            buffer.writeByte(3);
+            buffer.position = 0;
+            assertThrows("bytes length beyond message boundary", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer, null, 4);
+                });
+
+            reset(buffer);
+            buffer.writeByte(42);
+            buffer.writeByte(2);
+            buffer.writeByte(0);
+            buffer.writeByte(0);
+            buffer.position = 0;
+            assertThrows("packed length beyond message boundary", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer, null, 3);
+                });
+
+            reset(buffer);
+            buffer.writeByte(50);
+            buffer.writeByte(2);
+            buffer.writeByte(10);
+            buffer.writeByte(0);
+            buffer.position = 0;
+            assertThrows("nested message length beyond parent boundary", function():void
+                {
+                    RuntimeSample.deserializeBytes(buffer, null, 3);
                 });
         }
 
@@ -477,6 +637,72 @@ package test
             RuntimeSample.reset(out);
             assertEq("optional int reset", out.optionalCount, null);
             assertEq("optional message reset", out.optionalNested, null);
+
+            const partial:RuntimeSample = new RuntimeSample();
+            partial.optionalCount = new OptionalInt(7);
+            reset(buffer);
+            RuntimeSample.serializeBytes(partial, buffer);
+            buffer.position = 0;
+            const partialOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("present optional survives round trip", partialOut.optionalCount.value, 7);
+            assertEq("absent optional bool survives round trip", partialOut.optionalEnabled, null);
+            assertEq("absent optional string survives round trip", partialOut.optionalLabel, null);
+            assertEq("absent optional bytes survives round trip", partialOut.optionalPayload, null);
+            assertEq("absent optional uint64 survives round trip", partialOut.optionalTotal, null);
+            assertEq("absent optional message survives round trip", partialOut.optionalNested, null);
+            assertEq("absent optional int64 survives round trip", partialOut.optionalDelta, null);
+        }
+
+        private static function testOptionalScalarKinds():void
+        {
+            const msg:RuntimeSample = new RuntimeSample();
+            msg.optionalStatus = new OptionalInt(RuntimeStatus.RUNTIME_STATUS_READY);
+            msg.optionalFloat = new OptionalNumber(1.25);
+            msg.optionalDouble = new OptionalNumber(-2.5);
+            msg.optionalFixed32 = new OptionalUint(0x89abcdef);
+            msg.optionalFixed64 = new UInt64(0x01234567, 0x89abcdef);
+            msg.optionalInt64 = new Int64(0xffffffff, -1);
+
+            const buffer:ByteArray = Buffers.newByteArray();
+            RuntimeSample.serializeBytes(msg, buffer);
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("optional enum", out.optionalStatus.value, RuntimeStatus.RUNTIME_STATUS_READY);
+            assertEq("optional float", out.optionalFloat.value, 1.25);
+            assertEq("optional double", out.optionalDouble.value, -2.5);
+            assertUintEq("optional fixed32", out.optionalFixed32.value, 0x89abcdef);
+            assertUintEq("optional fixed64 low", out.optionalFixed64.low, 0x01234567);
+            assertUintEq("optional fixed64 high", out.optionalFixed64.high, 0x89abcdef);
+            assertEq("optional int64", out.optionalInt64.toNumber(), -1);
+
+            reset(buffer);
+            buffer.writeByte(0xb0);
+            buffer.writeByte(0x01);
+            Serialize.writeVarint32(buffer, 123);
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("unknown enum numeric value", out.optionalStatus.value, 123);
+        }
+
+        private static function testSingularLastValueWins():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+            buffer.writeByte(10);
+            Serialize.writeString(buffer, "first", Buffers.SHARED_BUFFER);
+            buffer.writeByte(10);
+            Serialize.writeString(buffer, "last", Buffers.SHARED_BUFFER);
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("duplicate singular scalar", out.id, "last");
+
+            reset(buffer);
+            buffer.writeByte(104);
+            Serialize.writeVarint32(buffer, 1);
+            buffer.writeByte(104);
+            Serialize.writeVarint32(buffer, 2);
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("repeated optional field", out.optionalCount.value, 2);
         }
 
         private static function testTimestampUtils():void
@@ -628,6 +854,49 @@ package test
             assertEq("top-level merge retained scores", reusable.scores.length, 1);
         }
 
+        private static function testOneofReferenceReplacement():void
+        {
+            const buffer:ByteArray = Buffers.newByteArray();
+
+            buffer.writeByte(0xaa);
+            buffer.writeByte(0x01);
+            Serialize.writeBytes(buffer, bytes(1));
+            buffer.writeByte(74);
+            Serialize.writeString(buffer, "name", Buffers.SHARED_BUFFER);
+            buffer.position = 0;
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            assertEq("oneof bytes to string", out.choiceCase, RuntimeSample.FIELD_NAME);
+
+            reset(buffer);
+            buffer.writeByte(74);
+            Serialize.writeString(buffer, "name", Buffers.SHARED_BUFFER);
+            writeNestedField(buffer, 82, nested("selected", 0, 0.0));
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("oneof string to message", out.choiceCase, RuntimeSample.FIELD_SELECTED);
+
+            reset(buffer);
+            writeNestedField(buffer, 82, nested("selected", 0, 0.0));
+            buffer.writeByte(0xa0);
+            buffer.writeByte(0x01);
+            Serialize.writeVarint64(buffer, 7, 0);
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("oneof message to int64", out.choiceCase, RuntimeSample.FIELD_CHOICE_DELTA);
+
+            reset(buffer);
+            buffer.writeByte(0xa0);
+            buffer.writeByte(0x01);
+            Serialize.writeVarint64(buffer, 7, 0);
+            buffer.writeByte(0xaa);
+            buffer.writeByte(0x01);
+            Serialize.writeBytes(buffer, bytes(9));
+            buffer.position = 0;
+            out = RuntimeSample.deserializeBytes(buffer);
+            assertEq("oneof int64 to bytes", out.choiceCase, RuntimeSample.FIELD_CHOICE_PAYLOAD);
+            assertEq("oneof replacement bytes", out.choicePayload[0], 9);
+        }
+
         private static function writeNestedField(dst:ByteArray, tag:uint, msg:RuntimeNested):void
         {
             const payload:ByteArray = Buffers.newByteArray();
@@ -658,6 +927,21 @@ package test
             assertEq("any wire round trip", decodedMessage.label_, msg.label_);
         }
 
+        private static function testAnyRegistryFailure():void
+        {
+            const value:Any = new Any();
+            value.typeUrl = "type.googleapis.com/test.Unregistered";
+            assertEq("unregistered Any type", AnyRegistry.isRegistered(value.typeUrl), false);
+            assertThrows("unregistered Any unpack", function():void
+                {
+                    AnyRegistry.unpack(value);
+                });
+            assertThrows("unregistered Any pack", function():void
+                {
+                    AnyRegistry.pack(value.typeUrl, {});
+                });
+        }
+
         private static function nested(label:String, flags:uint, ratio:Number):RuntimeNested
         {
             const msg:RuntimeNested = new RuntimeNested();
@@ -665,6 +949,13 @@ package test
             msg.flags = flags;
             msg.ratio = ratio;
             return msg;
+        }
+
+        private static function bytes(value:uint):ByteArray
+        {
+            const result:ByteArray = Buffers.newByteArray();
+            result.writeByte(value);
+            return result;
         }
 
         private static function reset(buffer:ByteArray):void

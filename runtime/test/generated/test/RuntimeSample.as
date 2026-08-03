@@ -11,6 +11,8 @@ package test
     import as3pb.types.Int64;
     import as3pb.types.UInt64;
     import as3pb.types.OptionalInt;
+    import as3pb.types.OptionalUint;
+    import as3pb.types.OptionalNumber;
     import as3pb.types.OptionalBoolean;
     import as3pb.wkt.AnyRegistry;
 
@@ -40,6 +42,12 @@ package test
         public var optionalTotal:UInt64 = null;
         public var optionalNested:RuntimeNested = null;
         public var optionalDelta:Int64 = null;
+        public var optionalStatus:OptionalInt = null;
+        public var optionalFloat:OptionalNumber = null;
+        public var optionalDouble:OptionalNumber = null;
+        public var optionalFixed32:OptionalUint = null;
+        public var optionalFixed64:UInt64 = null;
+        public var optionalInt64:Int64 = null;
         public var name:String = "";
         public var selected:RuntimeNested = null;
         public var choiceDelta:Int64 = new Int64();
@@ -77,6 +85,12 @@ package test
             msg.optionalTotal = null;
             msg.optionalNested = null;
             msg.optionalDelta = null;
+            msg.optionalStatus = null;
+            msg.optionalFloat = null;
+            msg.optionalDouble = null;
+            msg.optionalFixed32 = null;
+            msg.optionalFixed64 = null;
+            msg.optionalInt64 = null;
             msg.name = "";
             msg.selected = null;
             msg.choiceDelta.low = 0;
@@ -223,6 +237,48 @@ package test
                         Deserialize.readSint64(src, dst.optionalDelta);
                         break;
                     }
+                    case 176:
+                    {
+                        if (dst.optionalStatus == null)
+                            dst.optionalStatus = new OptionalInt();
+                        dst.optionalStatus.value = Deserialize.readInt32(src);
+                        break;
+                    }
+                    case 189:
+                    {
+                        if (dst.optionalFloat == null)
+                            dst.optionalFloat = new OptionalNumber();
+                        dst.optionalFloat.value = src.readFloat();
+                        break;
+                    }
+                    case 193:
+                    {
+                        if (dst.optionalDouble == null)
+                            dst.optionalDouble = new OptionalNumber();
+                        dst.optionalDouble.value = src.readDouble();
+                        break;
+                    }
+                    case 205:
+                    {
+                        if (dst.optionalFixed32 == null)
+                            dst.optionalFixed32 = new OptionalUint();
+                        dst.optionalFixed32.value = src.readUnsignedInt();
+                        break;
+                    }
+                    case 209:
+                    {
+                        if (dst.optionalFixed64 == null)
+                            dst.optionalFixed64 = new UInt64();
+                        Deserialize.readFixed64(src, dst.optionalFixed64);
+                        break;
+                    }
+                    case 216:
+                    {
+                        if (dst.optionalInt64 == null)
+                            dst.optionalInt64 = new Int64();
+                        Deserialize.readVarint64s(src, dst.optionalInt64);
+                        break;
+                    }
                     case 74:
                     {
                         dst.name = src.readUTFBytes(Deserialize.readVarint32(src));
@@ -297,6 +353,12 @@ package test
             const localOptionalTotal:UInt64 = src.optionalTotal;
             const localOptionalNested:RuntimeNested = src.optionalNested;
             const localOptionalDelta:Int64 = src.optionalDelta;
+            const localOptionalStatus:OptionalInt = src.optionalStatus;
+            const localOptionalFloat:OptionalNumber = src.optionalFloat;
+            const localOptionalDouble:OptionalNumber = src.optionalDouble;
+            const localOptionalFixed32:OptionalUint = src.optionalFixed32;
+            const localOptionalFixed64:UInt64 = src.optionalFixed64;
+            const localOptionalInt64:Int64 = src.optionalInt64;
             const localName:String = src.name;
             const localSelected:RuntimeNested = src.selected;
             const localChoiceDelta:Int64 = src.choiceDelta;
@@ -404,6 +466,37 @@ package test
                 {
                     dst.writeShort(408);
                     Serialize.writeSint64(dst, localOptionalDelta.low, localOptionalDelta.high);
+                }
+                if (localOptionalStatus != null)
+                {
+                    dst.writeShort(432);
+                    Serialize.writeInt32(dst, localOptionalStatus.value);
+                }
+                if (localOptionalFloat != null)
+                {
+                    dst.writeShort(445);
+                    dst.writeFloat(localOptionalFloat.value);
+                }
+                if (localOptionalDouble != null)
+                {
+                    dst.writeShort(449);
+                    dst.writeDouble(localOptionalDouble.value);
+                }
+                if (localOptionalFixed32 != null)
+                {
+                    dst.writeShort(461);
+                    dst.writeUnsignedInt(localOptionalFixed32.value);
+                }
+                if (localOptionalFixed64 != null)
+                {
+                    dst.writeShort(465);
+                    dst.writeUnsignedInt(localOptionalFixed64.low);
+                    dst.writeUnsignedInt(localOptionalFixed64.high);
+                }
+                if (localOptionalInt64 != null)
+                {
+                    dst.writeShort(472);
+                    Serialize.writeVarint64s(dst, localOptionalInt64.low, localOptionalInt64.high);
                 }
 
                 switch (src.choiceCase)

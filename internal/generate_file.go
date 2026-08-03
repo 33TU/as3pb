@@ -35,6 +35,9 @@ func (g *Generator) GenerateFile(file *protogen.File) error {
 	if file.Desc.Syntax() != protoreflect.Proto3 {
 		return fmt.Errorf("%s: only proto3 files are supported", file.Desc.Path())
 	}
+	if err := validateServiceMethods(file); err != nil {
+		return err
+	}
 
 	g.log.Debug("processing file", "path", file.Desc.Path())
 
@@ -57,6 +60,28 @@ func (g *Generator) GenerateFile(file *protogen.File) error {
 		}
 	}
 
+	return nil
+}
+
+func validateServiceMethods(file *protogen.File) error {
+	for _, service := range file.Services {
+		for _, method := range service.Methods {
+			clientStreaming := method.Desc.IsStreamingClient()
+			serverStreaming := method.Desc.IsStreamingServer()
+			if !clientStreaming && !serverStreaming {
+				continue
+			}
+
+			kind := "server-streaming"
+			if clientStreaming && serverStreaming {
+				kind = "bidirectional-streaming"
+			} else if clientStreaming {
+				kind = "client-streaming"
+			}
+			return fmt.Errorf("%s: RPC method %s.%s is %s; streaming RPCs are not supported",
+				file.Desc.Path(), service.Desc.FullName(), method.Desc.Name(), kind)
+		}
+	}
 	return nil
 }
 

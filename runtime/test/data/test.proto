@@ -4,6 +4,11 @@ package test;
 
 import "google/protobuf/any.proto";
 
+enum RuntimeStatus {
+  RUNTIME_STATUS_UNSPECIFIED = 0;
+  RUNTIME_STATUS_READY = 1;
+}
+
 message RuntimeNested {
   string label = 1;
   fixed32 flags = 2;
@@ -28,6 +33,12 @@ message RuntimeSample {
   optional uint64 optional_total = 17;
   optional RuntimeNested optional_nested = 18;
   optional sint64 optional_delta = 19;
+  optional RuntimeStatus optional_status = 22;
+  optional float optional_float = 23;
+  optional double optional_double = 24;
+  optional fixed32 optional_fixed32 = 25;
+  optional fixed64 optional_fixed64 = 26;
+  optional int64 optional_int64 = 27;
 
   oneof choice {
     string name = 9;

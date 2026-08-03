@@ -56,9 +56,9 @@ package as3pb.proto
                 return result | (b << 21);
             result |= (b & 0x7F) << 21;
 
-            // Byte 5 (last byte, throw if continuation bit is set since it would exceed 32 bits)
+            // Byte 5 (only the low four bits fit in a 32-bit value)
             b = src.readUnsignedByte();
-            if (b >= 0x80)
+            if (b > 0x0F)
                 throw new IOError("Malformed varint32: exceeds 32 bits");
 
             return result | (b << 28);
@@ -877,7 +877,8 @@ package as3pb.proto
                 }
                 case 2: // LENGTH_DELIMITED
                 {
-                    src.position += readVarint32(src);
+                    const length:uint = readVarint32(src);
+                    src.position += length;
                     return;
                 }
                 case 5: // FIXED32

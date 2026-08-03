@@ -260,7 +260,7 @@ package as3pb.proto
             {
                 dst.writeByte((low & 0x7F) | 0x80);
                 low = (low >>> 7) | (high << 25);
-                high >>= 7; // signed shift (IMPORTANT)
+                high >>>= 7;
             }
             while (high != 0 || low >= 0x80);
 
