@@ -71,13 +71,18 @@ func runProtoc(
 	as3Options []string,
 	protoFiles []string,
 ) error {
+	protocGenAS3Path, err := executablePath(protocGenAS3Bin)
+	if err != nil {
+		return fmt.Errorf("resolve protoc-gen-as3 binary: %w", err)
+	}
+
 	mappings, err := protoMappings(includes)
 	if err != nil {
 		return err
 	}
 
 	args := []string{
-		fmt.Sprintf("--plugin=protoc-gen-as3=%s", protocGenAS3Bin),
+		fmt.Sprintf("--plugin=protoc-gen-as3=%s", protocGenAS3Path),
 	}
 	for _, include := range includes {
 		args = append(args, "-I", filepath.ToSlash(include))
@@ -101,6 +106,14 @@ func runProtoc(
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func executablePath(name string) (string, error) {
+	path, err := exec.LookPath(name)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Abs(path)
 }
 
 func protoMappings(includes []string) ([]string, error) {
