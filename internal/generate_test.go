@@ -222,6 +222,20 @@ func TestGenerateFileSkipsRuntimeProvidedAny(t *testing.T) {
 	}
 }
 
+func TestGenerateFileGeneratesExplicitAny(t *testing.T) {
+	plugin := anyPlugin(t)
+	plugin.Files[0].Generate = true
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+	files := plugin.Response().GetFile()
+	if len(files) != 1 || files[0].GetName() != "google/protobuf/Any.as" {
+		t.Fatalf("GenerateFile() files = %#v, want google/protobuf/Any.as", files)
+	}
+}
+
 func TestGenerateFileCanDisableAnyRegistration(t *testing.T) {
 	plugin := anyPlugin(t)
 	generateAny := false
