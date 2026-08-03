@@ -96,10 +96,18 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 	if g.needsBuffersImport(message) {
 		g.w.Line("import as3pb.proto.Buffers;")
 	}
-	if has64BitFields(message) {
+	if hasSingularSigned64Fields(message) ||
+		(g.opts.generateDeserialize() && hasRepeatedSignedVarint64Fields(message)) {
 		g.w.Line("import as3pb.types.Int64;")
+	}
+	if hasSingularUnsigned64Fields(message) ||
+		(g.opts.generateDeserialize() && hasRepeatedUnsignedVarint64Fields(message)) {
 		g.w.Line("import as3pb.types.UInt64;")
+	}
+	if hasRepeatedSigned64Fields(message) {
 		g.w.Line("import as3pb.types.Int64Vector;")
+	}
+	if hasRepeatedUnsigned64Fields(message) {
 		g.w.Line("import as3pb.types.UInt64Vector;")
 	}
 	if hasAnyFields(message) {
@@ -118,8 +126,10 @@ func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
 			message.Desc.FullName(),
 		)
 	}
-	if g.opts.generateDeserialize() && hasRepeatedVarint64Fields(message) {
+	if g.opts.generateDeserialize() && hasRepeatedUnsignedVarint64Fields(message) {
 		g.w.Line("private static const TMP_UINT64:UInt64 = new UInt64();")
+	}
+	if g.opts.generateDeserialize() && hasRepeatedSignedVarint64Fields(message) {
 		g.w.Line("private static const TMP_INT64:Int64 = new Int64();")
 	}
 }
@@ -134,7 +144,8 @@ func (g *Generator) generateAnyRegistration() {
 
 func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
 	return g.opts.generateAny() ||
-		(g.opts.generateDeserialize() && hasRepeatedVarint64Fields(message))
+		(g.opts.generateDeserialize() && (hasRepeatedSignedVarint64Fields(message) ||
+			hasRepeatedUnsignedVarint64Fields(message)))
 }
 
 func (g *Generator) needsByteArrayImport(message *protogen.Message) bool {

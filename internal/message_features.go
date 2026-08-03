@@ -13,15 +13,39 @@ func hasPackedFields(message *protogen.Message) bool {
 	})
 }
 
-func has64BitFields(message *protogen.Message) bool {
+func hasSingularSigned64Fields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return is64BitInteger(field.Desc.Kind())
+		return !field.Desc.IsList() && isSigned64(field.Desc.Kind())
 	})
 }
 
-func hasRepeatedVarint64Fields(message *protogen.Message) bool {
+func hasSingularUnsigned64Fields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return field.Desc.IsList() && isVarint64(field.Desc.Kind())
+		return !field.Desc.IsList() && isUnsigned64(field.Desc.Kind())
+	})
+}
+
+func hasRepeatedSigned64Fields(message *protogen.Message) bool {
+	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
+		return field.Desc.IsList() && isSigned64(field.Desc.Kind())
+	})
+}
+
+func hasRepeatedUnsigned64Fields(message *protogen.Message) bool {
+	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
+		return field.Desc.IsList() && isUnsigned64(field.Desc.Kind())
+	})
+}
+
+func hasRepeatedSignedVarint64Fields(message *protogen.Message) bool {
+	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
+		return field.Desc.IsList() && isSignedVarint64(field.Desc.Kind())
+	})
+}
+
+func hasRepeatedUnsignedVarint64Fields(message *protogen.Message) bool {
+	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
+		return field.Desc.IsList() && field.Desc.Kind() == protoreflect.Uint64Kind
 	})
 }
 
@@ -98,6 +122,18 @@ func isPackableRepeatedField(field *protogen.Field) bool {
 
 func is64BitInteger(kind protoreflect.Kind) bool {
 	return isVarint64(kind) || isFixed64Integer(kind)
+}
+
+func isSigned64(kind protoreflect.Kind) bool {
+	return isSignedVarint64(kind) || kind == protoreflect.Sfixed64Kind
+}
+
+func isUnsigned64(kind protoreflect.Kind) bool {
+	return kind == protoreflect.Uint64Kind || kind == protoreflect.Fixed64Kind
+}
+
+func isSignedVarint64(kind protoreflect.Kind) bool {
+	return kind == protoreflect.Int64Kind || kind == protoreflect.Sint64Kind
 }
 
 func isVarint64(kind protoreflect.Kind) bool {

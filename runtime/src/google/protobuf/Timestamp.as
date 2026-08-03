@@ -8,9 +8,6 @@ package google.protobuf
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
     import as3pb.types.Int64;
-    import as3pb.types.UInt64;
-    import as3pb.types.Int64Vector;
-    import as3pb.types.UInt64Vector;
     import as3pb.types.AnyRegistry;
 
     /**

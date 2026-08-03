@@ -126,6 +126,15 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 	if strings.Contains(content, "var vecIndex:uint") {
 		t.Fatalf("packed-only generated content contains vecIndex:\n%s", content)
 	}
+	for _, unwanted := range []string{
+		"import as3pb.types.UInt64;",
+		"import as3pb.types.Int64Vector;",
+		"import as3pb.types.UInt64Vector;",
+	} {
+		if strings.Contains(content, unwanted) {
+			t.Fatalf("generated content contains unused %q:\n%s", unwanted, content)
+		}
+	}
 }
 
 func TestGenerateFileCanDisableInlineReset(t *testing.T) {
