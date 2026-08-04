@@ -94,9 +94,20 @@ package as3pb.rpc
         }
 
         /**
-         * Closes the loader, ignoring races with request completion.
+         * Releases payload, loader, and callback references after settlement.
          */
         [Inline]
+        private function releaseReferences():void
+        {
+            request = null;
+            loader = null;
+            onComplete = null;
+            onError = null;
+        }
+
+        /**
+         * Closes the loader, ignoring races with request completion.
+         */
         private function closeLoader():void
         {
             try
@@ -107,18 +118,6 @@ package as3pb.rpc
             {
                 // The request may have completed while cancellation was queued.
             }
-        }
-
-        /**
-         * Releases payload, loader, and callback references after settlement.
-         */
-        [Inline]
-        private function releaseReferences():void
-        {
-            request = null;
-            loader = null;
-            onComplete = null;
-            onError = null;
         }
 
         /**
