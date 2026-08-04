@@ -79,6 +79,25 @@ package as3pb.rpc
         }
 
         /**
+         * Cancels this request and reports cancellation through its error callback.
+         * @return True when this call cancelled the request; false if it was already settled.
+         */
+        public function cancel():Boolean
+        {
+            if (!trySettle())
+                return false;
+
+            closeLoader();
+            notifyError(new IOErrorEvent(
+                        IOErrorEvent.IO_ERROR,
+                        false,
+                        false,
+                        "HTTP request cancelled"
+                    ));
+            return true;
+        }
+
+        /**
          * Settles this request exactly once and releases its resources.
          * @return True for the first caller, or false after the request has settled.
          */
@@ -118,25 +137,6 @@ package as3pb.rpc
             {
                 // The request may have completed while cancellation was queued.
             }
-        }
-
-        /**
-         * Cancels this request and reports cancellation through its error callback.
-         * @return True when this call cancelled the request; false if it was already settled.
-         */
-        public function cancel():Boolean
-        {
-            if (!trySettle())
-                return false;
-
-            closeLoader();
-            notifyError(new IOErrorEvent(
-                        IOErrorEvent.IO_ERROR,
-                        false,
-                        false,
-                        "HTTP request cancelled"
-                    ));
-            return true;
         }
 
         /**
