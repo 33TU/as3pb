@@ -8,6 +8,7 @@ package example.game
     import as3pb.rpc.RpcClient;
     import as3pb.rpc.BufferPool;
     import as3pb.rpc.HttpTransport;
+    import as3pb.rpc.HttpRequest;
 
     public final class GameServiceRpcClient extends RpcClient
     {
@@ -27,13 +28,15 @@ package example.game
          * @param request The request message.
          * @param onComplete Called with the decoded MatchSnapshot.
          * @param onError Called if the RPC request fails.
+         * @param timeoutMilliseconds Request timeout; zero uses the transport default.
+         * @return The active HTTP request handle.
          */
-        public function getSnapshot(request:GetSnapshotRequest, onComplete:Function, onError:Function):void
+        public function getSnapshot(request:GetSnapshotRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest
         {
             const buffer:ByteArray = BufferPool.acquire();
             GetSnapshotRequest.serializeBytes(request, buffer);
 
-            this.$callUnary(
+            return this.$callUnary(
                 "/example.game.GameService/GetSnapshot",
                 buffer,
                 function(responseBytes:ByteArray):void
@@ -45,7 +48,8 @@ package example.game
                 {
                     BufferPool.release(buffer);
                     onError(err);
-                }
+                },
+                timeoutMilliseconds
             );
         }
 
@@ -54,13 +58,15 @@ package example.game
          * @param request The request message.
          * @param onComplete Called with the decoded MatchSnapshot.
          * @param onError Called if the RPC request fails.
+         * @param timeoutMilliseconds Request timeout; zero uses the transport default.
+         * @return The active HTTP request handle.
          */
-        public function sendAction(request:Player, onComplete:Function, onError:Function):void
+        public function sendAction(request:Player, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest
         {
             const buffer:ByteArray = BufferPool.acquire();
             Player.serializeBytes(request, buffer);
 
-            this.$callUnary(
+            return this.$callUnary(
                 "/example.game.GameService/SendAction",
                 buffer,
                 function(responseBytes:ByteArray):void
@@ -72,7 +78,8 @@ package example.game
                 {
                     BufferPool.release(buffer);
                     onError(err);
-                }
+                },
+                timeoutMilliseconds
             );
         }
     }
