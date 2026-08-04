@@ -6,6 +6,7 @@ package test
     import as3pb.proto.Buffers;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.rpc.HttpRequest;
     import as3pb.rpc.HttpTransport;
     import as3pb.wkt.AnyRegistry;
     import google.protobuf.Any;
@@ -53,6 +54,7 @@ package test
             runTest("testTimestampUtils", testTimestampUtils);
             runTest("testDurationUtils", testDurationUtils);
             runTest("testHttpTransportConfiguration", testHttpTransportConfiguration);
+            runTest("testHttpRequestCancellation", testHttpRequestCancellation);
             runTest("testEmptyMessagePresence", testEmptyMessagePresence);
             runTest("testMessageMerging", testMessageMerging);
             runTest("testOneofReferenceReplacement", testOneofReferenceReplacement);
@@ -968,10 +970,40 @@ package test
         private static function testHttpTransportConfiguration():void
         {
             const transport:HttpTransport = new HttpTransport(5000);
-            assertEq("HTTP transport timeout", transport.timeoutMilliseconds, 5000);
-            transport.timeoutMilliseconds = 1000;
-            assertEq("HTTP transport mutable timeout", transport.timeoutMilliseconds, 1000);
-            assertEq("HTTP transport default timeout", new HttpTransport().timeoutMilliseconds, 0);
+            assertEq("HTTP transport timeout", transport.defaultTimeoutMilliseconds, 5000);
+            transport.defaultTimeoutMilliseconds = 1000;
+            assertEq("HTTP transport mutable timeout", transport.defaultTimeoutMilliseconds, 1000);
+            assertEq("HTTP transport default timeout", new HttpTransport().defaultTimeoutMilliseconds, 0);
+        }
+
+        private static function testHttpRequestCancellation():void
+        {
+            var completions:uint = 0;
+            var errors:uint = 0;
+            const request:HttpRequest = new HttpRequest(
+                    "http://localhost",
+                    "application/proto",
+                    [],
+                    Buffers.newByteArray(),
+                    0,
+                    function(response:ByteArray):void
+                    {
+                        completions++;
+                    },
+                    function(error:*):void
+                    {
+                        errors++;
+                    }
+                );
+
+            assertEq("HTTP request initially unsettled", request.settled, false);
+            assertEq("HTTP request initial status", request.httpStatus, 0);
+            assertEq("HTTP request first cancellation", request.cancel(), true);
+            assertEq("HTTP request settled after cancellation", request.settled, true);
+            assertEq("HTTP request cancellation errors", errors, 1);
+            assertEq("HTTP request cancellation completions", completions, 0);
+            assertEq("HTTP request second cancellation", request.cancel(), false);
+            assertEq("HTTP request cancellation exactly once", errors, 1);
         }
 
         private static function testEmptyMessagePresence():void

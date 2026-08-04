@@ -374,14 +374,16 @@ func TestGenerateFileService(t *testing.T) {
 
 	wantParts := []string{
 		"public final class GreeterRpcClient extends RpcClient",
+		"import as3pb.rpc.HttpRequest;",
 		`public function GreeterRpcClient(baseUrl:String, contentType:String = "application/proto", headers:Array = null, transport:HttpTransport = null)`,
 		"super(baseUrl, contentType, headers, transport);",
-		"public function sayHello(",
+		"public function sayHello(request:HelloRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest",
 		"request:HelloRequest,",
 		"const buffer:ByteArray = BufferPool.acquire();",
 		"HelloRequest.serializeBytes(request, buffer);",
 		`"/test.v1.Greeter/SayHello",`,
 		"onComplete(HelloResponse.deserializeBytes(responseBytes));",
+		"timeoutMilliseconds",
 	}
 	for _, want := range wantParts {
 		if !strings.Contains(content, want) {

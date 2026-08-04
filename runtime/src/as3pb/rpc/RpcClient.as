@@ -54,22 +54,26 @@ package as3pb.rpc
          * @param path The RPC method path (e.g., "/example.ExampleService/ExampleMethod")
          * @param payload The serialized protobuf request payload.
          * @param onComplete Called with the response ByteArray when the request completes successfully.
-         * @param onError Called with the error event for network, security, or timeout failures.
+         * @param onError Called with the error event for network, security, cancellation, or timeout failures.
+         * @param timeoutMilliseconds Request timeout; zero uses the transport default.
+         * @return The active request handle.
          */
         protected function $callUnary(
                 path:String,
                 payload:ByteArray,
                 onComplete:Function,
-                onError:Function
-            ):void
+                onError:Function,
+                timeoutMilliseconds:uint = 0
+            ):HttpRequest
         {
-            $transport.send(
+            return $transport.send(
                     $baseUrl + path,
                     $contentType,
                     $headers,
                     payload,
                     onComplete,
-                    onError
+                    onError,
+                    timeoutMilliseconds
                 );
         }
     }
