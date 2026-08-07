@@ -53,7 +53,6 @@ package google.protobuf
 
             const dst:SourceContext = new SourceContext();
             dst.fileName = src.fileName;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

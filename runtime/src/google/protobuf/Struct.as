@@ -62,7 +62,6 @@ package google.protobuf
             cloneTarget0.length = cloneSource0.length;
             for (var cloneIndex0:uint = 0; cloneIndex0 < cloneSource0.length; cloneIndex0++)
                 cloneTarget0[cloneIndex0] = StructFieldsEntry.clone(cloneSource0[cloneIndex0]);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

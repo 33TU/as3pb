@@ -94,7 +94,6 @@ package google.protobuf
                 cloneTarget3[cloneIndex3] = Option.clone(cloneSource3[cloneIndex3]);
             dst.sourceContext = SourceContext.clone(src.sourceContext);
             dst.syntax = src.syntax;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

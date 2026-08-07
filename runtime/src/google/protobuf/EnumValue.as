@@ -69,7 +69,6 @@ package google.protobuf
             cloneTarget2.length = cloneSource2.length;
             for (var cloneIndex2:uint = 0; cloneIndex2 < cloneSource2.length; cloneIndex2++)
                 cloneTarget2[cloneIndex2] = Option.clone(cloneSource2[cloneIndex2]);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

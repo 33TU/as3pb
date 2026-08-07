@@ -134,7 +134,6 @@ package google.protobuf
                     break;
                 }
             }
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

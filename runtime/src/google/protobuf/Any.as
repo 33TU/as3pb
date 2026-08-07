@@ -165,7 +165,6 @@ package google.protobuf
             const dst:Any = new Any();
             dst.typeUrl = src.typeUrl;
             dst.value = Buffers.cloneByteArray(src.value);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

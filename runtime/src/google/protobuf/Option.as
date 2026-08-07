@@ -66,7 +66,6 @@ package google.protobuf
             const dst:Option = new Option();
             dst.name = src.name;
             dst.value = Any.clone(src.value);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

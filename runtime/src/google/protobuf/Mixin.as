@@ -136,7 +136,6 @@ package google.protobuf
             const dst:Mixin = new Mixin();
             dst.name = src.name;
             dst.root = src.root;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

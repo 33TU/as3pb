@@ -52,7 +52,6 @@ package google.protobuf
                 return null;
 
             const dst:Empty = new Empty();
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

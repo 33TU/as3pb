@@ -53,7 +53,6 @@ package google.protobuf
 
             const dst:Int32Value = new Int32Value();
             dst.value = src.value;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

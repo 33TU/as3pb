@@ -55,7 +55,6 @@ package google.protobuf
 
             const dst:UInt64Value = new UInt64Value();
             dst.value.copyFrom(src.value);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

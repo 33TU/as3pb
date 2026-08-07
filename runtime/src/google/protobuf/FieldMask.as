@@ -249,7 +249,6 @@ package google.protobuf
 
             const dst:FieldMask = new FieldMask();
             dst.paths = src.paths.concat();
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

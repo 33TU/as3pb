@@ -56,7 +56,6 @@ func (g *Generator) generateCloneMethod(message *protogen.Message, names *Messag
 		g.w.Line("}")
 	}
 
-	g.w.BlankLine()
 	g.w.Line("dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);")
 
 	g.w.BlankLine()

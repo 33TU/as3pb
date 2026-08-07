@@ -133,7 +133,6 @@ package google.protobuf
             for (var cloneIndex5:uint = 0; cloneIndex5 < cloneSource5.length; cloneIndex5++)
                 cloneTarget5[cloneIndex5] = Mixin.clone(cloneSource5[cloneIndex5]);
             dst.syntax = src.syntax;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

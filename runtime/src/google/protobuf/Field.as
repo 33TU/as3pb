@@ -120,7 +120,6 @@ package google.protobuf
                 cloneTarget7[cloneIndex7] = Option.clone(cloneSource7[cloneIndex7]);
             dst.jsonName = src.jsonName;
             dst.defaultValue = src.defaultValue;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

@@ -48,7 +48,6 @@ package google.protobuf
             const dst:StructFieldsEntry = new StructFieldsEntry();
             dst.key = src.key;
             dst.value = Value.clone(src.value);
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;

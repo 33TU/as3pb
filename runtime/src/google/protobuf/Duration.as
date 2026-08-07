@@ -124,7 +124,6 @@ package google.protobuf
             const dst:Duration = new Duration();
             dst.seconds.copyFrom(src.seconds);
             dst.nanos = src.nanos;
-
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
