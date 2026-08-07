@@ -56,7 +56,7 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Line("while (src.position < end)")
 	g.w.Line("{")
 	g.w.Indent()
-	g.w.Line("const tag:uint = Deserialize.readVarint32(src);")
+	g.w.Line("const tag:uint = Deserialize.readTag(src);")
 	g.w.Line("switch (tag)")
 	g.w.Line("{")
 	g.w.Indent()
@@ -180,7 +180,7 @@ func (g *Generator) generateFieldDeserializerForType(
 ) {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
-		g.w.Line("%s = Deserialize.readVarint32(src) !== 0;", fieldName)
+		g.w.Line("%s = Deserialize.readBool(src);", fieldName)
 	case protoreflect.Uint32Kind:
 		g.w.Line("%s = Deserialize.readVarint32(src);", fieldName)
 	case protoreflect.EnumKind, protoreflect.Int32Kind:
@@ -225,7 +225,7 @@ func (g *Generator) generateFieldDeserializerForType(
 func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *protogen.Field, fieldName string, currentPackage string) {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
-		g.w.Line("%s.push(Deserialize.readVarint32(src) !== 0);", fieldName)
+		g.w.Line("%s.push(Deserialize.readBool(src));", fieldName)
 	case protoreflect.Uint32Kind:
 		g.w.Line("%s.push(Deserialize.readVarint32(src));", fieldName)
 	case protoreflect.EnumKind, protoreflect.Int32Kind:

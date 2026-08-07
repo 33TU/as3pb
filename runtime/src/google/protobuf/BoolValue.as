@@ -72,12 +72,12 @@ package google.protobuf
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 8:
                     {
-                        dst.value = Deserialize.readVarint32(src) !== 0;
+                        dst.value = Deserialize.readBool(src);
                         break;
                     }
                     default:

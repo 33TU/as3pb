@@ -309,7 +309,25 @@ func (g *Generator) generateFieldSerializerForRepeatedUnpackedType(field *protog
 	g.w.Line("{")
 	g.w.Indent()
 	g.generateWriteTag(field)
-	g.generateFieldSerializerForType(field, locName+"[vecIndex]", currentPackage)
+	switch field.Desc.Kind() {
+	case protoreflect.Int64Kind:
+		g.w.Line("Serialize.writeVarint64s(dst, %s.low[vecIndex], %s.high[vecIndex]);", locName, locName)
+	case protoreflect.Uint64Kind:
+		g.w.Line("Serialize.writeVarint64(dst, %s.low[vecIndex], %s.high[vecIndex]);", locName, locName)
+	case protoreflect.Sint64Kind:
+		g.w.Line("Serialize.writeSint64(dst, %s.low[vecIndex], %s.high[vecIndex]);", locName, locName)
+	case protoreflect.Sfixed64Kind:
+		g.w.Line("dst.writeUnsignedInt(%s.low[vecIndex]);", locName)
+		g.w.Line("dst.writeInt(%s.high[vecIndex]);", locName)
+	case protoreflect.Fixed64Kind:
+		g.w.Line("dst.writeUnsignedInt(%s.low[vecIndex]);", locName)
+		g.w.Line("dst.writeUnsignedInt(%s.high[vecIndex]);", locName)
+	default:
+		// Int64Vector/UInt64Vector are structure-of-arrays and cannot be
+		// indexed per element, hence the cases above; everything else is a
+		// plain Vector whose elements serialize like singular values.
+		g.generateFieldSerializerForType(field, locName+"[vecIndex]", currentPackage)
+	}
 	g.w.Dedent()
 	g.w.Line("}")
 }

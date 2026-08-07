@@ -119,7 +119,7 @@ package google.protobuf
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -134,7 +134,7 @@ package google.protobuf
                     }
                     case 24:
                     {
-                        dst.requestStreaming = Deserialize.readVarint32(src) !== 0;
+                        dst.requestStreaming = Deserialize.readBool(src);
                         break;
                     }
                     case 34:
@@ -144,7 +144,7 @@ package google.protobuf
                     }
                     case 40:
                     {
-                        dst.responseStreaming = Deserialize.readVarint32(src) !== 0;
+                        dst.responseStreaming = Deserialize.readBool(src);
                         break;
                     }
                     case 50:

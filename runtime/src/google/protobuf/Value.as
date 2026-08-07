@@ -156,7 +156,7 @@ package google.protobuf
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 8:
@@ -179,7 +179,7 @@ package google.protobuf
                     }
                     case 32:
                     {
-                        dst.boolValue = Deserialize.readVarint32(src) !== 0;
+                        dst.boolValue = Deserialize.readBool(src);
                         dst.kindCase = FIELD_BOOL_VALUE;
                         break;
                     }

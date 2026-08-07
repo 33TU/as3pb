@@ -56,10 +56,64 @@ package as3pb.proto
                 return result | (b << 21);
             result |= (b & 0x7F) << 21;
 
-            // Byte 5 (only the low four bits fit in a 32-bit value)
+            // Byte 5 (only the low four bits land in a 32-bit value, but the
+            // spec requires accepting any varint up to 10 bytes and keeping
+            // just the low 32 bits)
+            b = src.readUnsignedByte();
+            result |= (b & 0x7F) << 28;
+            if (b < 0x80)
+                return result;
+
+            // Bytes 6-10 only carry bits past 32; parse and discard them
+            for (var i:uint = 0; i < 5; i++)
+            {
+                b = src.readUnsignedByte();
+                if (i == 4 && b > 0x01)
+                    throw new IOError("Malformed varint32: exceeds 64 bits");
+                if (b < 0x80)
+                    return result;
+            }
+
+            throw new IOError("Malformed varint32: exceeds 64 bits");
+        }
+
+        /**
+         * Read a field tag as a strict 32-bit varint. Unlike value varints,
+         * a tag whose encoding exceeds 32 bits or five bytes is malformed.
+         * @param src The source ByteArray to read from
+         * @return The decoded tag.
+         */
+        [Inline]
+        public static function readTag(src:ByteArray):uint
+        {
+            // Byte 1 (fast path)
+            var b:uint = src.readUnsignedByte();
+            if (b < 0x80)
+                return b;
+            var result:uint = b & 0x7F;
+
+            // Byte 2
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return result | (b << 7);
+            result |= (b & 0x7F) << 7;
+
+            // Byte 3
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return result | (b << 14);
+            result |= (b & 0x7F) << 14;
+
+            // Byte 4
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return result | (b << 21);
+            result |= (b & 0x7F) << 21;
+
+            // Byte 5 (only the low four bits fit in a 32-bit tag)
             b = src.readUnsignedByte();
             if (b > 0x0F)
-                throw new IOError("Malformed varint32: exceeds 32 bits");
+                throw new IOError("Malformed tag: exceeds 32 bits");
 
             return result | (b << 28);
         }
@@ -809,7 +863,20 @@ package as3pb.proto
         [Inline]
         public static function readBool(src:ByteArray):Boolean
         {
-            return readVarint32(src) !== 0;
+            // A bool is true when any bit of the full 64-bit varint is set,
+            // so the bits truncated away by readVarint32 still count here.
+            var bits:uint = 0;
+            for (var i:uint = 0; i < 10; i++)
+            {
+                const b:uint = src.readUnsignedByte();
+                if (i == 9 && b > 0x01)
+                    throw new IOError("Malformed varint: exceeds 64 bits");
+                bits |= b & 0x7F;
+                if (b < 0x80)
+                    return bits !== 0;
+            }
+
+            throw new IOError("Malformed varint: exceeds 64 bits");
         }
 
         /**
@@ -823,7 +890,7 @@ package as3pb.proto
             const end:uint = src.position + length;
 
             while (src.position < end)
-                out.push(readVarint32(src) !== 0);
+                out.push(readBool(src));
 
             if (src.position != end)
                 throw new IOError("Bool vector length mismatch");
