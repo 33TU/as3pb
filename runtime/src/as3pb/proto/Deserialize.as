@@ -936,8 +936,47 @@ package as3pb.proto
         {
             Serialize.writeVarint32(out, tag);
             const start:uint = src.position;
-            skipField(src, tag & 7);
+            skipFieldTag(src, tag);
             out.writeBytes(src, start, src.position - start);
+        }
+
+        /**
+         * Skip a field based on its full tag, including group fields whose
+         * extent is only known from the field number in the tag
+         * @param src The source ByteArray to skip data from
+         * @param tag The already-decoded field tag
+         */
+        public static function skipFieldTag(src:ByteArray, tag:uint):void
+        {
+            if ((tag & 7) == 3) // START_GROUP
+            {
+                skipGroup(src, tag >>> 3);
+                return;
+            }
+            skipField(src, tag & 7);
+        }
+
+        /**
+         * Skip a group field: consume nested fields until the matching
+         * END_GROUP tag
+         * @param src The source ByteArray, positioned just after the START_GROUP tag
+         * @param fieldNumber The group's field number
+         */
+        public static function skipGroup(src:ByteArray, fieldNumber:uint):void
+        {
+            while (true)
+            {
+                const tag:uint = readVarint32(src);
+                if (tag == 0)
+                    throw new IOError("Invalid zero tag inside group");
+                if ((tag & 7) == 4) // END_GROUP
+                {
+                    if ((tag >>> 3) != fieldNumber)
+                        throw new IOError("Mismatched end-group tag");
+                    return;
+                }
+                skipFieldTag(src, tag);
+            }
         }
 
         /**
