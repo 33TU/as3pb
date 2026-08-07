@@ -14,15 +14,17 @@ The repository contains:
 
 ## Conformance
 
-The proto3 binary wire format is validated against the official
+The binary wire format is validated against the official
 [protobuf conformance suite](https://github.com/protocolbuffers/protobuf/tree/main/conformance)
-(v35.1): 702 tests pass with 0 unexpected failures, including
+(v35.1) for proto3 and for editions files using the proto3 feature
+set: 1404 tests pass with 0 unexpected failures, including
 unknown-field preservation. The harness, current results, and the one
-known gap (invalid UTF-8 in strings is accepted) live in
+deliberate deviation (invalid UTF-8 in strings is accepted) live in
 [as3pb-conformance](https://github.com/33TU/as3pb-conformance).
 
-JSON, text format, and proto2 are out of scope for the runtime and are
-skipped by the suite.
+JSON, text format, proto2, and the editions features outside proto3
+semantics (extensions, delimited encoding, closed enums) are out of
+scope for the runtime and are skipped by the suite.
 
 ## Requirements
 
