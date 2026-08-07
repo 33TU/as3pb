@@ -38,8 +38,7 @@ package google.protobuf
         public static function reset(msg:UInt32Value):void
         {
             msg.value = 0;
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -128,7 +127,7 @@ package google.protobuf
                 Serialize.writeVarint32(dst, localValue);
             }
 
-            if (src.unknownFields != null && src.unknownFields.length !== 0)
+            if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
         }
 

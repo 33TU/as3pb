@@ -38,8 +38,7 @@ package google.protobuf
         public static function reset(msg:StringValue):void
         {
             msg.value = "";
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -130,7 +129,7 @@ package google.protobuf
                 Serialize.writeString(dst, localValue, reuseBuffer);
             }
 
-            if (src.unknownFields != null && src.unknownFields.length !== 0)
+            if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
         }
 

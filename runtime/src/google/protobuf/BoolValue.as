@@ -38,8 +38,7 @@ package google.protobuf
         public static function reset(msg:BoolValue):void
         {
             msg.value = false;
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -128,7 +127,7 @@ package google.protobuf
                 dst.writeByte(localValue ? 1 : 0);
             }
 
-            if (src.unknownFields != null && src.unknownFields.length !== 0)
+            if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
         }
 

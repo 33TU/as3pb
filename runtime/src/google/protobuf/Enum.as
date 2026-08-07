@@ -60,8 +60,7 @@ package google.protobuf
             msg.options.length = 0;
             msg.sourceContext = null;
             msg.syntax = 0;
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -237,7 +236,7 @@ package google.protobuf
                     Serialize.writeInt32(dst, localSyntax);
                 }
 
-                if (src.unknownFields != null && src.unknownFields.length !== 0)
+                if (src.unknownFields)
                     dst.writeBytes(src.unknownFields);
             }
             finally

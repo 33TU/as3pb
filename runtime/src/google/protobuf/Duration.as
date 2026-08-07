@@ -108,8 +108,7 @@ package google.protobuf
             msg.seconds.low = 0;
             msg.seconds.high = 0;
             msg.nanos = 0;
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -210,7 +209,7 @@ package google.protobuf
                 Serialize.writeInt32(dst, localNanos);
             }
 
-            if (src.unknownFields != null && src.unknownFields.length !== 0)
+            if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
         }
 

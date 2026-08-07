@@ -149,8 +149,7 @@ package google.protobuf
         {
             msg.typeUrl = "";
             msg.value.length = 0;
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -253,7 +252,7 @@ package google.protobuf
                 Serialize.writeBytes(dst, localValue);
             }
 
-            if (src.unknownFields != null && src.unknownFields.length !== 0)
+            if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
         }
 

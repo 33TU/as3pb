@@ -92,8 +92,7 @@ package google.protobuf
             msg.options.length = 0;
             msg.jsonName = "";
             msg.defaultValue = "";
-            if (msg.unknownFields != null)
-                msg.unknownFields.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -312,7 +311,7 @@ package google.protobuf
                     Serialize.writeString(dst, localDefaultValue, reuseBuffer);
                 }
 
-                if (src.unknownFields != null && src.unknownFields.length !== 0)
+                if (src.unknownFields)
                     dst.writeBytes(src.unknownFields);
             }
             finally

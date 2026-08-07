@@ -111,7 +111,7 @@ func (g *Generator) generateSerializeMethod(message *protogen.Message, names *Me
 	}
 
 	g.w.BlankLine()
-	g.w.Line("if (src.unknownFields != null && src.unknownFields.length !== 0)")
+	g.w.Line("if (src.unknownFields)")
 	g.w.Indent()
 	g.w.Line("dst.writeBytes(src.unknownFields);")
 	g.w.Dedent()

@@ -267,10 +267,7 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 		g.w.Line("msg.%s = 0;", names.OneofCase(oneof))
 	}
 
-	g.w.Line("if (msg.unknownFields != null)")
-	g.w.Indent()
-	g.w.Line("msg.unknownFields.length = 0;")
-	g.w.Dedent()
+	g.w.Line("msg.unknownFields = null;")
 
 	g.w.Dedent()
 	g.w.Line("}")
