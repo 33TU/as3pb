@@ -241,7 +241,7 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 
 	for _, field := range message.Fields {
 		fieldName := "msg." + names.Field(field)
-		if field.Desc.HasOptionalKeyword() {
+		if hasExplicitPresence(field) {
 			g.w.Line("%s = null;", fieldName)
 			continue
 		}

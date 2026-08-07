@@ -47,7 +47,7 @@ func wireTypeForKind(kind protoreflect.Kind) protowire.Type {
 
 // AS3DefaultValue returns the default ActionScript expression for field.
 func AS3DefaultValue(field *protogen.Field, currentProtoPackage string) string {
-	if field.Desc.HasOptionalKeyword() {
+	if hasExplicitPresence(field) {
 		return "null"
 	}
 	if field.Desc.IsList() || field.Desc.IsMap() {
@@ -92,7 +92,7 @@ func AS3DefaultValue(field *protogen.Field, currentProtoPackage string) string {
 
 // AS3Type returns the ActionScript type for a protobuf field.
 func AS3Type(field *protogen.Field, currentProtoPackage string) string {
-	if field.Desc.HasOptionalKeyword() {
+	if hasExplicitPresence(field) {
 		switch field.Desc.Kind() {
 		case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind, protoreflect.EnumKind:
 			return "OptionalInt"

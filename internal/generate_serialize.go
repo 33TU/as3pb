@@ -353,7 +353,7 @@ func (g *Generator) generateMessageFieldSerializer(field *protogen.Field, fieldN
 }
 
 func fieldCondition(field *protogen.Field, fieldName string) string {
-	if field.Desc.HasOptionalKeyword() {
+	if hasExplicitPresence(field) {
 		return fieldName + " != null"
 	}
 	switch field.Desc.Kind() {
@@ -369,7 +369,7 @@ func fieldCondition(field *protogen.Field, fieldName string) string {
 }
 
 func optionalValueExpression(field *protogen.Field, fieldName string) string {
-	if !field.Desc.HasOptionalKeyword() {
+	if !hasExplicitPresence(field) {
 		return fieldName
 	}
 	switch field.Desc.Kind() {

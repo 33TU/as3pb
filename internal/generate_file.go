@@ -32,8 +32,14 @@ func (g *Generator) GenerateFile(file *protogen.File) error {
 		g.log.Debug("skipping file", "path", file.Desc.Path())
 		return nil
 	}
-	if file.Desc.Syntax() != protoreflect.Proto3 {
-		return fmt.Errorf("%s: only proto3 files are supported", file.Desc.Path())
+	switch file.Desc.Syntax() {
+	case protoreflect.Proto3:
+	case protoreflect.Editions:
+		if err := validateEditionsFeatures(file); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("%s: only proto3 and editions files are supported", file.Desc.Path())
 	}
 	if err := validateServiceMethods(file); err != nil {
 		return err

@@ -67,8 +67,8 @@ func TestGenerateFileRejectsProto2(t *testing.T) {
 	if err == nil {
 		t.Fatal("GenerateFile() error = nil, want proto2 rejection")
 	}
-	if !strings.Contains(err.Error(), "only proto3 files are supported") {
-		t.Fatalf("GenerateFile() error = %q, want proto3 rejection", err)
+	if !strings.Contains(err.Error(), "only proto3 and editions files are supported") {
+		t.Fatalf("GenerateFile() error = %q, want proto2 rejection", err)
 	}
 }
 

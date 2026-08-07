@@ -142,7 +142,7 @@ func (g *Generator) generateFieldDeserializeCase(
 		}
 	} else {
 		valueName := fieldName
-		if field.Desc.HasOptionalKeyword() {
+		if hasExplicitPresence(field) {
 			switch field.Desc.Kind() {
 			case protoreflect.StringKind, protoreflect.MessageKind:
 			case protoreflect.BytesKind:

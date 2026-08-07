@@ -27,12 +27,26 @@ func hasSingularUnsigned64Fields(message *protogen.Message) bool {
 
 func hasOptionalKind(message *protogen.Message, kinds ...protoreflect.Kind) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return field.Desc.HasOptionalKeyword() && slices.Contains(kinds, field.Desc.Kind())
+		return hasExplicitPresence(field) && slices.Contains(kinds, field.Desc.Kind())
 	})
 }
 
 func isRealOneof(field *protogen.Field) bool {
 	return field.Oneof != nil && !field.Oneof.Desc.IsSynthetic()
+}
+
+// hasExplicitPresence reports whether a singular non-message field tracks
+// presence explicitly and therefore needs a nullable AS3 representation:
+// proto3 `optional`, or editions `features.field_presence = EXPLICIT`.
+// Message fields and real-oneof members track presence through other means.
+func hasExplicitPresence(field *protogen.Field) bool {
+	if field.Desc.IsList() || field.Desc.IsMap() || isRealOneof(field) {
+		return false
+	}
+	if field.Desc.Kind() == protoreflect.MessageKind || field.Desc.Kind() == protoreflect.GroupKind {
+		return false
+	}
+	return field.Desc.HasPresence()
 }
 
 func hasRepeatedSigned64Fields(message *protogen.Message) bool {
