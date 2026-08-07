@@ -924,6 +924,23 @@ package as3pb.proto
         }
 
         /**
+         * Copies an unknown field into an unknown-fields buffer: the tag is
+         * re-encoded canonically, the payload bytes verbatim. Appending such
+         * buffers on serialization preserves unknown fields across a
+         * deserialize/serialize round trip.
+         * @param src The source ByteArray, positioned just after the tag
+         * @param tag The already-decoded field tag
+         * @param out The destination buffer accumulating unknown fields
+         */
+        public static function captureUnknownField(src:ByteArray, tag:uint, out:ByteArray):void
+        {
+            Serialize.writeVarint32(out, tag);
+            const start:uint = src.position;
+            skipField(src, tag & 7);
+            out.writeBytes(src, start, src.position - start);
+        }
+
+        /**
          * Skip a field based on its wire type
          * @param src The source ByteArray to skip data from
          * @param wireType The protobuf wire type (0=VARINT, 1=FIXED64, 2=LENGTH_DELIMITED, 5=FIXED32)

@@ -33,6 +33,12 @@ package google.protobuf
         public var options:Vector.<Option> = new Vector.<Option>();
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -42,6 +48,8 @@ package google.protobuf
             msg.name = "";
             msg.number = 0;
             msg.options.length = 0;
+            if (msg.unknownFields != null)
+                msg.unknownFields.length = 0;
         }
 
         /**
@@ -62,6 +70,8 @@ package google.protobuf
             cloneTarget2.length = cloneSource2.length;
             for (var cloneIndex2:uint = 0; cloneIndex2 < cloneSource2.length; cloneIndex2++)
                 cloneTarget2[cloneIndex2] = Option.clone(cloneSource2[cloneIndex2]);
+
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -117,7 +127,9 @@ package google.protobuf
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -171,6 +183,9 @@ package google.protobuf
                         dst.writeBytes(messageReuseBuffer);
                     }
                 }
+
+                if (src.unknownFields != null && src.unknownFields.length !== 0)
+                    dst.writeBytes(src.unknownFields);
             }
             finally
             {

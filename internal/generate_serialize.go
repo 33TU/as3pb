@@ -110,6 +110,12 @@ func (g *Generator) generateSerializeMethod(message *protogen.Message, names *Me
 		g.w.Line("}")
 	}
 
+	g.w.BlankLine()
+	g.w.Line("if (src.unknownFields != null && src.unknownFields.length !== 0)")
+	g.w.Indent()
+	g.w.Line("dst.writeBytes(src.unknownFields);")
+	g.w.Dedent()
+
 	if hasMessageFields(message) {
 		g.w.Dedent()
 		g.w.Line("}")

@@ -77,12 +77,6 @@ func hasBytesFields(message *protogen.Message) bool {
 	})
 }
 
-func hasRepeatedBytesFields(message *protogen.Message) bool {
-	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
-		return field.Desc.IsList() && field.Desc.Kind() == protoreflect.BytesKind
-	})
-}
-
 func hasStringFields(message *protogen.Message) bool {
 	return slices.ContainsFunc(message.Fields, func(field *protogen.Field) bool {
 		return field.Desc.Kind() == protoreflect.StringKind

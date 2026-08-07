@@ -7,6 +7,7 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Buffers;
     import as3pb.types.Int64;
     import as3pb.wkt.AnyRegistry;
 
@@ -123,6 +124,12 @@ package google.protobuf
         public var nanos:int = 0;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -132,6 +139,8 @@ package google.protobuf
             msg.seconds.low = 0;
             msg.seconds.high = 0;
             msg.nanos = 0;
+            if (msg.unknownFields != null)
+                msg.unknownFields.length = 0;
         }
 
         /**
@@ -147,6 +156,8 @@ package google.protobuf
             const dst:Timestamp = new Timestamp();
             dst.seconds.copyFrom(src.seconds);
             dst.nanos = src.nanos;
+
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -192,7 +203,9 @@ package google.protobuf
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -227,6 +240,9 @@ package google.protobuf
                 dst.writeByte(16);
                 Serialize.writeInt32(dst, localNanos);
             }
+
+            if (src.unknownFields != null && src.unknownFields.length !== 0)
+                dst.writeBytes(src.unknownFields);
         }
 
         {

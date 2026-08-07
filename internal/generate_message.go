@@ -164,14 +164,14 @@ func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
 			hasRepeatedUnsignedVarint64Fields(message)))
 }
 
-func (g *Generator) needsByteArrayImport(message *protogen.Message) bool {
-	return g.opts.generateSerialize() || g.opts.generateDeserialize() || hasBytesFields(message)
+func (g *Generator) needsByteArrayImport(_ *protogen.Message) bool {
+	// The unknownFields declaration references ByteArray on every message.
+	return true
 }
 
-func (g *Generator) needsBuffersImport(message *protogen.Message) bool {
-	return hasBytesFields(message) ||
-		(g.opts.generateSerialize() && (hasPackedFields(message) || hasStringFields(message) || hasMessageFields(message))) ||
-		(g.opts.generateDeserialize() && hasRepeatedBytesFields(message))
+func (g *Generator) needsBuffersImport(_ *protogen.Message) bool {
+	// Unknown-field capture (deserialize) and cloning always use Buffers.
+	return true
 }
 
 func (g *Generator) generateMessageFields(message *protogen.Message, names *MessageNames) {
@@ -211,6 +211,10 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 		g.generateLeadingComment(oneofCaseComment(oneof, names), false)
 		g.w.Line("public var %s:uint;", names.OneofCase(oneof))
 	}
+
+	g.w.BlankLine()
+	g.generateLeadingComment(protogen.Comments("Raw wire bytes of fields unknown to this schema, preserved from\ndeserialization and re-emitted on serialization. Null when none."), false)
+	g.w.Line("public var unknownFields:ByteArray;")
 }
 
 func oneofCaseComment(oneof *protogen.Oneof, names *MessageNames) protogen.Comments {
@@ -262,6 +266,11 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 		}
 		g.w.Line("msg.%s = 0;", names.OneofCase(oneof))
 	}
+
+	g.w.Line("if (msg.unknownFields != null)")
+	g.w.Indent()
+	g.w.Line("msg.unknownFields.length = 0;")
+	g.w.Dedent()
 
 	g.w.Dedent()
 	g.w.Line("}")
