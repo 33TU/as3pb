@@ -946,6 +946,7 @@ package as3pb.proto
          * @param src The source ByteArray to skip data from
          * @param tag The already-decoded field tag
          */
+        [Inline]
         public static function skipFieldTag(src:ByteArray, tag:uint):void
         {
             if ((tag & 7) == 3) // START_GROUP
@@ -962,6 +963,7 @@ package as3pb.proto
          * @param src The source ByteArray, positioned just after the START_GROUP tag
          * @param fieldNumber The group's field number
          */
+        [Inline]
         public static function skipGroup(src:ByteArray, fieldNumber:uint):void
         {
             while (true)
@@ -984,6 +986,7 @@ package as3pb.proto
          * @param src The source ByteArray to skip data from
          * @param wireType The protobuf wire type (0=VARINT, 1=FIXED64, 2=LENGTH_DELIMITED, 5=FIXED32)
          */
+        [Inline]
         public static function skipField(src:ByteArray, wireType:uint):void
         {
             switch (wireType)
