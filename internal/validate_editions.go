@@ -13,9 +13,33 @@ import (
 // open enums, length-prefixed messages) generate identically to proto3;
 // declared defaults are additionally allowed and surface as DEFAULT_*
 // constants since they never affect the wire.
+// optionsExtendees are the descriptor option types that custom options
+// extend. Such extend blocks are the one extension use proto3 allows;
+// they are pure compile-time metadata and generate no code.
+var optionsExtendees = map[protoreflect.FullName]struct{}{
+	"google.protobuf.FileOptions":           {},
+	"google.protobuf.MessageOptions":        {},
+	"google.protobuf.FieldOptions":          {},
+	"google.protobuf.OneofOptions":          {},
+	"google.protobuf.EnumOptions":           {},
+	"google.protobuf.EnumValueOptions":      {},
+	"google.protobuf.ServiceOptions":        {},
+	"google.protobuf.MethodOptions":         {},
+	"google.protobuf.ExtensionRangeOptions": {},
+}
+
+func validateEditionsExtensions(extensions []*protogen.Extension) error {
+	for _, extension := range extensions {
+		if _, ok := optionsExtendees[extension.Desc.ContainingMessage().FullName()]; !ok {
+			return fmt.Errorf("%s: extensions are not supported (except custom options)", extension.Desc.FullName())
+		}
+	}
+	return nil
+}
+
 func validateEditionsFeatures(file *protogen.File) error {
-	if len(file.Extensions) > 0 {
-		return fmt.Errorf("%s: extensions are not supported", file.Desc.Path())
+	if err := validateEditionsExtensions(file.Extensions); err != nil {
+		return err
 	}
 	for _, enum := range file.Enums {
 		if err := validateEditionsEnum(enum); err != nil {
@@ -31,8 +55,11 @@ func validateEditionsFeatures(file *protogen.File) error {
 }
 
 func validateEditionsMessage(message *protogen.Message) error {
-	if len(message.Extensions) > 0 || message.Desc.ExtensionRanges().Len() > 0 {
+	if message.Desc.ExtensionRanges().Len() > 0 {
 		return fmt.Errorf("%s: extensions are not supported", message.Desc.FullName())
+	}
+	if err := validateEditionsExtensions(message.Extensions); err != nil {
+		return err
 	}
 	for _, field := range message.Fields {
 		if field.Desc.Kind() == protoreflect.GroupKind {

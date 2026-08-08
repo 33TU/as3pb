@@ -535,6 +535,89 @@ func TestGenerateFileEditionsDefaults(t *testing.T) {
 	}
 }
 
+func TestGenerateFileEditionsCustomOptionsAllowed(t *testing.T) {
+	plugin := editionsExtensionPlugin(t, ".google.protobuf.FieldOptions")
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[1]); err != nil {
+		t.Fatalf("GenerateFile() error = %v, want custom options accepted", err)
+	}
+	files := plugin.Response().GetFile()
+	if len(files) != 1 {
+		t.Fatalf("generated %d files, want 1", len(files))
+	}
+	if got, want := files[0].GetName(), "test/v1/Example.as"; got != want {
+		t.Fatalf("generated file name = %q, want %q", got, want)
+	}
+}
+
+func TestGenerateFileEditionsMessageExtensionsRejected(t *testing.T) {
+	plugin := editionsExtensionPlugin(t, ".test.v1.Example")
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	err := generator.GenerateFile(plugin.Files[1])
+	if err == nil {
+		t.Fatal("GenerateFile() error = nil, want extension rejection")
+	}
+	if !strings.Contains(err.Error(), "extensions are not supported") {
+		t.Fatalf("GenerateFile() error = %q, want extension rejection", err)
+	}
+}
+
+// editionsExtensionPlugin builds an editions file declaring one extension
+// of extendee; extending Example itself also gives Example an extension
+// range so the descriptor stays valid.
+func editionsExtensionPlugin(t *testing.T, extendee string) *protogen.Plugin {
+	t.Helper()
+
+	message := &descriptorpb.DescriptorProto{
+		Name: proto.String("Example"),
+		Field: []*descriptorpb.FieldDescriptorProto{{
+			Name:   proto.String("x"),
+			Number: proto.Int32(1),
+			Label:  descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+			Type:   descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
+		}},
+	}
+	if extendee != ".google.protobuf.FieldOptions" {
+		message.ExtensionRange = []*descriptorpb.DescriptorProto_ExtensionRange{{
+			Start: proto.Int32(50000),
+			End:   proto.Int32(50002),
+		}}
+	}
+
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"test.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{
+			protodesc.ToFileDescriptorProto(descriptorpb.File_google_protobuf_descriptor_proto),
+			{
+				Name:       proto.String("test.proto"),
+				Syntax:     proto.String("editions"),
+				Edition:    descriptorpb.Edition_EDITION_2023.Enum(),
+				Package:    proto.String("test.v1"),
+				Dependency: []string{"google/protobuf/descriptor.proto"},
+				Options: &descriptorpb.FileOptions{
+					GoPackage: proto.String("github.com/33TU/as3pb/internal/generatetest;generatetest"),
+				},
+				MessageType: []*descriptorpb.DescriptorProto{message},
+				Extension: []*descriptorpb.FieldDescriptorProto{{
+					Name:     proto.String("tag"),
+					Number:   proto.Int32(50000),
+					Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+					Type:     descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+					Extendee: proto.String(extendee),
+				}},
+			},
+		},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
 func editionsDefaultsPlugin(t *testing.T) *protogen.Plugin {
 	t.Helper()
 
