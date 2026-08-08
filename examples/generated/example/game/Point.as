@@ -7,6 +7,7 @@ package example.game
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
 
     public final class Point
@@ -17,6 +18,12 @@ package example.game
         public var y:Number = 0.0;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -25,6 +32,7 @@ package example.game
         {
             msg.x = 0.0;
             msg.y = 0.0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -40,6 +48,7 @@ package example.game
             const dst:Point = new Point();
             dst.x = src.x;
             dst.y = src.y;
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -67,7 +76,7 @@ package example.game
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 13:
@@ -85,7 +94,9 @@ package example.game
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -120,6 +131,9 @@ package example.game
                 dst.writeByte(21);
                 dst.writeFloat(localY);
             }
+
+            if (src.unknownFields)
+                dst.writeBytes(src.unknownFields);
         }
 
         {

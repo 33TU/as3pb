@@ -20,6 +20,12 @@ package example.game
         public var tick:Int64 = new Int64();
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -30,6 +36,7 @@ package example.game
             msg.to = null;
             msg.tick.low = 0;
             msg.tick.high = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -46,6 +53,7 @@ package example.game
             dst.from = Point.clone(src.from);
             dst.to = Point.clone(src.to);
             dst.tick.copyFrom(src.tick);
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -75,7 +83,7 @@ package example.game
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -100,7 +108,9 @@ package example.game
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -151,6 +161,9 @@ package example.game
                     dst.writeByte(24);
                     Serialize.writeSint64(dst, localTick.low, localTick.high);
                 }
+
+                if (src.unknownFields)
+                    dst.writeBytes(src.unknownFields);
             }
             finally
             {
