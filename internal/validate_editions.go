@@ -10,7 +10,9 @@ import (
 // validateEditionsFeatures rejects editions files whose resolved features
 // fall outside the proto3 feature set the generator supports. Editions
 // files that stick to proto3 semantics (implicit or explicit presence,
-// open enums, length-prefixed messages) generate identically to proto3.
+// open enums, length-prefixed messages) generate identically to proto3;
+// declared defaults are additionally allowed and surface as DEFAULT_*
+// constants since they never affect the wire.
 func validateEditionsFeatures(file *protogen.File) error {
 	if len(file.Extensions) > 0 {
 		return fmt.Errorf("%s: extensions are not supported", file.Desc.Path())
@@ -38,9 +40,6 @@ func validateEditionsMessage(message *protogen.Message) error {
 		}
 		if field.Desc.Cardinality() == protoreflect.Required {
 			return fmt.Errorf("%s: required fields are not supported", field.Desc.FullName())
-		}
-		if field.Desc.HasDefault() {
-			return fmt.Errorf("%s: custom default values are not supported", field.Desc.FullName())
 		}
 	}
 	for _, enum := range message.Enums {

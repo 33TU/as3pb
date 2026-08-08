@@ -40,6 +40,7 @@ package test
             runTest("testPackedEncodingCompatibility", testPackedEncodingCompatibility);
             runTest("testSkipUnknownVarint64", testSkipUnknownVarint64);
             runTest("testGeneratedUnknownFields", testGeneratedUnknownFields);
+            runTest("testDeclaredDefaults", testDeclaredDefaults);
             runTest("testMalformedVarints", testMalformedVarints);
             runTest("testInvalidFieldNumbers", testInvalidFieldNumbers);
             runTest("testInvalidMessageLimits", testInvalidMessageLimits);
@@ -423,6 +424,8 @@ package test
                     Deserialize.readVarint32(buffer);
                 });
 
+            // Bits past 32 are legal on the wire: the spec requires keeping
+            // just the low 32 bits (a47a5bb aligned the runtime with this).
             reset(buffer);
             buffer.writeByte(0xff);
             buffer.writeByte(0xff);
@@ -430,7 +433,21 @@ package test
             buffer.writeByte(0xff);
             buffer.writeByte(0x10);
             buffer.position = 0;
-            assertThrows("read varint32 overflow bits", function():void
+            assertUintEq("read varint32 keeps low 32 bits", Deserialize.readVarint32(buffer), 0x0fffffff);
+
+            reset(buffer);
+            for (i = 0; i < 9; i++)
+                buffer.writeByte(0xff);
+            buffer.writeByte(0x01);
+            buffer.position = 0;
+            assertUintEq("read varint32 ten-byte truncation", Deserialize.readVarint32(buffer), 0xffffffff);
+
+            reset(buffer);
+            for (i = 0; i < 9; i++)
+                buffer.writeByte(0xff);
+            buffer.writeByte(0x02);
+            buffer.position = 0;
+            assertThrows("read varint32 exceeds 64 bits", function():void
                 {
                     Deserialize.readVarint32(buffer);
                 });
@@ -786,6 +803,39 @@ package test
             assertEq("recursive root", out.value, root.value);
             assertEq("recursive middle", out.next.value, root.next.value);
             assertEq("recursive leaf", out.next.next.value, root.next.next.value);
+        }
+
+        private static function testDeclaredDefaults():void
+        {
+            assertTrue("bool default", RuntimeDefaults.DEFAULT_ENABLED);
+            assertEq("int32 default", RuntimeDefaults.DEFAULT_SPEED, 42);
+            assertUintEq("uint32 default", RuntimeDefaults.DEFAULT_MASK, 4294967295);
+            assertEq("sint32 default", RuntimeDefaults.DEFAULT_DELTA, -7);
+            assertEq("string default", RuntimeDefaults.DEFAULT_TITLE, "hi \"there\"\n");
+            assertTrue("double default inf", RuntimeDefaults.DEFAULT_RATIO == Number.POSITIVE_INFINITY);
+            assertEq("float default", RuntimeDefaults.DEFAULT_SCALE, 1.5);
+            assertTrue("int64 default -1", RuntimeDefaults.DEFAULT_BIG.low == 4294967295 && RuntimeDefaults.DEFAULT_BIG.high == -1);
+            assertTrue("uint64 default max", RuntimeDefaults.DEFAULT_HUGE.low == 4294967295 && RuntimeDefaults.DEFAULT_HUGE.high == 4294967295);
+            assertEq("enum default", RuntimeDefaults.DEFAULT_MODE, RuntimeMode.RUNTIME_MODE_TURBO);
+            assertEq("oneof member default", RuntimeDefaults.DEFAULT_PICK_A, 7);
+
+            const motd:ByteArray = RuntimeDefaults.DEFAULT_MOTD;
+            motd.position = 0;
+            assertEq("bytes text default", motd.readUTFBytes(motd.length), "welcome");
+
+            const blob:ByteArray = RuntimeDefaults.DEFAULT_BLOB;
+            assertUintEq("bytes binary default length", blob.length, 2);
+            assertUintEq("bytes binary default byte 0", blob[0], 1);
+            assertUintEq("bytes binary default byte 1", blob[1], 255);
+
+            // Defaults never affect presence: a parse of an empty payload
+            // leaves every explicit-presence field unset.
+            const msg:RuntimeDefaults = RuntimeDefaults.deserializeBytes(Buffers.newByteArray());
+            assertEq("unset bool stays null", msg.enabled, null);
+            assertEq("unset int32 stays null", msg.speed, null);
+            assertEq("unset string stays null", msg.title, null);
+            assertEq("unset int64 stays null", msg.big, null);
+            assertEq("unset bytes stays null", msg.motd, null);
         }
 
         private static function testOptionalPresence():void

@@ -1,0 +1,28 @@
+edition = "2023";
+
+package test;
+
+enum RuntimeMode {
+  RUNTIME_MODE_UNSPECIFIED = 0;
+  RUNTIME_MODE_TURBO = 2;
+}
+
+// Exercises declared defaults across every scalar kind. Defaults never
+// touch the wire; they only surface as generated DEFAULT_* constants.
+message RuntimeDefaults {
+  bool enabled = 1 [default = true];
+  int32 speed = 2 [default = 42];
+  uint32 mask = 3 [default = 4294967295];
+  sint32 delta = 4 [default = -7];
+  string title = 5 [default = "hi \"there\"\n"];
+  double ratio = 6 [default = inf];
+  float scale = 7 [default = 1.5];
+  int64 big = 8 [default = -1];
+  uint64 huge = 9 [default = 18446744073709551615];
+  RuntimeMode mode = 10 [default = RUNTIME_MODE_TURBO];
+  bytes motd = 11 [default = "welcome"];
+  bytes blob = 12 [default = "\001\377"];
+  oneof pick {
+    int32 pick_a = 13 [default = 7];
+  }
+}

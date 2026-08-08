@@ -10,7 +10,8 @@ SDK_DIR := env("SDK_DIR", "sdk")
 GOOGLE_PROTOBUF_PATH := env("GOOGLE_PROTOBUF_PATH", "/usr/include/google/protobuf")
 GOOGLE_PROTOBUF_INCLUDE := parent_directory(parent_directory(GOOGLE_PROTOBUF_PATH))
 EXAMPLES_OUT := "examples/generated"
-RUNTIME_TEST_PROTOS := "runtime/test/data/test.proto runtime/test/data/bench.proto runtime/test/data/rpc.proto"
+PROTOC := env("PROTOC", "protoc")
+RUNTIME_TEST_PROTOS := "runtime/test/data/test.proto runtime/test/data/bench.proto runtime/test/data/rpc.proto runtime/test/data/defaults.proto"
 RUNTIME_TEST_GENERATED := "runtime/test/generated"
 
 default:
@@ -63,13 +64,17 @@ build-swc:
         -debug={{ AS3_DEBUG }} \
         -omit-trace-statements=true
 
+# defaults.proto is an editions file: protoc 27+ required (PROTOC=...
+# overrides which binary is used).
 generate-runtime-test-data: build-protoc-gen-as3 build-as3-protoc
     rm -rf {{ RUNTIME_TEST_GENERATED }}
     mkdir -p {{ RUNTIME_TEST_GENERATED }}
     {{ BIN_DIR }}/as3-protoc \
+        --protoc_bin={{ PROTOC }} \
         --protoc_gen_as3_bin={{ BIN_DIR }}/protoc-gen-as3 \
         --as3_out={{ RUNTIME_TEST_GENERATED }} \
         -I runtime/test/data \
+        -I {{ GOOGLE_PROTOBUF_INCLUDE }} \
         {{ RUNTIME_TEST_PROTOS }}
 
 build-runtime-test: generate-runtime-test-data

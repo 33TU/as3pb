@@ -89,6 +89,11 @@ func FieldNumberName(field *protogen.Field) string {
 	return "FIELD_" + toSnakeCase(string(field.Desc.Name()), true)
 }
 
+// FieldDefaultName returns the AS3 declared-default constant name for a field.
+func FieldDefaultName(field *protogen.Field) string {
+	return "DEFAULT_" + toSnakeCase(string(field.Desc.Name()), true)
+}
+
 // OneofCaseName returns the AS3 oneof case field name for a protobuf oneof.
 func OneofCaseName(oneof *protogen.Oneof) string {
 	return toCamelCase(string(oneof.Desc.Name())) + "Case"

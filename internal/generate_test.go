@@ -498,6 +498,120 @@ func TestGenerateFileRejectsOutputFileCollision(t *testing.T) {
 	}
 }
 
+func TestGenerateFileEditionsDefaults(t *testing.T) {
+	plugin := editionsDefaultsPlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	files := plugin.Response().GetFile()
+	if len(files) != 1 {
+		t.Fatalf("generated %d files, want 1", len(files))
+	}
+
+	content := files[0].GetContent()
+	wantParts := []string{
+		"public static const DEFAULT_ENABLED:Boolean = true;",
+		"public static const DEFAULT_SPEED:int = 42;",
+		`public static const DEFAULT_TITLE:String = "hi \"there\"\n";`,
+		"public static const DEFAULT_RATIO:Number = Number.POSITIVE_INFINITY;",
+		"public static const DEFAULT_BIG:Int64 = new Int64(4294967295, -1);",
+		"public static const DEFAULT_BLOB:ByteArray = makeDefaultBlob();",
+		"private static function makeDefaultBlob():ByteArray",
+		// Invalid UTF-8 defaults fall back to byte-at-a-time building.
+		"bytes.writeByte(1);",
+		"bytes.writeByte(255);",
+		// Valid UTF-8 defaults round-trip through one writeUTFBytes call.
+		"bytes.writeUTFBytes(\"hi \\u0001\");",
+		// Presence representation is unchanged: unset stays null.
+		"public var enabled:OptionalBoolean = null;",
+	}
+	for _, part := range wantParts {
+		if !strings.Contains(content, part) {
+			t.Errorf("generated content missing %q", part)
+		}
+	}
+}
+
+func editionsDefaultsPlugin(t *testing.T) *protogen.Plugin {
+	t.Helper()
+
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"test.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{{
+			Name:    proto.String("test.proto"),
+			Syntax:  proto.String("editions"),
+			Edition: descriptorpb.Edition_EDITION_2023.Enum(),
+			Package: proto.String("test.v1"),
+			Options: &descriptorpb.FileOptions{
+				GoPackage: proto.String("github.com/33TU/as3pb/internal/generatetest;generatetest"),
+			},
+			MessageType: []*descriptorpb.DescriptorProto{{
+				Name: proto.String("Config"),
+				Field: []*descriptorpb.FieldDescriptorProto{
+					{
+						Name:         proto.String("enabled"),
+						Number:       proto.Int32(1),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_BOOL.Enum(),
+						DefaultValue: proto.String("true"),
+					},
+					{
+						Name:         proto.String("speed"),
+						Number:       proto.Int32(2),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_INT32.Enum(),
+						DefaultValue: proto.String("42"),
+					},
+					{
+						Name:         proto.String("title"),
+						Number:       proto.Int32(3),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+						DefaultValue: proto.String("hi \"there\"\n"),
+					},
+					{
+						Name:         proto.String("ratio"),
+						Number:       proto.Int32(4),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_DOUBLE.Enum(),
+						DefaultValue: proto.String("inf"),
+					},
+					{
+						Name:         proto.String("big"),
+						Number:       proto.Int32(5),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_INT64.Enum(),
+						DefaultValue: proto.String("-1"),
+					},
+					{
+						Name:         proto.String("blob"),
+						Number:       proto.Int32(6),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_BYTES.Enum(),
+						DefaultValue: proto.String("\\001\\377"),
+					},
+					{
+						Name:         proto.String("text_blob"),
+						Number:       proto.Int32(7),
+						Label:        descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+						Type:         descriptorpb.FieldDescriptorProto_TYPE_BYTES.Enum(),
+						DefaultValue: proto.String("hi \\001"),
+					},
+				},
+			}},
+		}},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
 func syntaxPlugin(t *testing.T, syntax string) *protogen.Plugin {
 	t.Helper()
 

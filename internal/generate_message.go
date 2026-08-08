@@ -187,6 +187,8 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 		g.w.BlankLine()
 	}
 
+	g.generateDefaultConstants(message, names)
+
 	for i, field := range message.Fields {
 		if field.Comments.Leading != "" && i > 0 {
 			g.w.BlankLine()
