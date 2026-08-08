@@ -35,6 +35,12 @@ package bench
         public var positions:Vector.<Number> = new Vector.<Number>();
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -60,6 +66,7 @@ package bench
             msg.hashes.length = 0;
             msg.ticks.length = 0;
             msg.positions.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -89,6 +96,7 @@ package bench
             dst.hashes = src.hashes.concat();
             dst.ticks.copyFrom(src.ticks);
             dst.positions = src.positions.concat();
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -116,7 +124,7 @@ package bench
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -166,7 +174,7 @@ package bench
                     }
                     case 80:
                     {
-                        dst.active = Deserialize.readVarint32(src) !== 0;
+                        dst.active = Deserialize.readBool(src);
                         break;
                     }
                     case 90:
@@ -229,7 +237,9 @@ package bench
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -352,6 +362,9 @@ package bench
                 dst.writeShort(450);
                 Serialize.writeFloatVector(dst, localPositions, vecLength);
             }
+
+            if (src.unknownFields)
+                dst.writeBytes(src.unknownFields);
         }
 
         {

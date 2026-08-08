@@ -42,6 +42,12 @@ package test
         public var sfixed64Values:Int64Vector = new Int64Vector();
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -73,6 +79,7 @@ package test
             msg.sint64Values.length = 0;
             msg.fixed64Values.length = 0;
             msg.sfixed64Values.length = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -106,6 +113,7 @@ package test
             dst.sint64Values.copyFrom(src.sint64Values);
             dst.fixed64Values.copyFrom(src.fixed64Values);
             dst.sfixed64Values.copyFrom(src.sfixed64Values);
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -133,7 +141,7 @@ package test
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 8:
@@ -294,7 +302,9 @@ package test
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -442,6 +452,9 @@ package test
                 dst.writeShort(418);
                 Serialize.writeSfixed64Vector(dst, localSfixed64Values, vecLength);
             }
+
+            if (src.unknownFields)
+                dst.writeBytes(src.unknownFields);
         }
 
         {

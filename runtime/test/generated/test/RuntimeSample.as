@@ -59,6 +59,12 @@ package test
         public var choiceCase:uint;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -97,6 +103,7 @@ package test
             msg.choiceDelta.high = 0;
             msg.choicePayload.length = 0;
             msg.choiceCase = 0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -164,6 +171,7 @@ package test
                     break;
                 }
             }
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -193,7 +201,7 @@ package test
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -271,7 +279,7 @@ package test
                     {
                         if (dst.optionalEnabled == null)
                             dst.optionalEnabled = new OptionalBoolean();
-                        dst.optionalEnabled.value = Deserialize.readVarint32(src) !== 0;
+                        dst.optionalEnabled.value = Deserialize.readBool(src);
                         break;
                     }
                     case 122:
@@ -378,7 +386,9 @@ package test
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -523,7 +533,7 @@ package test
                     dst.writeShort(392);
                     Serialize.writeVarint64(dst, localOptionalTotal.low, localOptionalTotal.high);
                 }
-                if (localOptionalNested != null)
+                if (localOptionalNested)
                 {
                     dst.writeShort(402);
                     messageReuseBuffer.length = 0;
@@ -612,6 +622,9 @@ package test
                         break;
                     }
                 }
+
+                if (src.unknownFields)
+                    dst.writeBytes(src.unknownFields);
             }
             finally
             {

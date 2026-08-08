@@ -18,6 +18,12 @@ package test
         public var next:RuntimeNode = null;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -26,6 +32,7 @@ package test
         {
             msg.value = "";
             msg.next = null;
+            msg.unknownFields = null;
         }
 
         /**
@@ -41,6 +48,7 @@ package test
             const dst:RuntimeNode = new RuntimeNode();
             dst.value = src.value;
             dst.next = RuntimeNode.clone(src.next);
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -70,7 +78,7 @@ package test
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -89,7 +97,9 @@ package test
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -132,6 +142,9 @@ package test
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
+
+                if (src.unknownFields)
+                    dst.writeBytes(src.unknownFields);
             }
             finally
             {

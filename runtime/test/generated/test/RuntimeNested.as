@@ -19,6 +19,12 @@ package test
         public var ratio:Number = 0.0;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -28,6 +34,7 @@ package test
             msg.label_ = "";
             msg.flags = 0;
             msg.ratio = 0.0;
+            msg.unknownFields = null;
         }
 
         /**
@@ -44,6 +51,7 @@ package test
             dst.label_ = src.label_;
             dst.flags = src.flags;
             dst.ratio = src.ratio;
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -71,7 +79,7 @@ package test
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -94,7 +102,9 @@ package test
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -137,6 +147,9 @@ package test
                 dst.writeByte(25);
                 dst.writeDouble(localRatio);
             }
+
+            if (src.unknownFields)
+                dst.writeBytes(src.unknownFields);
         }
 
         {

@@ -18,6 +18,12 @@ package rpc
         public var ok:Boolean = false;
 
         /**
+         * Raw wire bytes of fields unknown to this schema, preserved from
+         * deserialization and re-emitted on serialization. Null when none.
+         */
+        public var unknownFields:ByteArray;
+
+        /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
          */
@@ -26,6 +32,7 @@ package rpc
         {
             msg.message = "";
             msg.ok = false;
+            msg.unknownFields = null;
         }
 
         /**
@@ -41,6 +48,7 @@ package rpc
             const dst:RpcEchoResponse = new RpcEchoResponse();
             dst.message = src.message;
             dst.ok = src.ok;
+            dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
         }
@@ -68,7 +76,7 @@ package rpc
 
             while (src.position < end)
             {
-                const tag:uint = Deserialize.readVarint32(src);
+                const tag:uint = Deserialize.readTag(src);
                 switch (tag)
                 {
                     case 10:
@@ -78,7 +86,7 @@ package rpc
                     }
                     case 16:
                     {
-                        dst.ok = Deserialize.readVarint32(src) !== 0;
+                        dst.ok = Deserialize.readBool(src);
                         break;
                     }
                     default:
@@ -86,7 +94,9 @@ package rpc
                         if ((tag >>> 3) == 0)
                             throw new Error("Invalid protobuf field number");
 
-                        Deserialize.skipField(src, tag & 7);
+                        if (dst.unknownFields == null)
+                            dst.unknownFields = Buffers.newByteArray();
+                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
                         break;
                     }
                 }
@@ -123,6 +133,9 @@ package rpc
                 dst.writeByte(16);
                 dst.writeByte(localOk ? 1 : 0);
             }
+
+            if (src.unknownFields)
+                dst.writeBytes(src.unknownFields);
         }
 
         {
