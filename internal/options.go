@@ -7,6 +7,7 @@ type Options struct {
 	Debug               bool
 	GenerateAlways      bool
 	GenerateAny         *bool
+	GenerateClone       *bool
 	GenerateSerialize   *bool
 	GenerateDeserialize *bool
 	Indent              string
@@ -34,6 +35,10 @@ func (o Options) inlineReset() bool {
 
 func (o Options) generateAny() bool {
 	return o.GenerateAny == nil || *o.GenerateAny
+}
+
+func (o Options) generateClone() bool {
+	return o.GenerateClone == nil || *o.GenerateClone
 }
 
 func (o Options) generateSerialize() bool {

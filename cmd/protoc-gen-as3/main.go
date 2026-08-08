@@ -27,6 +27,10 @@ func main() {
 		generateAny := parseBool(value)
 		options.GenerateAny = &generateAny
 	}
+	if value := os.Getenv("AS3PB_GENERATE_CLONE"); value != "" {
+		generateClone := parseBool(value)
+		options.GenerateClone = &generateClone
+	}
 	if value := os.Getenv("AS3PB_GENERATE_SERIALIZE"); value != "" {
 		generateSerialize := parseBool(value)
 		options.GenerateSerialize = &generateSerialize
@@ -51,6 +55,9 @@ func main() {
 			case "generate_any":
 				generateAny := parseBool(value)
 				options.GenerateAny = &generateAny
+			case "generate_clone":
+				generateClone := parseBool(value)
+				options.GenerateClone = &generateClone
 			case "generate_serialize":
 				generateSerialize := parseBool(value)
 				options.GenerateSerialize = &generateSerialize

@@ -63,8 +63,10 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 		g.w.BlankLine()
 	}
 	g.generateResetMethod(message, names)
-	g.w.BlankLine()
-	g.generateCloneMethod(message, names)
+	if g.opts.generateClone() {
+		g.w.BlankLine()
+		g.generateCloneMethod(message, names)
+	}
 	if g.opts.generateDeserialize() {
 		g.w.BlankLine()
 		g.generateDeserializeMethod(message, names)

@@ -155,6 +155,9 @@ Available options:
 - `indent`: set the generated indentation string. Defaults to four spaces.
 - `inline_reset`: emit `[Inline]` on generated reset methods. Defaults to true.
 - `generate_any`: emit message type URLs and automatic `AnyRegistry` registration. Defaults to true.
+- `generate_clone`: emit `clone` methods. Defaults to true. The linker
+  strips unused classes but never unused methods, so disabling this
+  saves real SWF bytes when the app never clones messages.
 - `generate_serialize`: emit `serializeBytes` methods. Defaults to true.
 - `generate_deserialize`: emit `deserializeBytes` methods. Defaults to true.
 
@@ -165,6 +168,7 @@ The same options can be set with environment variables:
 - `AS3PB_INDENT`
 - `AS3PB_INLINE_RESET`
 - `AS3PB_GENERATE_ANY`
+- `AS3PB_GENERATE_CLONE`
 - `AS3PB_GENERATE_SERIALIZE`
 - `AS3PB_GENERATE_DESERIALIZE`
 

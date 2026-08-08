@@ -170,6 +170,30 @@ func TestGenerateFileCanDisableInlineReset(t *testing.T) {
 	}
 }
 
+func TestGenerateFileCanDisableClone(t *testing.T) {
+	plugin := messagePlugin(t)
+	generateClone := false
+	generator := internal.NewGenerator(plugin, internal.Options{GenerateClone: &generateClone})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	if strings.Contains(content, "public static function clone") {
+		t.Fatalf("generated content contains clone:\n%s", content)
+	}
+	for _, want := range []string{
+		"public static function reset",
+		"public static function deserializeBytes",
+		"public static function serializeBytes",
+	} {
+		if !strings.Contains(content, want) {
+			t.Fatalf("generated content missing %q:\n%s", want, content)
+		}
+	}
+}
+
 func TestGenerateFileCanDisableSerialize(t *testing.T) {
 	plugin := messagePlugin(t)
 	generateSerialize := false
