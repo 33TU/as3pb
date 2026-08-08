@@ -863,12 +863,18 @@ package as3pb.proto
         [Inline]
         public static function readBool(src:ByteArray):Boolean
         {
-            // A bool is true when any bit of the full 64-bit varint is set,
-            // so the bits truncated away by readVarint32 still count here.
-            var bits:uint = 0;
-            for (var i:uint = 0; i < 10; i++)
+            // Byte 1 (fast path): a canonically encoded bool is a single byte.
+            var b:uint = src.readUnsignedByte();
+            if (b < 0x80)
+                return b !== 0;
+
+            // A bool is true when any bit of the full 64-bit varint is set, so
+            // the bits truncated away by readVarint32 still count here. Only
+            // "any bit set" matters, so the payloads are ORed without shifting.
+            var bits:uint = b & 0x7F;
+            for (var i:uint = 1; i < 10; i++)
             {
-                const b:uint = src.readUnsignedByte();
+                b = src.readUnsignedByte();
                 if (i == 9 && b > 0x01)
                     throw new IOError("Malformed varint: exceeds 64 bits");
                 bits |= b & 0x7F;
