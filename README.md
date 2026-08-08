@@ -24,9 +24,12 @@ deliberate deviation (invalid UTF-8 in strings is accepted) live in
 
 Editions files (2023 and 2024) may additionally use explicit field
 presence (`features.field_presence = EXPLICIT`, generated as nullable
-fields like proto3 `optional`) and declared defaults
-(`default = ...`, generated as `DEFAULT_*` constants; the field
-itself stays null when unset).
+fields like proto3 `optional`: `OptionalInt`, `OptionalBoolean`, and
+friends for scalars) and declared defaults (`default = ...`,
+generated as `DEFAULT_*` constants). Defaults are never pre-loaded
+into the field — unset remains null so presence round-trips — and
+callers substitute the constant at read time:
+`msg.speed != null ? msg.speed.value : Config.DEFAULT_SPEED`.
 
 JSON, text format, proto2, and the editions features outside proto3
 semantics (extensions, delimited encoding, closed enums) are out of
