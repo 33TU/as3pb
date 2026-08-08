@@ -28,7 +28,7 @@ package example.game
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Point):void
+        public static function reset(msg:example.game.Point):void
         {
             msg.x = 0.0;
             msg.y = 0.0;
@@ -40,12 +40,12 @@ package example.game
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Point):Point
+        public static function clone(src:example.game.Point):example.game.Point
         {
             if (!src)
                 return null;
 
-            const dst:Point = new Point();
+            const dst:example.game.Point = new example.game.Point();
             dst.x = src.x;
             dst.y = src.y;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -60,12 +60,12 @@ package example.game
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Point = null, limit:uint = 0, reset:Boolean = true):Point
+        public static function deserializeBytes(src:ByteArray, dst:example.game.Point = null, limit:uint = 0, reset:Boolean = true):example.game.Point
         {
             if (!dst)
-                dst = new Point();
+                dst = new example.game.Point();
             else if (reset)
-                Point.reset(dst);
+                example.game.Point.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package example.game
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Point, dst:ByteArray):void
+        public static function serializeBytes(src:example.game.Point, dst:ByteArray):void
         {
             if (!src)
                 return;

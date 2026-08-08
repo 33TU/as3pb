@@ -15,8 +15,8 @@ package example.game
     {
         public static const TYPE_URL:String = "type.googleapis.com/example.game.Move";
 
-        public var from:Point = null;
-        public var to:Point = null;
+        public var from:example.game.Point = null;
+        public var to:example.game.Point = null;
         public var tick:Int64 = new Int64();
 
         /**
@@ -30,7 +30,7 @@ package example.game
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Move):void
+        public static function reset(msg:example.game.Move):void
         {
             msg.from = null;
             msg.to = null;
@@ -44,14 +44,14 @@ package example.game
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Move):Move
+        public static function clone(src:example.game.Move):example.game.Move
         {
             if (!src)
                 return null;
 
-            const dst:Move = new Move();
-            dst.from = Point.clone(src.from);
-            dst.to = Point.clone(src.to);
+            const dst:example.game.Move = new example.game.Move();
+            dst.from = example.game.Point.clone(src.from);
+            dst.to = example.game.Point.clone(src.to);
             dst.tick.copyFrom(src.tick);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -65,12 +65,12 @@ package example.game
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Move = null, limit:uint = 0, reset:Boolean = true):Move
+        public static function deserializeBytes(src:ByteArray, dst:example.game.Move = null, limit:uint = 0, reset:Boolean = true):example.game.Move
         {
             if (!dst)
-                dst = new Move();
+                dst = new example.game.Move();
             else if (reset)
-                Move.reset(dst);
+                example.game.Move.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -89,13 +89,13 @@ package example.game
                     case 10:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.from = Point.deserializeBytes(src, dst.from, src.position + messageLength, false);
+                        dst.from = example.game.Point.deserializeBytes(src, dst.from, src.position + messageLength, false);
                         break;
                     }
                     case 18:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.to = Point.deserializeBytes(src, dst.to, src.position + messageLength, false);
+                        dst.to = example.game.Point.deserializeBytes(src, dst.to, src.position + messageLength, false);
                         break;
                     }
                     case 24:
@@ -127,15 +127,15 @@ package example.game
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Move, dst:ByteArray):void
+        public static function serializeBytes(src:example.game.Move, dst:ByteArray):void
         {
             if (!src)
                 return;
 
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
-            const localFrom:Point = src.from;
-            const localTo:Point = src.to;
+            const localFrom:example.game.Point = src.from;
+            const localTo:example.game.Point = src.to;
             const localTick:Int64 = src.tick;
 
             try
@@ -144,7 +144,7 @@ package example.game
                 {
                     dst.writeByte(10);
                     messageReuseBuffer.length = 0;
-                    Point.serializeBytes(localFrom, messageReuseBuffer);
+                    example.game.Point.serializeBytes(localFrom, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
@@ -152,7 +152,7 @@ package example.game
                 {
                     dst.writeByte(18);
                     messageReuseBuffer.length = 0;
-                    Point.serializeBytes(localTo, messageReuseBuffer);
+                    example.game.Point.serializeBytes(localTo, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }

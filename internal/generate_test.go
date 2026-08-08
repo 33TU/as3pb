@@ -99,27 +99,27 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		`public static const TYPE_URL:String = "type.googleapis.com/test.v1.Player";`,
 		"public static const FIELD_MOVE:uint = 5;",
 		"public var raw:ByteArray = Buffers.newByteArray();",
-		"public static function reset(msg:Player):void",
+		"public static function reset(msg:test.v1.Player):void",
 		"msg.raw.length = 0;",
-		"public static function clone(src:Player):Player",
-		"const dst:Player = new Player();",
+		"public static function clone(src:test.v1.Player):test.v1.Player",
+		"const dst:test.v1.Player = new test.v1.Player();",
 		"dst.raw = Buffers.cloneByteArray(src.raw);",
 		"dst.amount.copyFrom(src.amount);",
-		"dst.move = Player.clone(src.move);",
+		"dst.move = test.v1.Player.clone(src.move);",
 		"if (src.choiceAmount)",
 		"dst.choiceAmount.copyFrom(src.choiceAmount);",
 		"if (src.choiceBytes)",
 		"dst.choiceBytes = Buffers.cloneByteArray(src.choiceBytes);",
-		"public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0, reset:Boolean = true):Player",
+		"public static function deserializeBytes(src:ByteArray, dst:test.v1.Player = null, limit:uint = 0, reset:Boolean = true):test.v1.Player",
 		`throw new Error("Invalid protobuf message limit");`,
 		`throw new Error("Invalid protobuf field number");`,
 		"else",
 		"dst.actionCase = FIELD_MOVE;",
 		"case 32:",
 		"dst.scores.push(Deserialize.readInt32(src));",
-		"dst.move = Player.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
+		"dst.move = test.v1.Player.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
 		"Deserialize.readInt32Vector(src, dst.scores);",
-		"public static function serializeBytes(src:Player, dst:ByteArray):void",
+		"public static function serializeBytes(src:test.v1.Player, dst:ByteArray):void",
 		"if (!src)",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
 		"if (localAmount.low || localAmount.high)",
@@ -165,7 +165,7 @@ func TestGenerateFileCanDisableInlineReset(t *testing.T) {
 	if strings.Contains(content, "[Inline]") {
 		t.Fatalf("generated content contains [Inline]:\n%s", content)
 	}
-	if !strings.Contains(content, "public static function reset(msg:Player):void") {
+	if !strings.Contains(content, "public static function reset(msg:test.v1.Player):void") {
 		t.Fatalf("generated content missing reset method:\n%s", content)
 	}
 }
@@ -223,9 +223,9 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	content := plugin.Response().GetFile()[0].GetContent()
 	wantParts := []string{
 		"import google.protobuf.Any;",
-		"public var payload:Any = null;",
-		"dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);",
-		"Any.serializeBytes(localPayload, messageReuseBuffer);",
+		"public var payload:google.protobuf.Any = null;",
+		"dst.payload = google.protobuf.Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);",
+		"google.protobuf.Any.serializeBytes(localPayload, messageReuseBuffer);",
 	}
 	for _, want := range wantParts {
 		if !strings.Contains(content, want) {
@@ -377,12 +377,12 @@ func TestGenerateFileService(t *testing.T) {
 		"import as3pb.rpc.HttpRequest;",
 		`public function GreeterRpcClient(baseUrl:String, contentType:String = "application/proto", headers:Array = null, transport:HttpTransport = null)`,
 		"super(baseUrl, contentType, headers, transport);",
-		"public function sayHello(request:HelloRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest",
-		"request:HelloRequest,",
+		"public function sayHello(request:test.v1.HelloRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest",
+		"request:test.v1.HelloRequest,",
 		"const buffer:ByteArray = BufferPool.acquire();",
-		"HelloRequest.serializeBytes(request, buffer);",
+		"test.v1.HelloRequest.serializeBytes(request, buffer);",
 		`"/test.v1.Greeter/SayHello",`,
-		"onComplete(HelloResponse.deserializeBytes(responseBytes));",
+		"onComplete(test.v1.HelloResponse.deserializeBytes(responseBytes));",
 		"timeoutMilliseconds",
 	}
 	for _, want := range wantParts {

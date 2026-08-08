@@ -52,12 +52,12 @@ package google.protobuf
         /**
          * Represents a structured value.
          */
-        public var structValue:Struct = null;
+        public var structValue:google.protobuf.Struct = null;
 
         /**
          * Represents a repeated `Value`.
          */
-        public var listValue:ListValue = null;
+        public var listValue:google.protobuf.ListValue = null;
 
         /**
          * The kind of value.
@@ -76,7 +76,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Value):void
+        public static function reset(msg:google.protobuf.Value):void
         {
             msg.nullValue = 0;
             msg.numberValue = 0.0;
@@ -93,12 +93,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Value):Value
+        public static function clone(src:google.protobuf.Value):google.protobuf.Value
         {
             if (!src)
                 return null;
 
-            const dst:Value = new Value();
+            const dst:google.protobuf.Value = new google.protobuf.Value();
 
             dst.kindCase = src.kindCase;
             switch (src.kindCase)
@@ -125,12 +125,12 @@ package google.protobuf
                 }
                 case FIELD_STRUCT_VALUE:
                 {
-                    dst.structValue = Struct.clone(src.structValue);
+                    dst.structValue = google.protobuf.Struct.clone(src.structValue);
                     break;
                 }
                 case FIELD_LIST_VALUE:
                 {
-                    dst.listValue = ListValue.clone(src.listValue);
+                    dst.listValue = google.protobuf.ListValue.clone(src.listValue);
                     break;
                 }
             }
@@ -146,12 +146,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Value = null, limit:uint = 0, reset:Boolean = true):Value
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Value = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Value
         {
             if (!dst)
-                dst = new Value();
+                dst = new google.protobuf.Value();
             else if (reset)
-                Value.reset(dst);
+                google.protobuf.Value.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -194,14 +194,14 @@ package google.protobuf
                     case 42:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.structValue = Struct.deserializeBytes(src, dst.structValue, src.position + messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
+                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, src.position + messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
                         dst.kindCase = FIELD_STRUCT_VALUE;
                         break;
                     }
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.listValue = ListValue.deserializeBytes(src, dst.listValue, src.position + messageLength, dst.kindCase != FIELD_LIST_VALUE);
+                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, src.position + messageLength, dst.kindCase != FIELD_LIST_VALUE);
                         dst.kindCase = FIELD_LIST_VALUE;
                         break;
                     }
@@ -229,7 +229,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Value, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Value, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -241,8 +241,8 @@ package google.protobuf
             const localNumberValue:Number = src.numberValue;
             const localStringValue:String = src.stringValue;
             const localBoolValue:Boolean = src.boolValue;
-            const localStructValue:Struct = src.structValue;
-            const localListValue:ListValue = src.listValue;
+            const localStructValue:google.protobuf.Struct = src.structValue;
+            const localListValue:google.protobuf.ListValue = src.listValue;
 
             try
             {
@@ -283,7 +283,7 @@ package google.protobuf
                     {
                         dst.writeByte(42);
                         messageReuseBuffer.length = 0;
-                        Struct.serializeBytes(localStructValue, messageReuseBuffer);
+                        google.protobuf.Struct.serializeBytes(localStructValue, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                         break;
@@ -292,7 +292,7 @@ package google.protobuf
                     {
                         dst.writeByte(50);
                         messageReuseBuffer.length = 0;
-                        ListValue.serializeBytes(localListValue, messageReuseBuffer);
+                        google.protobuf.ListValue.serializeBytes(localListValue, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                         break;

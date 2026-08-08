@@ -36,7 +36,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Empty):void
+        public static function reset(msg:google.protobuf.Empty):void
         {
             msg.unknownFields = null;
         }
@@ -46,12 +46,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Empty):Empty
+        public static function clone(src:google.protobuf.Empty):google.protobuf.Empty
         {
             if (!src)
                 return null;
 
-            const dst:Empty = new Empty();
+            const dst:google.protobuf.Empty = new google.protobuf.Empty();
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -64,12 +64,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Empty = null, limit:uint = 0, reset:Boolean = true):Empty
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Empty = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Empty
         {
             if (!dst)
-                dst = new Empty();
+                dst = new google.protobuf.Empty();
             else if (reset)
-                Empty.reset(dst);
+                google.protobuf.Empty.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -107,7 +107,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Empty, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Empty, dst:ByteArray):void
         {
             if (!src)
                 return;

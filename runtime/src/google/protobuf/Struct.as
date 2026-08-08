@@ -27,7 +27,7 @@ package google.protobuf
         /**
          * Unordered map of dynamically typed values.
          */
-        public var fields:Vector.<StructFieldsEntry> = new Vector.<StructFieldsEntry>();
+        public var fields:Vector.<google.protobuf.StructFieldsEntry> = new Vector.<google.protobuf.StructFieldsEntry>();
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -40,7 +40,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Struct):void
+        public static function reset(msg:google.protobuf.Struct):void
         {
             msg.fields.length = 0;
             msg.unknownFields = null;
@@ -51,17 +51,17 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Struct):Struct
+        public static function clone(src:google.protobuf.Struct):google.protobuf.Struct
         {
             if (!src)
                 return null;
 
-            const dst:Struct = new Struct();
-            const cloneSource0:Vector.<StructFieldsEntry> = src.fields;
-            const cloneTarget0:Vector.<StructFieldsEntry> = dst.fields;
+            const dst:google.protobuf.Struct = new google.protobuf.Struct();
+            const cloneSource0:Vector.<google.protobuf.StructFieldsEntry> = src.fields;
+            const cloneTarget0:Vector.<google.protobuf.StructFieldsEntry> = dst.fields;
             cloneTarget0.length = cloneSource0.length;
             for (var cloneIndex0:uint = 0; cloneIndex0 < cloneSource0.length; cloneIndex0++)
-                cloneTarget0[cloneIndex0] = StructFieldsEntry.clone(cloneSource0[cloneIndex0]);
+                cloneTarget0[cloneIndex0] = google.protobuf.StructFieldsEntry.clone(cloneSource0[cloneIndex0]);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -74,12 +74,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Struct = null, limit:uint = 0, reset:Boolean = true):Struct
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Struct = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Struct
         {
             if (!dst)
-                dst = new Struct();
+                dst = new google.protobuf.Struct();
             else if (reset)
-                Struct.reset(dst);
+                google.protobuf.Struct.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -97,9 +97,9 @@ package google.protobuf
                 {
                     case 10:
                     {
-                        const msgFields:StructFieldsEntry = new StructFieldsEntry();
+                        const msgFields:google.protobuf.StructFieldsEntry = new google.protobuf.StructFieldsEntry();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            StructFieldsEntry.deserializeBytes(src, msgFields, src.position + messageLength);
+                            google.protobuf.StructFieldsEntry.deserializeBytes(src, msgFields, src.position + messageLength);
                         dst.fields.push(msgFields);
                         break;
                     }
@@ -127,7 +127,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Struct, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Struct, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -136,7 +136,7 @@ package google.protobuf
             var vecLength:uint = 0;
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
-            const localFields:Vector.<StructFieldsEntry> = src.fields;
+            const localFields:Vector.<google.protobuf.StructFieldsEntry> = src.fields;
 
             try
             {
@@ -146,7 +146,7 @@ package google.protobuf
                     {
                         dst.writeByte(10);
                         messageReuseBuffer.length = 0;
-                        StructFieldsEntry.serializeBytes(localFields[vecIndex], messageReuseBuffer);
+                        google.protobuf.StructFieldsEntry.serializeBytes(localFields[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }

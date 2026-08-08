@@ -38,6 +38,9 @@ func (g *Generator) generateServiceClass(service *protogen.Service) error {
 	g.w.Line("import as3pb.rpc.BufferPool;")
 	g.w.Line("import as3pb.rpc.HttpTransport;")
 	g.w.Line("import as3pb.rpc.HttpRequest;")
+	for _, name := range serviceForeignImports(service) {
+		g.w.Line("import %s;", name)
+	}
 	g.w.BlankLine()
 
 	g.generateLeadingComment(service.Comments.Leading, false)

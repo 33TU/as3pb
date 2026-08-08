@@ -116,7 +116,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Mixin):void
+        public static function reset(msg:google.protobuf.Mixin):void
         {
             msg.name = "";
             msg.root = "";
@@ -128,12 +128,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Mixin):Mixin
+        public static function clone(src:google.protobuf.Mixin):google.protobuf.Mixin
         {
             if (!src)
                 return null;
 
-            const dst:Mixin = new Mixin();
+            const dst:google.protobuf.Mixin = new google.protobuf.Mixin();
             dst.name = src.name;
             dst.root = src.root;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -148,12 +148,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Mixin = null, limit:uint = 0, reset:Boolean = true):Mixin
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Mixin = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Mixin
         {
             if (!dst)
-                dst = new Mixin();
+                dst = new google.protobuf.Mixin();
             else if (reset)
-                Mixin.reset(dst);
+                google.protobuf.Mixin.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -201,7 +201,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Mixin, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Mixin, dst:ByteArray):void
         {
             if (!src)
                 return;

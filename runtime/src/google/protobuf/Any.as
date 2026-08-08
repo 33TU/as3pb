@@ -145,7 +145,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Any):void
+        public static function reset(msg:google.protobuf.Any):void
         {
             msg.typeUrl = "";
             msg.value.length = 0;
@@ -157,12 +157,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Any):Any
+        public static function clone(src:google.protobuf.Any):google.protobuf.Any
         {
             if (!src)
                 return null;
 
-            const dst:Any = new Any();
+            const dst:google.protobuf.Any = new google.protobuf.Any();
             dst.typeUrl = src.typeUrl;
             dst.value = Buffers.cloneByteArray(src.value);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -177,12 +177,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Any = null, limit:uint = 0, reset:Boolean = true):Any
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Any = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Any
         {
             if (!dst)
-                dst = new Any();
+                dst = new google.protobuf.Any();
             else if (reset)
-                Any.reset(dst);
+                google.protobuf.Any.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -230,7 +230,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Any, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Any, dst:ByteArray):void
         {
             if (!src)
                 return;

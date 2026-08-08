@@ -35,7 +35,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:SourceContext):void
+        public static function reset(msg:google.protobuf.SourceContext):void
         {
             msg.fileName = "";
             msg.unknownFields = null;
@@ -46,12 +46,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:SourceContext):SourceContext
+        public static function clone(src:google.protobuf.SourceContext):google.protobuf.SourceContext
         {
             if (!src)
                 return null;
 
-            const dst:SourceContext = new SourceContext();
+            const dst:google.protobuf.SourceContext = new google.protobuf.SourceContext();
             dst.fileName = src.fileName;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -65,12 +65,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:SourceContext = null, limit:uint = 0, reset:Boolean = true):SourceContext
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.SourceContext = null, limit:uint = 0, reset:Boolean = true):google.protobuf.SourceContext
         {
             if (!dst)
-                dst = new SourceContext();
+                dst = new google.protobuf.SourceContext();
             else if (reset)
-                SourceContext.reset(dst);
+                google.protobuf.SourceContext.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:SourceContext, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.SourceContext, dst:ByteArray):void
         {
             if (!src)
                 return;

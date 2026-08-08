@@ -52,7 +52,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeIntegers):void
+        public static function reset(msg:test.RuntimeIntegers):void
         {
             msg.int32Value = 0;
             msg.uint32Value = 0;
@@ -87,12 +87,12 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeIntegers):RuntimeIntegers
+        public static function clone(src:test.RuntimeIntegers):test.RuntimeIntegers
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeIntegers = new RuntimeIntegers();
+            const dst:test.RuntimeIntegers = new test.RuntimeIntegers();
             dst.int32Value = src.int32Value;
             dst.uint32Value = src.uint32Value;
             dst.sint32Value = src.sint32Value;
@@ -125,12 +125,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeIntegers = null, limit:uint = 0, reset:Boolean = true):RuntimeIntegers
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeIntegers = null, limit:uint = 0, reset:Boolean = true):test.RuntimeIntegers
         {
             if (!dst)
-                dst = new RuntimeIntegers();
+                dst = new test.RuntimeIntegers();
             else if (reset)
-                RuntimeIntegers.reset(dst);
+                test.RuntimeIntegers.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -321,7 +321,7 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeIntegers, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeIntegers, dst:ByteArray):void
         {
             if (!src)
                 return;

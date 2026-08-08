@@ -84,6 +84,18 @@ func MessageClassName(message *protogen.Message) string {
 	return toPascalCase(message.GoIdent.GoName)
 }
 
+// QualifiedMessageClassName returns the package-qualified AS3 class name,
+// used for every reference to the class (its declaration stays bare): a
+// bare name is ambiguous whenever it collides with a global like Date,
+// even inside the class's own file.
+func QualifiedMessageClassName(message *protogen.Message) string {
+	name := MessageClassName(message)
+	if pkg := string(message.Desc.ParentFile().Package()); pkg != "" {
+		return pkg + "." + name
+	}
+	return name
+}
+
 // FieldNumberName returns the AS3 field-number constant name for a protobuf field.
 func FieldNumberName(field *protogen.Field) string {
 	return "FIELD_" + toSnakeCase(string(field.Desc.Name()), true)

@@ -15,7 +15,7 @@ package test
     {
         public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeAnyEnvelope";
 
-        public var payload:Any = null;
+        public var payload:google.protobuf.Any = null;
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -28,7 +28,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeAnyEnvelope):void
+        public static function reset(msg:test.RuntimeAnyEnvelope):void
         {
             msg.payload = null;
             msg.unknownFields = null;
@@ -39,13 +39,13 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeAnyEnvelope):RuntimeAnyEnvelope
+        public static function clone(src:test.RuntimeAnyEnvelope):test.RuntimeAnyEnvelope
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeAnyEnvelope = new RuntimeAnyEnvelope();
-            dst.payload = Any.clone(src.payload);
+            const dst:test.RuntimeAnyEnvelope = new test.RuntimeAnyEnvelope();
+            dst.payload = google.protobuf.Any.clone(src.payload);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -58,12 +58,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeAnyEnvelope = null, limit:uint = 0, reset:Boolean = true):RuntimeAnyEnvelope
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeAnyEnvelope = null, limit:uint = 0, reset:Boolean = true):test.RuntimeAnyEnvelope
         {
             if (!dst)
-                dst = new RuntimeAnyEnvelope();
+                dst = new test.RuntimeAnyEnvelope();
             else if (reset)
-                RuntimeAnyEnvelope.reset(dst);
+                test.RuntimeAnyEnvelope.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -82,7 +82,7 @@ package test
                     case 10:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.payload = Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);
+                        dst.payload = google.protobuf.Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);
                         break;
                     }
                     default:
@@ -109,14 +109,14 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeAnyEnvelope, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeAnyEnvelope, dst:ByteArray):void
         {
             if (!src)
                 return;
 
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
-            const localPayload:Any = src.payload;
+            const localPayload:google.protobuf.Any = src.payload;
 
             try
             {
@@ -124,7 +124,7 @@ package test
                 {
                     dst.writeByte(10);
                     messageReuseBuffer.length = 0;
-                    Any.serializeBytes(localPayload, messageReuseBuffer);
+                    google.protobuf.Any.serializeBytes(localPayload, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }

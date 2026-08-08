@@ -29,15 +29,15 @@ package rpc
         /**
          * Echo returns the provided message.
          * @param request The request message.
-         * @param onComplete Called with the decoded RpcEchoResponse.
+         * @param onComplete Called with the decoded rpc.RpcEchoResponse.
          * @param onError Called if the RPC request fails.
          * @param timeoutMilliseconds Request timeout; zero uses the transport default.
          * @return The active HTTP request handle.
          */
-        public function echo(request:RpcEchoRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest
+        public function echo(request:rpc.RpcEchoRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest
         {
             const buffer:ByteArray = BufferPool.acquire();
-            RpcEchoRequest.serializeBytes(request, buffer);
+            rpc.RpcEchoRequest.serializeBytes(request, buffer);
 
             return this.$callUnary(
                 "/rpc.RpcFixtureService/Echo",
@@ -45,7 +45,7 @@ package rpc
                 function(responseBytes:ByteArray):void
                 {
                     BufferPool.release(buffer);
-                    onComplete(RpcEchoResponse.deserializeBytes(responseBytes));
+                    onComplete(rpc.RpcEchoResponse.deserializeBytes(responseBytes));
                 },
                 function(err:*):void
                 {

@@ -30,8 +30,8 @@ package test
         public var count:UInt64 = new UInt64();
         public var delta:Int64 = new Int64();
         public var scores:Vector.<int> = new Vector.<int>();
-        public var nested:RuntimeNested = null;
-        public var children:Vector.<RuntimeNested> = new Vector.<RuntimeNested>();
+        public var nested:test.RuntimeNested = null;
+        public var children:Vector.<test.RuntimeNested> = new Vector.<test.RuntimeNested>();
         public var checksum:UInt64 = new UInt64();
         public var signedCount:int = 0;
         public var expandedScores:Vector.<int> = new Vector.<int>();
@@ -40,7 +40,7 @@ package test
         public var optionalLabel:String = null;
         public var optionalPayload:ByteArray = null;
         public var optionalTotal:UInt64 = null;
-        public var optionalNested:RuntimeNested = null;
+        public var optionalNested:test.RuntimeNested = null;
         public var optionalDelta:Int64 = null;
         public var optionalStatus:OptionalInt = null;
         public var optionalFloat:OptionalNumber = null;
@@ -49,7 +49,7 @@ package test
         public var optionalFixed64:UInt64 = null;
         public var optionalInt64:Int64 = null;
         public var name:String = "";
-        public var selected:RuntimeNested = null;
+        public var selected:test.RuntimeNested = null;
         public var choiceDelta:Int64 = new Int64();
         public var choicePayload:ByteArray = Buffers.newByteArray();
 
@@ -69,7 +69,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeSample):void
+        public static function reset(msg:test.RuntimeSample):void
         {
             msg.id = "";
             msg.payload.length = 0;
@@ -111,23 +111,23 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeSample):RuntimeSample
+        public static function clone(src:test.RuntimeSample):test.RuntimeSample
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeSample = new RuntimeSample();
+            const dst:test.RuntimeSample = new test.RuntimeSample();
             dst.id = src.id;
             dst.payload = Buffers.cloneByteArray(src.payload);
             dst.count.copyFrom(src.count);
             dst.delta.copyFrom(src.delta);
             dst.scores = src.scores.concat();
-            dst.nested = RuntimeNested.clone(src.nested);
-            const cloneSource6:Vector.<RuntimeNested> = src.children;
-            const cloneTarget6:Vector.<RuntimeNested> = dst.children;
+            dst.nested = test.RuntimeNested.clone(src.nested);
+            const cloneSource6:Vector.<test.RuntimeNested> = src.children;
+            const cloneTarget6:Vector.<test.RuntimeNested> = dst.children;
             cloneTarget6.length = cloneSource6.length;
             for (var cloneIndex6:uint = 0; cloneIndex6 < cloneSource6.length; cloneIndex6++)
-                cloneTarget6[cloneIndex6] = RuntimeNested.clone(cloneSource6[cloneIndex6]);
+                cloneTarget6[cloneIndex6] = test.RuntimeNested.clone(cloneSource6[cloneIndex6]);
             dst.checksum.copyFrom(src.checksum);
             dst.signedCount = src.signedCount;
             dst.expandedScores = src.expandedScores.concat();
@@ -136,7 +136,7 @@ package test
             dst.optionalLabel = src.optionalLabel;
             dst.optionalPayload = Buffers.cloneByteArray(src.optionalPayload);
             dst.optionalTotal = src.optionalTotal ? src.optionalTotal.clone() : null;
-            dst.optionalNested = RuntimeNested.clone(src.optionalNested);
+            dst.optionalNested = test.RuntimeNested.clone(src.optionalNested);
             dst.optionalDelta = src.optionalDelta ? src.optionalDelta.clone() : null;
             dst.optionalStatus = src.optionalStatus ? src.optionalStatus.clone() : null;
             dst.optionalFloat = src.optionalFloat ? src.optionalFloat.clone() : null;
@@ -155,7 +155,7 @@ package test
                 }
                 case FIELD_SELECTED:
                 {
-                    dst.selected = RuntimeNested.clone(src.selected);
+                    dst.selected = test.RuntimeNested.clone(src.selected);
                     break;
                 }
                 case FIELD_CHOICE_DELTA:
@@ -183,12 +183,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeSample = null, limit:uint = 0, reset:Boolean = true):RuntimeSample
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeSample = null, limit:uint = 0, reset:Boolean = true):test.RuntimeSample
         {
             if (!dst)
-                dst = new RuntimeSample();
+                dst = new test.RuntimeSample();
             else if (reset)
-                RuntimeSample.reset(dst);
+                test.RuntimeSample.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -237,14 +237,14 @@ package test
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.nested = RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength, false);
+                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength, false);
                         break;
                     }
                     case 58:
                     {
-                        const msgChildren:RuntimeNested = new RuntimeNested();
+                        const msgChildren:test.RuntimeNested = new test.RuntimeNested();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            RuntimeNested.deserializeBytes(src, msgChildren, src.position + messageLength);
+                            test.RuntimeNested.deserializeBytes(src, msgChildren, src.position + messageLength);
                         dst.children.push(msgChildren);
                         break;
                     }
@@ -304,7 +304,7 @@ package test
                     case 146:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.optionalNested = RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
+                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
                         break;
                     }
                     case 152:
@@ -365,7 +365,7 @@ package test
                     case 82:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.selected = RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
+                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
                         dst.choiceCase = FIELD_SELECTED;
                         break;
                     }
@@ -405,7 +405,7 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeSample, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeSample, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -420,8 +420,8 @@ package test
             const localCount:UInt64 = src.count;
             const localDelta:Int64 = src.delta;
             const localScores:Vector.<int> = src.scores;
-            const localNested:RuntimeNested = src.nested;
-            const localChildren:Vector.<RuntimeNested> = src.children;
+            const localNested:test.RuntimeNested = src.nested;
+            const localChildren:Vector.<test.RuntimeNested> = src.children;
             const localChecksum:UInt64 = src.checksum;
             const localSignedCount:int = src.signedCount;
             const localExpandedScores:Vector.<int> = src.expandedScores;
@@ -430,7 +430,7 @@ package test
             const localOptionalLabel:String = src.optionalLabel;
             const localOptionalPayload:ByteArray = src.optionalPayload;
             const localOptionalTotal:UInt64 = src.optionalTotal;
-            const localOptionalNested:RuntimeNested = src.optionalNested;
+            const localOptionalNested:test.RuntimeNested = src.optionalNested;
             const localOptionalDelta:Int64 = src.optionalDelta;
             const localOptionalStatus:OptionalInt = src.optionalStatus;
             const localOptionalFloat:OptionalNumber = src.optionalFloat;
@@ -439,7 +439,7 @@ package test
             const localOptionalFixed64:UInt64 = src.optionalFixed64;
             const localOptionalInt64:Int64 = src.optionalInt64;
             const localName:String = src.name;
-            const localSelected:RuntimeNested = src.selected;
+            const localSelected:test.RuntimeNested = src.selected;
             const localChoiceDelta:Int64 = src.choiceDelta;
             const localChoicePayload:ByteArray = src.choicePayload;
 
@@ -474,7 +474,7 @@ package test
                 {
                     dst.writeByte(50);
                     messageReuseBuffer.length = 0;
-                    RuntimeNested.serializeBytes(localNested, messageReuseBuffer);
+                    test.RuntimeNested.serializeBytes(localNested, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
@@ -484,7 +484,7 @@ package test
                     {
                         dst.writeByte(58);
                         messageReuseBuffer.length = 0;
-                        RuntimeNested.serializeBytes(localChildren[vecIndex], messageReuseBuffer);
+                        test.RuntimeNested.serializeBytes(localChildren[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }
@@ -537,7 +537,7 @@ package test
                 {
                     dst.writeShort(402);
                     messageReuseBuffer.length = 0;
-                    RuntimeNested.serializeBytes(localOptionalNested, messageReuseBuffer);
+                    test.RuntimeNested.serializeBytes(localOptionalNested, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
@@ -597,7 +597,7 @@ package test
                     {
                         dst.writeByte(82);
                         messageReuseBuffer.length = 0;
-                        RuntimeNested.serializeBytes(localSelected, messageReuseBuffer);
+                        test.RuntimeNested.serializeBytes(localSelected, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                         break;

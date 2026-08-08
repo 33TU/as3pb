@@ -35,7 +35,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:DoubleValue):void
+        public static function reset(msg:google.protobuf.DoubleValue):void
         {
             msg.value = 0.0;
             msg.unknownFields = null;
@@ -46,12 +46,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:DoubleValue):DoubleValue
+        public static function clone(src:google.protobuf.DoubleValue):google.protobuf.DoubleValue
         {
             if (!src)
                 return null;
 
-            const dst:DoubleValue = new DoubleValue();
+            const dst:google.protobuf.DoubleValue = new google.protobuf.DoubleValue();
             dst.value = src.value;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -65,12 +65,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:DoubleValue = null, limit:uint = 0, reset:Boolean = true):DoubleValue
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.DoubleValue = null, limit:uint = 0, reset:Boolean = true):google.protobuf.DoubleValue
         {
             if (!dst)
-                dst = new DoubleValue();
+                dst = new google.protobuf.DoubleValue();
             else if (reset)
-                DoubleValue.reset(dst);
+                google.protobuf.DoubleValue.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:DoubleValue, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.DoubleValue, dst:ByteArray):void
         {
             if (!src)
                 return;

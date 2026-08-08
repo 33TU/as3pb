@@ -45,7 +45,7 @@ package bench
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:BenchMessage):void
+        public static function reset(msg:bench.BenchMessage):void
         {
             msg.id = "";
             msg.sequence = 0;
@@ -74,12 +74,12 @@ package bench
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:BenchMessage):BenchMessage
+        public static function clone(src:bench.BenchMessage):bench.BenchMessage
         {
             if (!src)
                 return null;
 
-            const dst:BenchMessage = new BenchMessage();
+            const dst:bench.BenchMessage = new bench.BenchMessage();
             dst.id = src.id;
             dst.sequence = src.sequence;
             dst.delta = src.delta;
@@ -108,12 +108,12 @@ package bench
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:BenchMessage = null, limit:uint = 0, reset:Boolean = true):BenchMessage
+        public static function deserializeBytes(src:ByteArray, dst:bench.BenchMessage = null, limit:uint = 0, reset:Boolean = true):bench.BenchMessage
         {
             if (!dst)
-                dst = new BenchMessage();
+                dst = new bench.BenchMessage();
             else if (reset)
-                BenchMessage.reset(dst);
+                bench.BenchMessage.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -256,7 +256,7 @@ package bench
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:BenchMessage, dst:ByteArray):void
+        public static function serializeBytes(src:bench.BenchMessage, dst:ByteArray):void
         {
             if (!src)
                 return;

@@ -27,7 +27,7 @@ package example.game
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:GetSnapshotRequest):void
+        public static function reset(msg:example.game.GetSnapshotRequest):void
         {
             msg.matchId = "";
             msg.unknownFields = null;
@@ -38,12 +38,12 @@ package example.game
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:GetSnapshotRequest):GetSnapshotRequest
+        public static function clone(src:example.game.GetSnapshotRequest):example.game.GetSnapshotRequest
         {
             if (!src)
                 return null;
 
-            const dst:GetSnapshotRequest = new GetSnapshotRequest();
+            const dst:example.game.GetSnapshotRequest = new example.game.GetSnapshotRequest();
             dst.matchId = src.matchId;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -57,12 +57,12 @@ package example.game
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:GetSnapshotRequest = null, limit:uint = 0, reset:Boolean = true):GetSnapshotRequest
+        public static function deserializeBytes(src:ByteArray, dst:example.game.GetSnapshotRequest = null, limit:uint = 0, reset:Boolean = true):example.game.GetSnapshotRequest
         {
             if (!dst)
-                dst = new GetSnapshotRequest();
+                dst = new example.game.GetSnapshotRequest();
             else if (reset)
-                GetSnapshotRequest.reset(dst);
+                example.game.GetSnapshotRequest.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -105,7 +105,7 @@ package example.game
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:GetSnapshotRequest, dst:ByteArray):void
+        public static function serializeBytes(src:example.game.GetSnapshotRequest, dst:ByteArray):void
         {
             if (!src)
                 return;

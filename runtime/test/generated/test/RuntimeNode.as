@@ -15,7 +15,7 @@ package test
         public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeNode";
 
         public var value:String = "";
-        public var next:RuntimeNode = null;
+        public var next:test.RuntimeNode = null;
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -28,7 +28,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeNode):void
+        public static function reset(msg:test.RuntimeNode):void
         {
             msg.value = "";
             msg.next = null;
@@ -40,14 +40,14 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeNode):RuntimeNode
+        public static function clone(src:test.RuntimeNode):test.RuntimeNode
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeNode = new RuntimeNode();
+            const dst:test.RuntimeNode = new test.RuntimeNode();
             dst.value = src.value;
-            dst.next = RuntimeNode.clone(src.next);
+            dst.next = test.RuntimeNode.clone(src.next);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -60,12 +60,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeNode = null, limit:uint = 0, reset:Boolean = true):RuntimeNode
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeNode = null, limit:uint = 0, reset:Boolean = true):test.RuntimeNode
         {
             if (!dst)
-                dst = new RuntimeNode();
+                dst = new test.RuntimeNode();
             else if (reset)
-                RuntimeNode.reset(dst);
+                test.RuntimeNode.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -89,7 +89,7 @@ package test
                     case 18:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.next = RuntimeNode.deserializeBytes(src, dst.next, src.position + messageLength, false);
+                        dst.next = test.RuntimeNode.deserializeBytes(src, dst.next, src.position + messageLength, false);
                         break;
                     }
                     default:
@@ -116,7 +116,7 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeNode, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeNode, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -125,7 +125,7 @@ package test
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
             const localValue:String = src.value;
-            const localNext:RuntimeNode = src.next;
+            const localNext:test.RuntimeNode = src.next;
 
             try
             {
@@ -138,7 +138,7 @@ package test
                 {
                     dst.writeByte(18);
                     messageReuseBuffer.length = 0;
-                    RuntimeNode.serializeBytes(localNext, messageReuseBuffer);
+                    test.RuntimeNode.serializeBytes(localNext, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }

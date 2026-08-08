@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"maps"
 	"slices"
 
 	"google.golang.org/protobuf/compiler/protogen"
@@ -103,13 +104,39 @@ func hasMessageFields(message *protogen.Message) bool {
 	})
 }
 
-func hasAnyFields(message *protogen.Message) bool {
-	return slices.ContainsFunc(message.Fields, isAnyField)
+// messageForeignImports lists the message classes a message's fields
+// reference from other proto packages, as sorted import targets. The
+// generated code writes such types fully qualified, and AS3 resolves a
+// fully-qualified reference only when the class is imported.
+func messageForeignImports(message *protogen.Message) []string {
+	currentPackage := string(message.Desc.ParentFile().Package())
+	seen := make(map[string]struct{})
+	for _, field := range message.Fields {
+		if field.Message != nil {
+			collectForeignImport(seen, field.Message, currentPackage)
+		}
+	}
+	return slices.Sorted(maps.Keys(seen))
 }
 
-func isAnyField(field *protogen.Field) bool {
-	return field.Desc.Kind() == protoreflect.MessageKind &&
-		field.Message.Desc.FullName() == "google.protobuf.Any"
+// serviceForeignImports is messageForeignImports for a service's method
+// request and response types.
+func serviceForeignImports(service *protogen.Service) []string {
+	currentPackage := string(service.Desc.ParentFile().Package())
+	seen := make(map[string]struct{})
+	for _, method := range service.Methods {
+		collectForeignImport(seen, method.Input, currentPackage)
+		collectForeignImport(seen, method.Output, currentPackage)
+	}
+	return slices.Sorted(maps.Keys(seen))
+}
+
+func collectForeignImport(seen map[string]struct{}, message *protogen.Message, currentPackage string) {
+	pkg := string(message.Desc.ParentFile().Package())
+	if pkg == "" || pkg == currentPackage {
+		return
+	}
+	seen[as3MessageTypeName(message, currentPackage)] = struct{}{}
 }
 
 func isPackableRepeatedField(field *protogen.Field) bool {

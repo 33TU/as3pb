@@ -35,7 +35,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:FloatValue):void
+        public static function reset(msg:google.protobuf.FloatValue):void
         {
             msg.value = 0.0;
             msg.unknownFields = null;
@@ -46,12 +46,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:FloatValue):FloatValue
+        public static function clone(src:google.protobuf.FloatValue):google.protobuf.FloatValue
         {
             if (!src)
                 return null;
 
-            const dst:FloatValue = new FloatValue();
+            const dst:google.protobuf.FloatValue = new google.protobuf.FloatValue();
             dst.value = src.value;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -65,12 +65,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:FloatValue = null, limit:uint = 0, reset:Boolean = true):FloatValue
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.FloatValue = null, limit:uint = 0, reset:Boolean = true):google.protobuf.FloatValue
         {
             if (!dst)
-                dst = new FloatValue();
+                dst = new google.protobuf.FloatValue();
             else if (reset)
-                FloatValue.reset(dst);
+                google.protobuf.FloatValue.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:FloatValue, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.FloatValue, dst:ByteArray):void
         {
             if (!src)
                 return;

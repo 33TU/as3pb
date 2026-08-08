@@ -23,9 +23,9 @@ package example.game
         public var score:UInt64 = new UInt64();
         public var inventoryItemIds:Vector.<int> = new Vector.<int>();
         public var avatar:ByteArray = Buffers.newByteArray();
-        public var position:Point = null;
-        public var move:Move = null;
-        public var chat:Chat = null;
+        public var position:example.game.Point = null;
+        public var move:example.game.Move = null;
+        public var chat:example.game.Chat = null;
 
         /**
          * Action selected by the player for this update.
@@ -44,7 +44,7 @@ package example.game
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Player):void
+        public static function reset(msg:example.game.Player):void
         {
             msg.id = "";
             msg.displayName = "";
@@ -64,30 +64,30 @@ package example.game
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Player):Player
+        public static function clone(src:example.game.Player):example.game.Player
         {
             if (!src)
                 return null;
 
-            const dst:Player = new Player();
+            const dst:example.game.Player = new example.game.Player();
             dst.id = src.id;
             dst.displayName = src.displayName;
             dst.score.copyFrom(src.score);
             dst.inventoryItemIds = src.inventoryItemIds.concat();
             dst.avatar = Buffers.cloneByteArray(src.avatar);
-            dst.position = Point.clone(src.position);
+            dst.position = example.game.Point.clone(src.position);
 
             dst.actionCase = src.actionCase;
             switch (src.actionCase)
             {
                 case FIELD_MOVE:
                 {
-                    dst.move = Move.clone(src.move);
+                    dst.move = example.game.Move.clone(src.move);
                     break;
                 }
                 case FIELD_CHAT:
                 {
-                    dst.chat = Chat.clone(src.chat);
+                    dst.chat = example.game.Chat.clone(src.chat);
                     break;
                 }
             }
@@ -103,12 +103,12 @@ package example.game
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Player = null, limit:uint = 0, reset:Boolean = true):Player
+        public static function deserializeBytes(src:ByteArray, dst:example.game.Player = null, limit:uint = 0, reset:Boolean = true):example.game.Player
         {
             if (!dst)
-                dst = new Player();
+                dst = new example.game.Player();
             else if (reset)
-                Player.reset(dst);
+                example.game.Player.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -157,20 +157,20 @@ package example.game
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.position = Point.deserializeBytes(src, dst.position, src.position + messageLength, false);
+                        dst.position = example.game.Point.deserializeBytes(src, dst.position, src.position + messageLength, false);
                         break;
                     }
                     case 58:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.move = Move.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);
+                        dst.move = example.game.Move.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);
                         dst.actionCase = FIELD_MOVE;
                         break;
                     }
                     case 66:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.chat = Chat.deserializeBytes(src, dst.chat, src.position + messageLength, dst.actionCase != FIELD_CHAT);
+                        dst.chat = example.game.Chat.deserializeBytes(src, dst.chat, src.position + messageLength, dst.actionCase != FIELD_CHAT);
                         dst.actionCase = FIELD_CHAT;
                         break;
                     }
@@ -198,7 +198,7 @@ package example.game
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Player, dst:ByteArray):void
+        public static function serializeBytes(src:example.game.Player, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -212,9 +212,9 @@ package example.game
             const localScore:UInt64 = src.score;
             const localInventoryItemIds:Vector.<int> = src.inventoryItemIds;
             const localAvatar:ByteArray = src.avatar;
-            const localPosition:Point = src.position;
-            const localMove:Move = src.move;
-            const localChat:Chat = src.chat;
+            const localPosition:example.game.Point = src.position;
+            const localMove:example.game.Move = src.move;
+            const localChat:example.game.Chat = src.chat;
 
             try
             {
@@ -247,7 +247,7 @@ package example.game
                 {
                     dst.writeByte(50);
                     messageReuseBuffer.length = 0;
-                    Point.serializeBytes(localPosition, messageReuseBuffer);
+                    example.game.Point.serializeBytes(localPosition, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }
@@ -258,7 +258,7 @@ package example.game
                     {
                         dst.writeByte(58);
                         messageReuseBuffer.length = 0;
-                        Move.serializeBytes(localMove, messageReuseBuffer);
+                        example.game.Move.serializeBytes(localMove, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                         break;
@@ -267,7 +267,7 @@ package example.game
                     {
                         dst.writeByte(66);
                         messageReuseBuffer.length = 0;
-                        Chat.serializeBytes(localChat, messageReuseBuffer);
+                        example.game.Chat.serializeBytes(localChat, messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                         break;

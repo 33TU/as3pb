@@ -35,7 +35,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:BoolValue):void
+        public static function reset(msg:google.protobuf.BoolValue):void
         {
             msg.value = false;
             msg.unknownFields = null;
@@ -46,12 +46,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:BoolValue):BoolValue
+        public static function clone(src:google.protobuf.BoolValue):google.protobuf.BoolValue
         {
             if (!src)
                 return null;
 
-            const dst:BoolValue = new BoolValue();
+            const dst:google.protobuf.BoolValue = new google.protobuf.BoolValue();
             dst.value = src.value;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -65,12 +65,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:BoolValue = null, limit:uint = 0, reset:Boolean = true):BoolValue
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.BoolValue = null, limit:uint = 0, reset:Boolean = true):google.protobuf.BoolValue
         {
             if (!dst)
-                dst = new BoolValue();
+                dst = new google.protobuf.BoolValue();
             else if (reset)
-                BoolValue.reset(dst);
+                google.protobuf.BoolValue.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:BoolValue, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.BoolValue, dst:ByteArray):void
         {
             if (!src)
                 return;

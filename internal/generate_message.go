@@ -126,8 +126,8 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 			g.w.Line("import as3pb.types.%s;", optionalImport.name)
 		}
 	}
-	if hasAnyFields(message) {
-		g.w.Line("import google.protobuf.Any;")
+	for _, name := range messageForeignImports(message) {
+		g.w.Line("import %s;", name)
 	}
 	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
 		g.w.Line("import as3pb.wkt.AnyRegistry;")
@@ -237,7 +237,7 @@ func (g *Generator) generateResetMethod(message *protogen.Message, names *Messag
 	if g.opts.inlineReset() {
 		g.w.Line("[Inline]")
 	}
-	g.w.Line("public static function reset(msg:%s):void", MessageClassName(message))
+	g.w.Line("public static function reset(msg:%s):void", QualifiedMessageClassName(message))
 	g.w.Line("{")
 	g.w.Indent()
 

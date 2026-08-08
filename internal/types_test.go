@@ -32,9 +32,9 @@ func TestFieldTypeInfo(t *testing.T) {
 		{"unpacked_scores", "Vector.<int>", "new Vector.<int>()", protowire.VarintType},
 		{"signed_values", "Int64Vector", "new Int64Vector()", protowire.BytesType},
 		{"unsigned_values", "UInt64Vector", "new UInt64Vector()", protowire.BytesType},
-		{"child", "ExampleChild", "null", protowire.BytesType},
-		{"children", "Vector.<ExampleChild>", "new Vector.<ExampleChild>()", protowire.BytesType},
-		{"labels", "Vector.<ExampleLabelsEntry>", "new Vector.<ExampleLabelsEntry>()", protowire.BytesType},
+		{"child", "test.v1.ExampleChild", "null", protowire.BytesType},
+		{"children", "Vector.<test.v1.ExampleChild>", "new Vector.<test.v1.ExampleChild>()", protowire.BytesType},
+		{"labels", "Vector.<test.v1.ExampleLabelsEntry>", "new Vector.<test.v1.ExampleLabelsEntry>()", protowire.BytesType},
 		{"external", "other.v1.External", "null", protowire.BytesType},
 	}
 

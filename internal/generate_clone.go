@@ -8,7 +8,7 @@ import (
 )
 
 func (g *Generator) generateCloneMethod(message *protogen.Message, names *MessageNames) {
-	messageName := MessageClassName(message)
+	messageName := QualifiedMessageClassName(message)
 	currentPackage := string(message.Desc.ParentFile().Package())
 
 	g.generateLeadingComment(protogen.Comments(

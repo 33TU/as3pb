@@ -22,7 +22,7 @@ package google.protobuf
         /**
          * Repeated field of dynamically typed values.
          */
-        public var values:Vector.<Value> = new Vector.<Value>();
+        public var values:Vector.<google.protobuf.Value> = new Vector.<google.protobuf.Value>();
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -35,7 +35,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:ListValue):void
+        public static function reset(msg:google.protobuf.ListValue):void
         {
             msg.values.length = 0;
             msg.unknownFields = null;
@@ -46,17 +46,17 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:ListValue):ListValue
+        public static function clone(src:google.protobuf.ListValue):google.protobuf.ListValue
         {
             if (!src)
                 return null;
 
-            const dst:ListValue = new ListValue();
-            const cloneSource0:Vector.<Value> = src.values;
-            const cloneTarget0:Vector.<Value> = dst.values;
+            const dst:google.protobuf.ListValue = new google.protobuf.ListValue();
+            const cloneSource0:Vector.<google.protobuf.Value> = src.values;
+            const cloneTarget0:Vector.<google.protobuf.Value> = dst.values;
             cloneTarget0.length = cloneSource0.length;
             for (var cloneIndex0:uint = 0; cloneIndex0 < cloneSource0.length; cloneIndex0++)
-                cloneTarget0[cloneIndex0] = Value.clone(cloneSource0[cloneIndex0]);
+                cloneTarget0[cloneIndex0] = google.protobuf.Value.clone(cloneSource0[cloneIndex0]);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -69,12 +69,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:ListValue = null, limit:uint = 0, reset:Boolean = true):ListValue
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.ListValue = null, limit:uint = 0, reset:Boolean = true):google.protobuf.ListValue
         {
             if (!dst)
-                dst = new ListValue();
+                dst = new google.protobuf.ListValue();
             else if (reset)
-                ListValue.reset(dst);
+                google.protobuf.ListValue.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -92,9 +92,9 @@ package google.protobuf
                 {
                     case 10:
                     {
-                        const msgValues:Value = new Value();
+                        const msgValues:google.protobuf.Value = new google.protobuf.Value();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            Value.deserializeBytes(src, msgValues, src.position + messageLength);
+                            google.protobuf.Value.deserializeBytes(src, msgValues, src.position + messageLength);
                         dst.values.push(msgValues);
                         break;
                     }
@@ -122,7 +122,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:ListValue, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.ListValue, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -131,7 +131,7 @@ package google.protobuf
             var vecLength:uint = 0;
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
-            const localValues:Vector.<Value> = src.values;
+            const localValues:Vector.<google.protobuf.Value> = src.values;
 
             try
             {
@@ -141,7 +141,7 @@ package google.protobuf
                     {
                         dst.writeByte(10);
                         messageReuseBuffer.length = 0;
-                        Value.serializeBytes(localValues[vecIndex], messageReuseBuffer);
+                        google.protobuf.Value.serializeBytes(localValues[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }

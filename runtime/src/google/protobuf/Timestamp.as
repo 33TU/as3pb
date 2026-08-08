@@ -134,7 +134,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Timestamp):void
+        public static function reset(msg:google.protobuf.Timestamp):void
         {
             msg.seconds.low = 0;
             msg.seconds.high = 0;
@@ -147,12 +147,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Timestamp):Timestamp
+        public static function clone(src:google.protobuf.Timestamp):google.protobuf.Timestamp
         {
             if (!src)
                 return null;
 
-            const dst:Timestamp = new Timestamp();
+            const dst:google.protobuf.Timestamp = new google.protobuf.Timestamp();
             dst.seconds.copyFrom(src.seconds);
             dst.nanos = src.nanos;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -167,12 +167,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Timestamp = null, limit:uint = 0, reset:Boolean = true):Timestamp
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Timestamp = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Timestamp
         {
             if (!dst)
-                dst = new Timestamp();
+                dst = new google.protobuf.Timestamp();
             else if (reset)
-                Timestamp.reset(dst);
+                google.protobuf.Timestamp.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -220,7 +220,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Timestamp, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Timestamp, dst:ByteArray):void
         {
             if (!src)
                 return;

@@ -25,17 +25,17 @@ package google.protobuf
         /**
          * Enum value definitions.
          */
-        public var enumvalue:Vector.<EnumValue> = new Vector.<EnumValue>();
+        public var enumvalue:Vector.<google.protobuf.EnumValue> = new Vector.<google.protobuf.EnumValue>();
 
         /**
          * Protocol buffer options.
          */
-        public var options:Vector.<Option> = new Vector.<Option>();
+        public var options:Vector.<google.protobuf.Option> = new Vector.<google.protobuf.Option>();
 
         /**
          * The source context.
          */
-        public var sourceContext:SourceContext = null;
+        public var sourceContext:google.protobuf.SourceContext = null;
 
         /**
          * The source syntax.
@@ -53,7 +53,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Enum):void
+        public static function reset(msg:google.protobuf.Enum):void
         {
             msg.name = "";
             msg.enumvalue.length = 0;
@@ -68,24 +68,24 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Enum):Enum
+        public static function clone(src:google.protobuf.Enum):google.protobuf.Enum
         {
             if (!src)
                 return null;
 
-            const dst:Enum = new Enum();
+            const dst:google.protobuf.Enum = new google.protobuf.Enum();
             dst.name = src.name;
-            const cloneSource1:Vector.<EnumValue> = src.enumvalue;
-            const cloneTarget1:Vector.<EnumValue> = dst.enumvalue;
+            const cloneSource1:Vector.<google.protobuf.EnumValue> = src.enumvalue;
+            const cloneTarget1:Vector.<google.protobuf.EnumValue> = dst.enumvalue;
             cloneTarget1.length = cloneSource1.length;
             for (var cloneIndex1:uint = 0; cloneIndex1 < cloneSource1.length; cloneIndex1++)
-                cloneTarget1[cloneIndex1] = EnumValue.clone(cloneSource1[cloneIndex1]);
-            const cloneSource2:Vector.<Option> = src.options;
-            const cloneTarget2:Vector.<Option> = dst.options;
+                cloneTarget1[cloneIndex1] = google.protobuf.EnumValue.clone(cloneSource1[cloneIndex1]);
+            const cloneSource2:Vector.<google.protobuf.Option> = src.options;
+            const cloneTarget2:Vector.<google.protobuf.Option> = dst.options;
             cloneTarget2.length = cloneSource2.length;
             for (var cloneIndex2:uint = 0; cloneIndex2 < cloneSource2.length; cloneIndex2++)
-                cloneTarget2[cloneIndex2] = Option.clone(cloneSource2[cloneIndex2]);
-            dst.sourceContext = SourceContext.clone(src.sourceContext);
+                cloneTarget2[cloneIndex2] = google.protobuf.Option.clone(cloneSource2[cloneIndex2]);
+            dst.sourceContext = google.protobuf.SourceContext.clone(src.sourceContext);
             dst.syntax = src.syntax;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -99,12 +99,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Enum = null, limit:uint = 0, reset:Boolean = true):Enum
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Enum = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Enum
         {
             if (!dst)
-                dst = new Enum();
+                dst = new google.protobuf.Enum();
             else if (reset)
-                Enum.reset(dst);
+                google.protobuf.Enum.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -127,24 +127,24 @@ package google.protobuf
                     }
                     case 18:
                     {
-                        const msgEnumvalue:EnumValue = new EnumValue();
+                        const msgEnumvalue:google.protobuf.EnumValue = new google.protobuf.EnumValue();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            EnumValue.deserializeBytes(src, msgEnumvalue, src.position + messageLength);
+                            google.protobuf.EnumValue.deserializeBytes(src, msgEnumvalue, src.position + messageLength);
                         dst.enumvalue.push(msgEnumvalue);
                         break;
                     }
                     case 26:
                     {
-                        const msgOptions:Option = new Option();
+                        const msgOptions:google.protobuf.Option = new google.protobuf.Option();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            Option.deserializeBytes(src, msgOptions, src.position + messageLength);
+                            google.protobuf.Option.deserializeBytes(src, msgOptions, src.position + messageLength);
                         dst.options.push(msgOptions);
                         break;
                     }
                     case 34:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.sourceContext = SourceContext.deserializeBytes(src, dst.sourceContext, src.position + messageLength, false);
+                        dst.sourceContext = google.protobuf.SourceContext.deserializeBytes(src, dst.sourceContext, src.position + messageLength, false);
                         break;
                     }
                     case 40:
@@ -176,7 +176,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Enum, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Enum, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -187,9 +187,9 @@ package google.protobuf
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
             const localName:String = src.name;
-            const localEnumvalue:Vector.<EnumValue> = src.enumvalue;
-            const localOptions:Vector.<Option> = src.options;
-            const localSourceContext:SourceContext = src.sourceContext;
+            const localEnumvalue:Vector.<google.protobuf.EnumValue> = src.enumvalue;
+            const localOptions:Vector.<google.protobuf.Option> = src.options;
+            const localSourceContext:google.protobuf.SourceContext = src.sourceContext;
             const localSyntax:int = src.syntax;
 
             try
@@ -205,7 +205,7 @@ package google.protobuf
                     {
                         dst.writeByte(18);
                         messageReuseBuffer.length = 0;
-                        EnumValue.serializeBytes(localEnumvalue[vecIndex], messageReuseBuffer);
+                        google.protobuf.EnumValue.serializeBytes(localEnumvalue[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }
@@ -216,7 +216,7 @@ package google.protobuf
                     {
                         dst.writeByte(26);
                         messageReuseBuffer.length = 0;
-                        Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
+                        google.protobuf.Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }
@@ -225,7 +225,7 @@ package google.protobuf
                 {
                     dst.writeByte(34);
                     messageReuseBuffer.length = 0;
-                    SourceContext.serializeBytes(localSourceContext, messageReuseBuffer);
+                    google.protobuf.SourceContext.serializeBytes(localSourceContext, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }

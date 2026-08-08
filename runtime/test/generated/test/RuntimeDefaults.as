@@ -85,7 +85,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeDefaults):void
+        public static function reset(msg:test.RuntimeDefaults):void
         {
             msg.enabled = null;
             msg.speed = null;
@@ -109,12 +109,12 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeDefaults):RuntimeDefaults
+        public static function clone(src:test.RuntimeDefaults):test.RuntimeDefaults
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeDefaults = new RuntimeDefaults();
+            const dst:test.RuntimeDefaults = new test.RuntimeDefaults();
             dst.enabled = src.enabled ? src.enabled.clone() : null;
             dst.speed = src.speed ? src.speed.clone() : null;
             dst.mask = src.mask ? src.mask.clone() : null;
@@ -149,12 +149,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeDefaults = null, limit:uint = 0, reset:Boolean = true):RuntimeDefaults
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeDefaults = null, limit:uint = 0, reset:Boolean = true):test.RuntimeDefaults
         {
             if (!dst)
-                dst = new RuntimeDefaults();
+                dst = new test.RuntimeDefaults();
             else if (reset)
-                RuntimeDefaults.reset(dst);
+                test.RuntimeDefaults.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -280,7 +280,7 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeDefaults, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeDefaults, dst:ByteArray):void
         {
             if (!src)
                 return;

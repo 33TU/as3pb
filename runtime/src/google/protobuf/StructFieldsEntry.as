@@ -15,7 +15,7 @@ package google.protobuf
         public static const TYPE_URL:String = "type.googleapis.com/google.protobuf.Struct.FieldsEntry";
 
         public var key:String = "";
-        public var value:Value = null;
+        public var value:google.protobuf.Value = null;
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -28,7 +28,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:StructFieldsEntry):void
+        public static function reset(msg:google.protobuf.StructFieldsEntry):void
         {
             msg.key = "";
             msg.value = null;
@@ -40,14 +40,14 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:StructFieldsEntry):StructFieldsEntry
+        public static function clone(src:google.protobuf.StructFieldsEntry):google.protobuf.StructFieldsEntry
         {
             if (!src)
                 return null;
 
-            const dst:StructFieldsEntry = new StructFieldsEntry();
+            const dst:google.protobuf.StructFieldsEntry = new google.protobuf.StructFieldsEntry();
             dst.key = src.key;
-            dst.value = Value.clone(src.value);
+            dst.value = google.protobuf.Value.clone(src.value);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -60,12 +60,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:StructFieldsEntry = null, limit:uint = 0, reset:Boolean = true):StructFieldsEntry
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.StructFieldsEntry = null, limit:uint = 0, reset:Boolean = true):google.protobuf.StructFieldsEntry
         {
             if (!dst)
-                dst = new StructFieldsEntry();
+                dst = new google.protobuf.StructFieldsEntry();
             else if (reset)
-                StructFieldsEntry.reset(dst);
+                google.protobuf.StructFieldsEntry.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -89,7 +89,7 @@ package google.protobuf
                     case 18:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.value = Value.deserializeBytes(src, dst.value, src.position + messageLength, false);
+                        dst.value = google.protobuf.Value.deserializeBytes(src, dst.value, src.position + messageLength, false);
                         break;
                     }
                     default:
@@ -116,7 +116,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:StructFieldsEntry, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.StructFieldsEntry, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -125,7 +125,7 @@ package google.protobuf
             const messageReuseBuffer:ByteArray = Buffers.acquireMessageBuffer();
 
             const localKey:String = src.key;
-            const localValue:Value = src.value;
+            const localValue:google.protobuf.Value = src.value;
 
             try
             {
@@ -138,7 +138,7 @@ package google.protobuf
                 {
                     dst.writeByte(18);
                     messageReuseBuffer.length = 0;
-                    Value.serializeBytes(localValue, messageReuseBuffer);
+                    google.protobuf.Value.serializeBytes(localValue, messageReuseBuffer);
                     Serialize.writeVarint32(dst, messageReuseBuffer.length);
                     dst.writeBytes(messageReuseBuffer);
                 }

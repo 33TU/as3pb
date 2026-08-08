@@ -28,7 +28,7 @@ package rpc
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RpcEchoResponse):void
+        public static function reset(msg:rpc.RpcEchoResponse):void
         {
             msg.message = "";
             msg.ok = false;
@@ -40,12 +40,12 @@ package rpc
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RpcEchoResponse):RpcEchoResponse
+        public static function clone(src:rpc.RpcEchoResponse):rpc.RpcEchoResponse
         {
             if (!src)
                 return null;
 
-            const dst:RpcEchoResponse = new RpcEchoResponse();
+            const dst:rpc.RpcEchoResponse = new rpc.RpcEchoResponse();
             dst.message = src.message;
             dst.ok = src.ok;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -60,12 +60,12 @@ package rpc
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RpcEchoResponse = null, limit:uint = 0, reset:Boolean = true):RpcEchoResponse
+        public static function deserializeBytes(src:ByteArray, dst:rpc.RpcEchoResponse = null, limit:uint = 0, reset:Boolean = true):rpc.RpcEchoResponse
         {
             if (!dst)
-                dst = new RpcEchoResponse();
+                dst = new rpc.RpcEchoResponse();
             else if (reset)
-                RpcEchoResponse.reset(dst);
+                rpc.RpcEchoResponse.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -113,7 +113,7 @@ package rpc
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RpcEchoResponse, dst:ByteArray):void
+        public static function serializeBytes(src:rpc.RpcEchoResponse, dst:ByteArray):void
         {
             if (!src)
                 return;

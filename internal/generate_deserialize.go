@@ -10,7 +10,7 @@ import (
 
 func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *MessageNames) {
 	currentPackage := string(message.Desc.ParentFile().Package())
-	messageName := MessageClassName(message)
+	messageName := QualifiedMessageClassName(message)
 
 	g.generateLeadingComment(protogen.Comments(
 		"Deserializes the message from protobuf wire format.\n"+

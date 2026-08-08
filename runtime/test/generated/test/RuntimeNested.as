@@ -29,7 +29,7 @@ package test
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:RuntimeNested):void
+        public static function reset(msg:test.RuntimeNested):void
         {
             msg.label_ = "";
             msg.flags = 0;
@@ -42,12 +42,12 @@ package test
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:RuntimeNested):RuntimeNested
+        public static function clone(src:test.RuntimeNested):test.RuntimeNested
         {
             if (!src)
                 return null;
 
-            const dst:RuntimeNested = new RuntimeNested();
+            const dst:test.RuntimeNested = new test.RuntimeNested();
             dst.label_ = src.label_;
             dst.flags = src.flags;
             dst.ratio = src.ratio;
@@ -63,12 +63,12 @@ package test
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:RuntimeNested = null, limit:uint = 0, reset:Boolean = true):RuntimeNested
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeNested = null, limit:uint = 0, reset:Boolean = true):test.RuntimeNested
         {
             if (!dst)
-                dst = new RuntimeNested();
+                dst = new test.RuntimeNested();
             else if (reset)
-                RuntimeNested.reset(dst);
+                test.RuntimeNested.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -121,7 +121,7 @@ package test
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:RuntimeNested, dst:ByteArray):void
+        public static function serializeBytes(src:test.RuntimeNested, dst:ByteArray):void
         {
             if (!src)
                 return;

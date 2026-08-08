@@ -103,7 +103,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Duration):void
+        public static function reset(msg:google.protobuf.Duration):void
         {
             msg.seconds.low = 0;
             msg.seconds.high = 0;
@@ -116,12 +116,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Duration):Duration
+        public static function clone(src:google.protobuf.Duration):google.protobuf.Duration
         {
             if (!src)
                 return null;
 
-            const dst:Duration = new Duration();
+            const dst:google.protobuf.Duration = new google.protobuf.Duration();
             dst.seconds.copyFrom(src.seconds);
             dst.nanos = src.nanos;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -136,12 +136,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Duration = null, limit:uint = 0, reset:Boolean = true):Duration
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Duration = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Duration
         {
             if (!dst)
-                dst = new Duration();
+                dst = new google.protobuf.Duration();
             else if (reset)
-                Duration.reset(dst);
+                google.protobuf.Duration.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -189,7 +189,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Duration, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Duration, dst:ByteArray):void
         {
             if (!src)
                 return;

@@ -45,7 +45,7 @@ package google.protobuf
         /**
          * Any metadata attached to the method.
          */
-        public var options:Vector.<Option> = new Vector.<Option>();
+        public var options:Vector.<google.protobuf.Option> = new Vector.<google.protobuf.Option>();
 
         /**
          * The source syntax of this method.
@@ -63,7 +63,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Method):void
+        public static function reset(msg:google.protobuf.Method):void
         {
             msg.name = "";
             msg.requestTypeUrl = "";
@@ -80,22 +80,22 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Method):Method
+        public static function clone(src:google.protobuf.Method):google.protobuf.Method
         {
             if (!src)
                 return null;
 
-            const dst:Method = new Method();
+            const dst:google.protobuf.Method = new google.protobuf.Method();
             dst.name = src.name;
             dst.requestTypeUrl = src.requestTypeUrl;
             dst.requestStreaming = src.requestStreaming;
             dst.responseTypeUrl = src.responseTypeUrl;
             dst.responseStreaming = src.responseStreaming;
-            const cloneSource5:Vector.<Option> = src.options;
-            const cloneTarget5:Vector.<Option> = dst.options;
+            const cloneSource5:Vector.<google.protobuf.Option> = src.options;
+            const cloneTarget5:Vector.<google.protobuf.Option> = dst.options;
             cloneTarget5.length = cloneSource5.length;
             for (var cloneIndex5:uint = 0; cloneIndex5 < cloneSource5.length; cloneIndex5++)
-                cloneTarget5[cloneIndex5] = Option.clone(cloneSource5[cloneIndex5]);
+                cloneTarget5[cloneIndex5] = google.protobuf.Option.clone(cloneSource5[cloneIndex5]);
             dst.syntax = src.syntax;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -109,12 +109,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Method = null, limit:uint = 0, reset:Boolean = true):Method
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Method = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Method
         {
             if (!dst)
-                dst = new Method();
+                dst = new google.protobuf.Method();
             else if (reset)
-                Method.reset(dst);
+                google.protobuf.Method.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -157,9 +157,9 @@ package google.protobuf
                     }
                     case 50:
                     {
-                        const msgOptions:Option = new Option();
+                        const msgOptions:google.protobuf.Option = new google.protobuf.Option();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            Option.deserializeBytes(src, msgOptions, src.position + messageLength);
+                            google.protobuf.Option.deserializeBytes(src, msgOptions, src.position + messageLength);
                         dst.options.push(msgOptions);
                         break;
                     }
@@ -192,7 +192,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Method, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Method, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -207,7 +207,7 @@ package google.protobuf
             const localRequestStreaming:Boolean = src.requestStreaming;
             const localResponseTypeUrl:String = src.responseTypeUrl;
             const localResponseStreaming:Boolean = src.responseStreaming;
-            const localOptions:Vector.<Option> = src.options;
+            const localOptions:Vector.<google.protobuf.Option> = src.options;
             const localSyntax:int = src.syntax;
 
             try
@@ -243,7 +243,7 @@ package google.protobuf
                     {
                         dst.writeByte(50);
                         messageReuseBuffer.length = 0;
-                        Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
+                        google.protobuf.Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }

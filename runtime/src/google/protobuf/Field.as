@@ -57,7 +57,7 @@ package google.protobuf
         /**
          * The protocol buffer options.
          */
-        public var options:Vector.<Option> = new Vector.<Option>();
+        public var options:Vector.<google.protobuf.Option> = new Vector.<google.protobuf.Option>();
 
         /**
          * The field JSON name.
@@ -80,7 +80,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:Field):void
+        public static function reset(msg:google.protobuf.Field):void
         {
             msg.kind = 0;
             msg.cardinality = 0;
@@ -100,12 +100,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:Field):Field
+        public static function clone(src:google.protobuf.Field):google.protobuf.Field
         {
             if (!src)
                 return null;
 
-            const dst:Field = new Field();
+            const dst:google.protobuf.Field = new google.protobuf.Field();
             dst.kind = src.kind;
             dst.cardinality = src.cardinality;
             dst.number = src.number;
@@ -113,11 +113,11 @@ package google.protobuf
             dst.typeUrl = src.typeUrl;
             dst.oneofIndex = src.oneofIndex;
             dst.packed = src.packed;
-            const cloneSource7:Vector.<Option> = src.options;
-            const cloneTarget7:Vector.<Option> = dst.options;
+            const cloneSource7:Vector.<google.protobuf.Option> = src.options;
+            const cloneTarget7:Vector.<google.protobuf.Option> = dst.options;
             cloneTarget7.length = cloneSource7.length;
             for (var cloneIndex7:uint = 0; cloneIndex7 < cloneSource7.length; cloneIndex7++)
-                cloneTarget7[cloneIndex7] = Option.clone(cloneSource7[cloneIndex7]);
+                cloneTarget7[cloneIndex7] = google.protobuf.Option.clone(cloneSource7[cloneIndex7]);
             dst.jsonName = src.jsonName;
             dst.defaultValue = src.defaultValue;
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
@@ -132,12 +132,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:Field = null, limit:uint = 0, reset:Boolean = true):Field
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Field = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Field
         {
             if (!dst)
-                dst = new Field();
+                dst = new google.protobuf.Field();
             else if (reset)
-                Field.reset(dst);
+                google.protobuf.Field.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -190,9 +190,9 @@ package google.protobuf
                     }
                     case 74:
                     {
-                        const msgOptions:Option = new Option();
+                        const msgOptions:google.protobuf.Option = new google.protobuf.Option();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            Option.deserializeBytes(src, msgOptions, src.position + messageLength);
+                            google.protobuf.Option.deserializeBytes(src, msgOptions, src.position + messageLength);
                         dst.options.push(msgOptions);
                         break;
                     }
@@ -230,7 +230,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:Field, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.Field, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -247,7 +247,7 @@ package google.protobuf
             const localTypeUrl:String = src.typeUrl;
             const localOneofIndex:int = src.oneofIndex;
             const localPacked:Boolean = src.packed;
-            const localOptions:Vector.<Option> = src.options;
+            const localOptions:Vector.<google.protobuf.Option> = src.options;
             const localJsonName:String = src.jsonName;
             const localDefaultValue:String = src.defaultValue;
 
@@ -294,7 +294,7 @@ package google.protobuf
                     {
                         dst.writeByte(74);
                         messageReuseBuffer.length = 0;
-                        Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
+                        google.protobuf.Option.serializeBytes(localOptions[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }

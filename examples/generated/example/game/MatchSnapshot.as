@@ -16,7 +16,7 @@ package example.game
 
         public var matchId:String = "";
         public var state:int = 0;
-        public var players:Vector.<Player> = new Vector.<Player>();
+        public var players:Vector.<example.game.Player> = new Vector.<example.game.Player>();
 
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
@@ -29,7 +29,7 @@ package example.game
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:MatchSnapshot):void
+        public static function reset(msg:example.game.MatchSnapshot):void
         {
             msg.matchId = "";
             msg.state = 0;
@@ -42,19 +42,19 @@ package example.game
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:MatchSnapshot):MatchSnapshot
+        public static function clone(src:example.game.MatchSnapshot):example.game.MatchSnapshot
         {
             if (!src)
                 return null;
 
-            const dst:MatchSnapshot = new MatchSnapshot();
+            const dst:example.game.MatchSnapshot = new example.game.MatchSnapshot();
             dst.matchId = src.matchId;
             dst.state = src.state;
-            const cloneSource2:Vector.<Player> = src.players;
-            const cloneTarget2:Vector.<Player> = dst.players;
+            const cloneSource2:Vector.<example.game.Player> = src.players;
+            const cloneTarget2:Vector.<example.game.Player> = dst.players;
             cloneTarget2.length = cloneSource2.length;
             for (var cloneIndex2:uint = 0; cloneIndex2 < cloneSource2.length; cloneIndex2++)
-                cloneTarget2[cloneIndex2] = Player.clone(cloneSource2[cloneIndex2]);
+                cloneTarget2[cloneIndex2] = example.game.Player.clone(cloneSource2[cloneIndex2]);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
             return dst;
@@ -67,12 +67,12 @@ package example.game
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:MatchSnapshot = null, limit:uint = 0, reset:Boolean = true):MatchSnapshot
+        public static function deserializeBytes(src:ByteArray, dst:example.game.MatchSnapshot = null, limit:uint = 0, reset:Boolean = true):example.game.MatchSnapshot
         {
             if (!dst)
-                dst = new MatchSnapshot();
+                dst = new example.game.MatchSnapshot();
             else if (reset)
-                MatchSnapshot.reset(dst);
+                example.game.MatchSnapshot.reset(dst);
 
             var messageLength:uint = 0;
 
@@ -100,9 +100,9 @@ package example.game
                     }
                     case 26:
                     {
-                        const msgPlayers:Player = new Player();
+                        const msgPlayers:example.game.Player = new example.game.Player();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            Player.deserializeBytes(src, msgPlayers, src.position + messageLength);
+                            example.game.Player.deserializeBytes(src, msgPlayers, src.position + messageLength);
                         dst.players.push(msgPlayers);
                         break;
                     }
@@ -130,7 +130,7 @@ package example.game
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:MatchSnapshot, dst:ByteArray):void
+        public static function serializeBytes(src:example.game.MatchSnapshot, dst:ByteArray):void
         {
             if (!src)
                 return;
@@ -142,7 +142,7 @@ package example.game
 
             const localMatchId:String = src.matchId;
             const localState:int = src.state;
-            const localPlayers:Vector.<Player> = src.players;
+            const localPlayers:Vector.<example.game.Player> = src.players;
 
             try
             {
@@ -162,7 +162,7 @@ package example.game
                     {
                         dst.writeByte(26);
                         messageReuseBuffer.length = 0;
-                        Player.serializeBytes(localPlayers[vecIndex], messageReuseBuffer);
+                        example.game.Player.serializeBytes(localPlayers[vecIndex], messageReuseBuffer);
                         Serialize.writeVarint32(dst, messageReuseBuffer.length);
                         dst.writeBytes(messageReuseBuffer);
                     }

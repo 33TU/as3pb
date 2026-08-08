@@ -10,7 +10,7 @@ import (
 
 func (g *Generator) generateSerializeMethod(message *protogen.Message, names *MessageNames) {
 	currentPackage := string(message.Desc.ParentFile().Package())
-	messageName := MessageClassName(message)
+	messageName := QualifiedMessageClassName(message)
 
 	nonOneofFields := make([]*protogen.Field, 0, len(message.Fields))
 	oneofGroups := make(map[*protogen.Oneof][]*protogen.Field)

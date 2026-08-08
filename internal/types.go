@@ -152,9 +152,6 @@ func as3ElementType(field *protogen.Field, currentProtoPackage string) string {
 	case protoreflect.EnumKind:
 		return "int"
 	case protoreflect.MessageKind:
-		if isAnyField(field) {
-			return "Any"
-		}
 		return as3MessageTypeName(field.Message, currentProtoPackage)
 	default:
 		return "Object"
@@ -175,8 +172,12 @@ func as3MessageTypeName(message *protogen.Message, currentProtoPackage string) s
 
 	name := toPascalCase(strings.Join(names, ""))
 	pkg := string(message.Desc.ParentFile().Package())
-	if pkg == "" || pkg == currentProtoPackage {
+	if pkg == "" {
 		return name
 	}
+	// Always fully qualified, same package included: a bare class name is
+	// ambiguous the moment it collides with a global (Date) or an import
+	// the generated file already carries (ByteArray, Serialize, ...).
+	// Same-package qualified references resolve without an import.
 	return pkg + "." + name
 }

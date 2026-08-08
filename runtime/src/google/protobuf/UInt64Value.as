@@ -36,7 +36,7 @@ package google.protobuf
          * @param msg The message to reset.
          */
         [Inline]
-        public static function reset(msg:UInt64Value):void
+        public static function reset(msg:google.protobuf.UInt64Value):void
         {
             msg.value.low = 0;
             msg.value.high = 0;
@@ -48,12 +48,12 @@ package google.protobuf
          * @param src Message to clone.
          * @return A new deep copy, or null when src is null.
          */
-        public static function clone(src:UInt64Value):UInt64Value
+        public static function clone(src:google.protobuf.UInt64Value):google.protobuf.UInt64Value
         {
             if (!src)
                 return null;
 
-            const dst:UInt64Value = new UInt64Value();
+            const dst:google.protobuf.UInt64Value = new google.protobuf.UInt64Value();
             dst.value.copyFrom(src.value);
             dst.unknownFields = Buffers.cloneByteArray(src.unknownFields);
 
@@ -67,12 +67,12 @@ package google.protobuf
          * @param limit Optional end position; zero means the remaining bytes.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:UInt64Value = null, limit:uint = 0, reset:Boolean = true):UInt64Value
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.UInt64Value = null, limit:uint = 0, reset:Boolean = true):google.protobuf.UInt64Value
         {
             if (!dst)
-                dst = new UInt64Value();
+                dst = new google.protobuf.UInt64Value();
             else if (reset)
-                UInt64Value.reset(dst);
+                google.protobuf.UInt64Value.reset(dst);
 
             const end:uint = limit
                 ? limit
@@ -115,7 +115,7 @@ package google.protobuf
          * @param src The message to serialize; null writes an empty payload.
          * @param dst The destination ByteArray.
          */
-        public static function serializeBytes(src:UInt64Value, dst:ByteArray):void
+        public static function serializeBytes(src:google.protobuf.UInt64Value, dst:ByteArray):void
         {
             if (!src)
                 return;
