@@ -89,6 +89,7 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Indent()
 	g.w.Line("dst.unknownFields = Buffers.newByteArray();")
 	g.w.Dedent()
+	g.w.BlankLine()
 	g.w.Line("Deserialize.captureUnknownField(src, tag, dst.unknownFields);")
 	g.w.Line("break;")
 	g.w.Dedent()
