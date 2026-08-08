@@ -74,6 +74,28 @@ package test.v1
 	}
 }
 
+func TestGenerateFileFieldlessMessageSpacing(t *testing.T) {
+	plugin := fieldlessMessagePlugin(t)
+	generator := internal.NewGenerator(plugin, internal.Options{})
+
+	if err := generator.GenerateFile(plugin.Files[0]); err != nil {
+		t.Fatalf("GenerateFile() error = %v", err)
+	}
+
+	content := plugin.Response().GetFile()[0].GetContent()
+	if strings.Contains(content, "\n\n\n") {
+		t.Fatalf("generated content has a doubled blank line:\n%s", content)
+	}
+
+	want := `        public var unknownFields:ByteArray;
+
+        /**
+         * Resets the message fields to their default values.`
+	if !strings.Contains(content, want) {
+		t.Fatalf("generated content missing the blank line before reset:\n%s", content)
+	}
+}
+
 func TestGenerateFileSkipsNonGeneratedFile(t *testing.T) {
 	plugin := enumPlugin(t, false)
 	generator := internal.NewGenerator(plugin, internal.Options{})
@@ -834,6 +856,33 @@ func aliasedEnumPlugin(t *testing.T) *protogen.Plugin {
 					{Name: proto.String("moo"), Number: proto.Int32(2)},
 					{Name: proto.String("bAz"), Number: proto.Int32(2)},
 				},
+			}},
+		}},
+	}
+
+	plugin, err := protogen.Options{}.New(req)
+	if err != nil {
+		t.Fatalf("protogen plugin: %v", err)
+	}
+	return plugin
+}
+
+// fieldlessMessagePlugin builds a message with no declared fields, where every
+// section between TYPE_URL and reset is empty.
+func fieldlessMessagePlugin(t *testing.T) *protogen.Plugin {
+	t.Helper()
+
+	req := &pluginpb.CodeGeneratorRequest{
+		FileToGenerate: []string{"test.proto"},
+		ProtoFile: []*descriptorpb.FileDescriptorProto{{
+			Name:    proto.String("test.proto"),
+			Syntax:  proto.String("proto3"),
+			Package: proto.String("test.v1"),
+			Options: &descriptorpb.FileOptions{
+				GoPackage: proto.String("github.com/33TU/as3pb/internal/generatetest;generatetest"),
+			},
+			MessageType: []*descriptorpb.DescriptorProto{{
+				Name: proto.String("Player"),
 			}},
 		}},
 	}

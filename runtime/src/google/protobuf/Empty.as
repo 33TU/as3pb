@@ -25,12 +25,12 @@ package google.protobuf
     {
         public static const TYPE_URL:String = "type.googleapis.com/google.protobuf.Empty";
 
-
         /**
          * Raw wire bytes of fields unknown to this schema, preserved from
          * deserialization and re-emitted on serialization. Null when none.
          */
         public var unknownFields:ByteArray;
+
         /**
          * Resets the message fields to their default values.
          * @param msg The message to reset.
@@ -112,7 +112,6 @@ package google.protobuf
         {
             if (!src)
                 return;
-
 
             if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);

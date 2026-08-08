@@ -77,6 +77,50 @@ func TestIndentWriterDedentAtZero(t *testing.T) {
 	}
 }
 
+func TestIndentWriterEnsureBlankLine(t *testing.T) {
+	var b strings.Builder
+	w := internal.NewIndentWriter(&b, internal.DefaultIndent)
+
+	w.EnsureBlankLine() // no-op: nothing written yet, so no leading blank
+	w.Line("first")
+	w.EnsureBlankLine() // pads the single trailing newline out to a blank line
+	w.EnsureBlankLine() // idempotent
+	w.BlankLine()       // an explicit blank still stacks
+	w.Line("second")
+
+	if got, want := b.String(), "first\n\n\nsecond\n"; got != want {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
+func TestIndentWriterEnsureBlankLineAfterFormattedWrite(t *testing.T) {
+	var b strings.Builder
+	w := internal.NewIndentWriter(&b, internal.DefaultIndent)
+
+	// Formatted writes must feed the same newline accounting as literal ones.
+	w.Line("value = %d", 1)
+	w.EnsureBlankLine()
+	w.Line("value = %d", 2)
+
+	if got, want := b.String(), "value = 1\n\nvalue = 2\n"; got != want {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
+func TestIndentWriterEnsureBlankLineAfterReset(t *testing.T) {
+	var first strings.Builder
+	w := internal.NewIndentWriter(&first, internal.DefaultIndent)
+	w.Line("first")
+
+	var second strings.Builder
+	w.Reset(&second)
+	w.EnsureBlankLine() // the previous stream's output must not carry over
+
+	if got, want := second.String(), ""; got != want {
+		t.Fatalf("output = %q, want %q", got, want)
+	}
+}
+
 func TestIndentWriterKeepsFirstError(t *testing.T) {
 	errBoom := errors.New("boom")
 	w := internal.NewIndentWriter(errWriter{err: errBoom}, internal.DefaultIndent)

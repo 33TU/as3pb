@@ -59,9 +59,7 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 		g.w.BlankLine()
 	}
 	g.generateMessageFields(message, names)
-	if len(message.Fields) > 0 || hasRealOneofs(message) {
-		g.w.BlankLine()
-	}
+	g.w.EnsureBlankLine()
 	g.generateResetMethod(message, names)
 	if g.opts.generateClone() {
 		g.w.BlankLine()
@@ -216,7 +214,7 @@ func (g *Generator) generateMessageFields(message *protogen.Message, names *Mess
 		g.w.Line("public var %s:uint;", names.OneofCase(oneof))
 	}
 
-	g.w.BlankLine()
+	g.w.EnsureBlankLine()
 	g.generateLeadingComment(protogen.Comments("Raw wire bytes of fields unknown to this schema, preserved from\ndeserialization and re-emitted on serialization. Null when none."), false)
 	g.w.Line("public var unknownFields:ByteArray;")
 }
