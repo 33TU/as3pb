@@ -35,6 +35,27 @@ JSON, text format, proto2, and the editions features outside proto3
 semantics (extensions, delimited encoding, closed enums) are out of
 scope for the runtime and are skipped by the suite.
 
+## Codegen Speed
+
+One run over a 109-file production schema (~950 generated classes),
+protoc 35.1, warm cache, plugin startup included:
+
+| Generator                  | Time   | Files |
+| -------------------------- | ------ | ----- |
+| python (in-process)        | 0.11 s | 107   |
+| **as3-protoc**             | 0.24 s | 925   |
+| java (in-process)          | 0.80 s | 107   |
+| C++ (in-process)           | 1.30 s | 214   |
+| protobuf-ts 2.11 (plugin)  | 1.63 s | 113   |
+
+File counts reflect language layout conventions, not output volume:
+AS3 requires one public class per file and has no nested classes, so
+every message, map entry, enum, and service client is its own file.
+The in-process generators run inside protoc itself; as3-protoc pays
+the full plugin round trip (descriptor marshalling plus a subprocess)
+and generation is still effectively instant, so regenerating on every
+schema change costs nothing.
+
 ## Requirements
 
 For generator usage:
