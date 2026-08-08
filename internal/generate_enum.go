@@ -46,13 +46,27 @@ func (g *Generator) generateEnumClass(enum *protogen.Enum) error {
 }
 
 func (g *Generator) generateEnumFields(enum *protogen.Enum) {
+	// AS3 constant names are case-normalized, so allow_alias values such as MOO and
+	// moo claim the same name and must collapse into one constant. Their numbers
+	// always agree: protobuf rejects names that normalize alike unless they alias
+	// the same number, and closed enums are rejected in validate_editions.go.
+	emitted := make(map[string]struct{}, len(enum.Values))
+
 	for i, value := range enum.Values {
+		name := EnumName(value)
+		if _, ok := emitted[name]; ok {
+			g.log.Debug("skipping aliased enum value",
+				"enum", enum.Desc.FullName(), "value", value.Desc.Name(), "constant", name)
+			continue
+		}
+		emitted[name] = struct{}{}
+
 		if value.Comments.Leading != "" && i > 0 {
 			g.w.BlankLine()
 		}
 		g.generateLeadingComment(value.Comments.Leading, false)
 		g.w.WriteIndent()
-		g.w.Write("public static const %s:uint = %d;", EnumName(value), value.Desc.Number())
+		g.w.Write("public static const %s:uint = %d;", name, value.Desc.Number())
 		g.generateTrailingComment(false, value.Comments.Trailing)
 		g.w.Write("\n")
 	}
