@@ -22,6 +22,12 @@ unknown-field preservation. The harness, current results, and the one
 deliberate deviation (invalid UTF-8 in strings is accepted) live in
 [as3pb-conformance](https://github.com/33TU/as3pb-conformance).
 
+Editions files (2023 and 2024) may additionally use explicit field
+presence (`features.field_presence = EXPLICIT`, generated as nullable
+fields like proto3 `optional`) and declared defaults
+(`default = ...`, generated as `DEFAULT_*` constants; the field
+itself stays null when unset).
+
 JSON, text format, proto2, and the editions features outside proto3
 semantics (extensions, delimited encoding, closed enums) are out of
 scope for the runtime and are skipped by the suite.
