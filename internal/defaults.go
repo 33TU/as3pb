@@ -26,8 +26,6 @@ func (g *Generator) generateDefaultConstants(message *protogen.Message, names *M
 			continue
 		}
 		constName := names.Default(field)
-		g.generateLeadingComment(protogen.Comments("Declared default for "+names.Field(field)+"; the field itself is null when unset."), false)
-
 		switch kind := field.Desc.Kind(); kind {
 		case protoreflect.BoolKind:
 			g.w.Line("public static const %s:Boolean = %t;", constName, field.Desc.Default().Bool())

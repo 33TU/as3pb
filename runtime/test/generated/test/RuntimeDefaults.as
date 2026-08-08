@@ -26,57 +26,18 @@ package test
 
         public static const FIELD_PICK_A:uint = 13;
 
-        /**
-         * Declared default for enabled; the field itself is null when unset.
-         */
         public static const DEFAULT_ENABLED:Boolean = true;
-        /**
-         * Declared default for speed; the field itself is null when unset.
-         */
         public static const DEFAULT_SPEED:int = 42;
-        /**
-         * Declared default for mask; the field itself is null when unset.
-         */
         public static const DEFAULT_MASK:uint = 4294967295;
-        /**
-         * Declared default for delta; the field itself is null when unset.
-         */
         public static const DEFAULT_DELTA:int = -7;
-        /**
-         * Declared default for title; the field itself is null when unset.
-         */
         public static const DEFAULT_TITLE:String = "hi \"there\"\n";
-        /**
-         * Declared default for ratio; the field itself is null when unset.
-         */
         public static const DEFAULT_RATIO:Number = Number.POSITIVE_INFINITY;
-        /**
-         * Declared default for scale; the field itself is null when unset.
-         */
         public static const DEFAULT_SCALE:Number = 1.5;
-        /**
-         * Declared default for big; the field itself is null when unset.
-         */
         public static const DEFAULT_BIG:Int64 = new Int64(4294967295, -1);
-        /**
-         * Declared default for huge; the field itself is null when unset.
-         */
         public static const DEFAULT_HUGE:UInt64 = new UInt64(4294967295, 4294967295);
-        /**
-         * Declared default for mode; the field itself is null when unset.
-         */
         public static const DEFAULT_MODE:int = 2;
-        /**
-         * Declared default for motd; the field itself is null when unset.
-         */
         public static const DEFAULT_MOTD:ByteArray = makeDefaultMotd();
-        /**
-         * Declared default for blob; the field itself is null when unset.
-         */
         public static const DEFAULT_BLOB:ByteArray = makeDefaultBlob();
-        /**
-         * Declared default for pickA; the field itself is null when unset.
-         */
         public static const DEFAULT_PICK_A:int = 7;
 
         private static function makeDefaultMotd():ByteArray
