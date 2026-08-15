@@ -336,3 +336,7 @@ Build the examples SWC:
 ```sh
 just build-examples
 ```
+
+## License
+
+AS3PB is available under the [MIT License](LICENSE).
