@@ -10,6 +10,7 @@ package
         public static function run():void
         {
             testShortStrings();
+            testPackedReuse();
 
             const src:ByteArray = new ByteArray();
             src.writeUnsignedInt(0x12345678);
@@ -79,6 +80,46 @@ package
             catch (packedError:IOError) { caught = true; }
             check(caught && src.position == 0, "packed read checks logical length");
             console.log("ByteArray checks passed");
+        }
+
+        private static function testPackedReuse():void
+        {
+            const bytes:ByteArray = new ByteArray();
+            bytes.endian = Endian.LITTLE_ENDIAN;
+            bytes.writeUnsignedInt(0xfedcba98);
+            bytes.writeUnsignedInt(42);
+            bytes.position = 0;
+            const words:Vector.<uint> = new <uint>[1, 2, 3];
+            bytes.readPackedFixed32(words, 2);
+            check(words.length == 2 && words[0] == 0xfedcba98 && words[1] == 42
+                && bytes.position == 8, "packed fixed32 replaces old values");
+            bytes.readPackedFixed32(words, 0);
+            check(words.length == 0 && bytes.position == 8, "empty packed fixed32");
+
+            bytes.clear();
+            bytes.writeUnsignedInt(0xffffffff);
+            bytes.writeInt(-2);
+            bytes.position = 0;
+            const low:Vector.<uint> = new <uint>[1, 2];
+            const high:Vector.<int> = new <int>[3, 4];
+            bytes.readPackedSfixed64(low, high, 1);
+            check(low.length == 1 && high.length == 1 && low[0] == 0xffffffff
+                && high[0] == -2 && bytes.position == 8,
+                "packed sfixed64 replaces both word arrays");
+            bytes.readPackedSfixed64(low, high, 0);
+            check(low.length == 0 && high.length == 0 && bytes.position == 8,
+                "empty packed sfixed64");
+
+            bytes.clear();
+            bytes.writeFloat(-1.25);
+            bytes.writeFloat(2.5);
+            bytes.position = 0;
+            const floats:Vector.<Number> = new <Number>[99];
+            bytes.readPackedFloat(floats, 2);
+            check(floats.length == 2 && floats[0] == -1.25 && floats[1] == 2.5
+                && bytes.position == 8, "packed float replaces old values");
+            bytes.readPackedFloat(floats, 0);
+            check(floats.length == 0 && bytes.position == 8, "empty packed float");
         }
 
         private static function testShortStrings():void

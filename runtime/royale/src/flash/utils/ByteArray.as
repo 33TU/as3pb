@@ -242,10 +242,10 @@ package flash.utils
                 throw new IOError("End of file was encountered");
             const view:DataView = getDataView();
             var p:uint = _position;
-            out.length = count;
+            out.length = 0;
 
             for (var i:uint = 0; i < count; i++, p += 4)
-                out[i] = view.getUint32(p, true);
+                out.push(view.getUint32(p, true));
 
             _position = p;
         }
@@ -258,13 +258,13 @@ package flash.utils
                 throw new IOError("End of file was encountered");
             const view:DataView = getDataView();
             var p:uint = _position;
-            low.length = count;
-            high.length = count;
+            low.length = 0;
+            high.length = 0;
 
             for (var i:uint = 0; i < count; i++, p += 8)
             {
-                low[i] = view.getUint32(p, true);
-                high[i] = view.getInt32(p + 4, true);
+                low.push(view.getUint32(p, true));
+                high.push(view.getInt32(p + 4, true));
             }
 
             _position = p;
@@ -277,10 +277,10 @@ package flash.utils
                 throw new IOError("End of file was encountered");
             const view:DataView = getDataView();
             var p:uint = _position;
-            out.length = count;
+            out.length = 0;
 
             for (var i:uint = 0; i < count; i++, p += 4)
-                out[i] = view.getFloat32(p, true);
+                out.push(view.getFloat32(p, true));
 
             _position = p;
         }
