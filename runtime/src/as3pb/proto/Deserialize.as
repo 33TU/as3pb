@@ -60,7 +60,9 @@ package as3pb.proto
             // spec requires accepting any varint up to 10 bytes and keeping
             // just the low 32 bits)
             b = src.readUnsignedByte();
-            result |= (b & 0x7F) << 28;
+            // Assign the complete expression so Royale coerces the result to
+            // uint; its compound |= emission leaves bit 31 signed in JS.
+            result = result | ((b & 0x7F) << 28);
             if (b < 0x80)
                 return result;
 

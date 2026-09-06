@@ -17,6 +17,7 @@ cp "$royale_dir/bench/"*.as "$build_dir/bench/"
 
 "$ROYALE_SDK/js/bin/asnodec" \
     -debug=false \
+    -optimize=true \
     -define+=COMPILE::JS,true \
     -js-vector-emulation-class=Array \
     -js-vector-index-checks=false \

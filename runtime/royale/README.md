@@ -55,13 +55,18 @@ passes `-define+=COMPILE::JS,true`. The JS-only calls use `Object(src)` because
 Flash type-checks ordinary `if` bodies even when the condition is constant false.
 Flash/AIR builds must pass `-define+=COMPILE::JS,false` (included in the just recipes).
 
-## Next implementation work
+## Validation and remaining work
 
-Keep typed Vector APIs.
+The as3pb-conformance repository's Royale harness passed the existing binary
+proto3/editions-proto3 suite on 2026-09-06: 1404 successes, 4217 skipped,
+10 expected invalid-UTF-8 failures, and no unexpected failures, matching AIR.
+The text-format suite remains unsupported (909 skipped). No Royale-specific
+failure exclusions were added. Conformance caught and fixed Royale's signed
+compound-assignment result in the unsigned varint32 decoder.
 
-Before supporting this target, validate malformed/truncated input against logical
-buffer length (backing capacity can be larger), all wire types, unknown fields,
-nested messages, reuse, cloning, and serialization. The shim intentionally
-implements the AS3PB subset of ByteArray; AMF, compression,
+This validates the supported binary scope, not the entire Flash API. Broader
+runtime reuse, cloning, Any registration, and Vector behavior still need targeted
+coverage before treating Royale as a production target. Keep typed Vector APIs.
+The shim intentionally implements the AS3PB subset of ByteArray; AMF, compression,
 and multibyte character sets are not implemented. Vector runtime semantics are
 relaxed through compiler flags.
