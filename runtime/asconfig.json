@@ -2,6 +2,12 @@
   "type": "lib",
   "config": "air",
   "compilerOptions": {
+    "define": [
+      {
+        "name": "COMPILE::JS",
+        "value": false
+      }
+    ],
     "include-sources": ["src", "test"],
     "output": "bin/as3pb.swc"
   }

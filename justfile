@@ -20,6 +20,10 @@ default:
 test:
     go test ./...
 
+# Compile and run the isolated Apache Royale/Node benchmark prototype.
+bench-royale:
+    bash runtime/royale/bench.sh
+
 build: build-protoc-gen-as3 build-as3-protoc build-swc
 
 build-protoc-gen-as3:
@@ -54,6 +58,7 @@ download-air-sdk os="" sdk_dir=SDK_DIR:
 build-swc:
     mkdir -p {{ AS3_BIN_DIR }}
     compc \
+        -define+=COMPILE::JS,false \
         -source-path runtime/src \
         -include-sources runtime/src \
         -output {{ AS3_BIN_DIR }}/as3pb.swc \
@@ -80,6 +85,7 @@ generate-runtime-test-data: build-protoc-gen-as3 build-as3-protoc
 build-runtime-test: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
     mxmlc \
+        -define+=COMPILE::JS,false \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -94,6 +100,7 @@ build-runtime-test: generate-runtime-test-data
 build-runtime-bench: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
     mxmlc \
+        -define+=COMPILE::JS,false \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -108,6 +115,7 @@ build-runtime-bench: generate-runtime-test-data
 build-runtime-rpc: generate-runtime-test-data
     mkdir -p {{ AS3_BIN_DIR }}
     mxmlc \
+        -define+=COMPILE::JS,false \
         -source-path runtime/src \
         -source-path runtime/test \
         -source-path {{ RUNTIME_TEST_GENERATED }} \
@@ -137,6 +145,7 @@ generate-examples: build-protoc-gen-as3 build-as3-protoc
 
 build-examples: generate-examples
     compc \
+        -define+=COMPILE::JS,false \
         -source-path runtime/src \
         -source-path {{ EXAMPLES_OUT }} \
         -include-sources {{ EXAMPLES_OUT }} \

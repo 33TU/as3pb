@@ -336,3 +336,10 @@ Build the examples SWC:
 ```sh
 just build-examples
 ```
+
+## Apache Royale experiment
+
+The `royale` branch includes an isolated [Royale/Node benchmark](runtime/royale/README.md).
+Run `just bench-royale` with `ROYALE_SDK` configured; the experiment compiles the shared sources with Royale compatibility classes.
+Flash/AIR builds from source require `-define+=COMPILE::JS,false`, supplied by
+the just recipes.

@@ -605,6 +605,14 @@ package as3pb.proto
             const length:uint = readVarint32(src);
             const n:uint = length >>> 2;
 
+            if (COMPILE::JS)
+            {
+                Object(src).readPackedFixed32(out, n);
+                if ((n << 2) != length)
+                    throw new IOError("Fixed32 vector length mismatch");
+                return;
+            }
+
             out.length = n;
 
             var i:uint = 0;
@@ -744,6 +752,14 @@ package as3pb.proto
             const lowVec:Vector.<uint> = out.low;
             const highVec:Vector.<int> = out.high;
 
+            if (COMPILE::JS)
+            {
+                Object(src).readPackedSfixed64(lowVec, highVec, n);
+                if ((n << 3) != length)
+                    throw new IOError("Fixed64 vector length mismatch");
+                return;
+            }
+
             lowVec.length = n;
             highVec.length = n;
 
@@ -795,6 +811,14 @@ package as3pb.proto
         {
             const length:uint = readVarint32(src);
             const n:uint = length >>> 2;
+            if (COMPILE::JS)
+            {
+                Object(src).readPackedFloat(out, n);
+                if ((n << 2) != length)
+                    throw new IOError("Float vector length mismatch");
+                return;
+            }
+
             out.length = n;
 
             var i:uint = 0;
