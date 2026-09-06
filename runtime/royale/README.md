@@ -43,6 +43,9 @@ Shared and generated sources retain their `flash.utils` and `flash.errors` impor
 Only Royale builds include this compatibility source set; Flash builds use the SDK
 classes. ByteArray provides the typed read/write, UTF-8, and byte-copy methods
 used by AS3PB, caches both UTF helpers, and requires no browser `window` shim.
+Strings up to 32 bytes use a short-ASCII fast path; any non-ASCII byte falls back
+to TextDecoder for the complete string. Logical-length checks and the existing
+invalid-UTF-8 replacement behavior remain in place.
 
 Royale 0.9.12 omits the generated class-initializer registration block from JS.
 The benchmark therefore registers BenchMessage explicitly and checks the registry

@@ -188,9 +188,51 @@ package flash.utils
         {
             requireBytes(length);
 
+            if (length <= 32)
+            {
+                const ascii:String = readShortASCII(length);
+                if (ascii !== null)
+                {
+                    _position += length;
+                    return ascii;
+                }
+            }
+
             const bytes:Uint8Array = new Uint8Array(ba, _position, length);
             _position += length;
             return UTF8_DECODER.decode(bytes);
+        }
+
+        // Return null without advancing the cursor when UTF-8 decoding is needed.
+        private function readShortASCII(length:uint):String
+        {
+            const bytes:Uint8Array = _typedArray;
+            var p:uint = _position;
+            const end:uint = p + length;
+            var result:String = "";
+            while (p + 8 <= end)
+            {
+                const a:uint = bytes[p];
+                const b:uint = bytes[p + 1];
+                const c:uint = bytes[p + 2];
+                const d:uint = bytes[p + 3];
+                const e:uint = bytes[p + 4];
+                const f:uint = bytes[p + 5];
+                const g:uint = bytes[p + 6];
+                const h:uint = bytes[p + 7];
+                if ((a | b | c | d | e | f | g | h) & 0x80)
+                    return null;
+                result += String.fromCharCode(a, b, c, d, e, f, g, h);
+                p += 8;
+            }
+            while (p < end)
+            {
+                const value:uint = bytes[p++];
+                if (value & 0x80)
+                    return null;
+                result += String.fromCharCode(value);
+            }
+            return result;
         }
 
         [Inline]

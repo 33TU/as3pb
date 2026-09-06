@@ -9,6 +9,8 @@ package
     {
         public static function run():void
         {
+            testShortStrings();
+
             const src:ByteArray = new ByteArray();
             src.writeUnsignedInt(0x12345678);
             src.position = 0;
@@ -77,6 +79,39 @@ package
             catch (packedError:IOError) { caught = true; }
             check(caught && src.position == 0, "packed read checks logical length");
             console.log("ByteArray checks passed");
+        }
+
+        private static function testShortStrings():void
+        {
+            const strings:Array = ["", "a", "abcdefg", "abcdefgh", "abcdefghi",
+                "123456789012345678901234567890123",
+                "1234567890123456789012345678901234",
+                "12345678901234567890123456789012345",
+                "abcdefgé", "abcdefghé", "世界", "abcdefgh😀", "a\u0000b"];
+            const bytes:ByteArray = new ByteArray();
+            for each (var text:String in strings)
+            {
+                bytes.clear();
+                bytes.writeByte(42);
+                bytes.writeUTFBytes(text);
+                const length:uint = bytes.length - 1;
+                bytes.writeByte(99);
+                bytes.position = 1;
+                check(bytes.readUTFBytes(length) == text, "ASCII/UTF-8 boundary round trip");
+                check(bytes.readUnsignedByte() == 99, "string read cursor");
+            }
+            bytes.clear();
+            bytes.writeUTFBytes("abcdefgh");
+            bytes.writeByte(0xc3);
+            bytes.writeByte(0x28);
+            bytes.position = 0;
+            check(bytes.readUTFBytes(bytes.length) == "abcdefgh\ufffd(",
+                "invalid UTF-8 fallback preserves replacement behavior");
+            bytes.position = 0;
+            var caught:Boolean = false;
+            try { bytes.readUTFBytes(bytes.length + 1); }
+            catch (error:IOError) { caught = true; }
+            check(caught && bytes.position == 0, "short string EOF preserves cursor");
         }
 
         private static function check(condition:Boolean, message:String):void
