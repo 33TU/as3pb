@@ -259,7 +259,8 @@ package flash.utils
 
         public function readUnsignedByte():uint
         {
-            requireBytes(1);
+            if (_position >= _len)
+                throw new IOError("End of file was encountered");
             return _typedArray[_position++];
         }
 
