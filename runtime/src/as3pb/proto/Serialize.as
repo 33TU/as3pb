@@ -299,7 +299,14 @@ package as3pb.proto
         {
             if (value < 0)
             {
-                writeVarint64(dst, uint(value), 0xffffffff);
+                // Negative int32 values always occupy ten sign-extended varint bytes.
+                dst.writeUnsignedInt(
+                    (((value >>> 21) & 0x7F) << 24) |
+                    (((value >>> 14) & 0x7F) << 16) |
+                    (((value >>> 7) & 0x7F) << 8) |
+                    (value & 0x7F) | 0x80808080);
+                dst.writeUnsignedInt(0xFFFFFFF0 | (value >>> 28));
+                dst.writeShort(0x01FF);
                 return;
             }
 
@@ -377,7 +384,53 @@ package as3pb.proto
         [Inline]
         public static function writeSint32(dst:ByteArray, value:int):void
         {
-            writeVarint32(dst, uint((value << 1) ^ (value >> 31)));
+            const encoded:uint = uint((value << 1) ^ (value >> 31));
+
+            // 1 byte
+            if (encoded < 0x80)
+            {
+                dst.writeByte(encoded);
+                return;
+            }
+
+            // 2 bytes
+            if (encoded < 0x4000)
+            {
+                dst.writeShort(((encoded >>> 7) << 8) | ((encoded & 0x7F) | 0x80));
+                return;
+            }
+
+            // 3 bytes
+            if (encoded < 0x200000)
+            {
+                dst.writeShort(
+                        ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((encoded & 0x7F) | 0x80)
+                    );
+                dst.writeByte(encoded >>> 14);
+                return;
+            }
+
+            // 4 bytes
+            if (encoded < 0x10000000)
+            {
+                dst.writeUnsignedInt(
+                        ((encoded >>> 21) << 24) |
+                        ((((encoded >>> 14) & 0x7F) | 0x80) << 16) |
+                        ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((encoded & 0x7F) | 0x80)
+                    );
+                return;
+            }
+
+            // 5 bytes
+            dst.writeUnsignedInt(
+                    ((((encoded >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((encoded >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((encoded & 0x7F) | 0x80)
+                );
+            dst.writeByte(encoded >>> 28);
         }
 
         /**
