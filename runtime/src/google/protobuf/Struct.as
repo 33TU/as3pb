@@ -70,25 +70,25 @@ package google.protobuf
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Struct = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Struct
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Struct, length:uint, reset:Boolean = true):google.protobuf.Struct
         {
             if (!dst)
                 dst = new google.protobuf.Struct();
             else if (reset)
                 google.protobuf.Struct.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -99,7 +99,7 @@ package google.protobuf
                     {
                         const msgFields:google.protobuf.StructFieldsEntry = new google.protobuf.StructFieldsEntry();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.StructFieldsEntry.deserializeBytes(src, msgFields, src.position + messageLength);
+                            google.protobuf.StructFieldsEntry.deserializeBytes(src, msgFields, messageLength);
                         dst.fields.push(msgFields);
                         break;
                     }

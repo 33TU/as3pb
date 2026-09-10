@@ -65,25 +65,25 @@ package google.protobuf
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.ListValue = null, limit:uint = 0, reset:Boolean = true):google.protobuf.ListValue
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.ListValue, length:uint, reset:Boolean = true):google.protobuf.ListValue
         {
             if (!dst)
                 dst = new google.protobuf.ListValue();
             else if (reset)
                 google.protobuf.ListValue.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -94,7 +94,7 @@ package google.protobuf
                     {
                         const msgValues:google.protobuf.Value = new google.protobuf.Value();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.Value.deserializeBytes(src, msgValues, src.position + messageLength);
+                            google.protobuf.Value.deserializeBytes(src, msgValues, messageLength);
                         dst.values.push(msgValues);
                         break;
                     }

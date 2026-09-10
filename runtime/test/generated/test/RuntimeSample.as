@@ -179,25 +179,25 @@ package test
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeSample = null, limit:uint = 0, reset:Boolean = true):test.RuntimeSample
+        public static function deserializeBytes(src:ByteArray, dst:test.RuntimeSample, length:uint, reset:Boolean = true):test.RuntimeSample
         {
             if (!dst)
                 dst = new test.RuntimeSample();
             else if (reset)
                 test.RuntimeSample.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -237,14 +237,14 @@ package test
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength, false);
+                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, messageLength, false);
                         break;
                     }
                     case 58:
                     {
                         const msgChildren:test.RuntimeNested = new test.RuntimeNested();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            test.RuntimeNested.deserializeBytes(src, msgChildren, src.position + messageLength);
+                            test.RuntimeNested.deserializeBytes(src, msgChildren, messageLength);
                         dst.children.push(msgChildren);
                         break;
                     }
@@ -304,7 +304,7 @@ package test
                     case 146:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
+                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, messageLength, false);
                         break;
                     }
                     case 152:
@@ -365,7 +365,7 @@ package test
                     case 82:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
+                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, messageLength, dst.choiceCase != FIELD_SELECTED);
                         dst.choiceCase = FIELD_SELECTED;
                         break;
                     }

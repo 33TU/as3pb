@@ -15,12 +15,12 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.generateLeadingComment(protogen.Comments(
 		"Deserializes the message from protobuf wire format.\n"+
 			"@param src The source ByteArray.\n"+
-			"@param dst Optional reusable destination message.\n"+
-			"@param limit Optional end position; zero means the remaining bytes.\n"+
+			"@param dst Reusable destination message, or null to allocate.\n"+
+			"@param length Number of bytes to decode from the current position; zero means an empty message.\n"+
 			"@param reset Whether to reset a reusable destination before decoding.",
 	), false)
 	g.w.Line(
-		"public static function deserializeBytes(src:ByteArray, dst:%s = null, limit:uint = 0, reset:Boolean = true):%s",
+		"public static function deserializeBytes(src:ByteArray, dst:%s, length:uint, reset:Boolean = true):%s",
 		messageName,
 		messageName,
 	)
@@ -37,21 +37,22 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Dedent()
 	g.w.BlankLine()
 
+	g.w.Line("if (!length)")
+	g.w.Indent()
+	g.w.Line("return dst;")
+	g.w.Dedent()
+	g.w.Line("else if (length > src.bytesAvailable)")
+	g.w.Indent()
+	g.w.Line(`throw new Error("Invalid protobuf message length");`)
+	g.w.Dedent()
+	g.w.BlankLine()
+
 	if hasMessageFields(message) {
 		g.w.Line("var messageLength:uint = 0;")
 		g.w.BlankLine()
 	}
 
-	g.w.Line("const end:uint = limit")
-	g.w.Indent()
-	g.w.Line("? limit")
-	g.w.Line(": src.position + src.bytesAvailable;")
-	g.w.Dedent()
-	g.w.BlankLine()
-	g.w.Line("if (end < src.position || end > src.length)")
-	g.w.Indent()
-	g.w.Line(`throw new Error("Invalid protobuf message limit");`)
-	g.w.Dedent()
+	g.w.Line("const end:uint = src.position + length;")
 	g.w.BlankLine()
 	g.w.Line("while (src.position < end)")
 	g.w.Line("{")
@@ -218,7 +219,7 @@ func (g *Generator) generateFieldDeserializerForType(
 		messageType := as3ElementType(field, currentPackage)
 		g.w.Line("messageLength = Deserialize.readVarint32(src);")
 		g.w.Line(
-			"%s = %s.deserializeBytes(src, %s, src.position + messageLength, %s);",
+			"%s = %s.deserializeBytes(src, %s, messageLength, %s);",
 			fieldName,
 			messageType,
 			fieldName,
@@ -270,7 +271,7 @@ func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *prot
 		g.w.Line("const %s:%s = new %s();", messageName, messageType, messageType)
 		g.w.Line("if ((messageLength = Deserialize.readVarint32(src)) !== 0)")
 		g.w.Indent()
-		g.w.Line("%s.deserializeBytes(src, %s, src.position + messageLength);", messageType, messageName)
+		g.w.Line("%s.deserializeBytes(src, %s, messageLength);", messageType, messageName)
 		g.w.Dedent()
 		g.w.Line("%s.push(%s);", fieldName, messageName)
 	}

@@ -45,7 +45,7 @@ package rpc
                 function(responseBytes:ByteArray):void
                 {
                     BufferPool.release(buffer);
-                    onComplete(rpc.RpcEchoResponse.deserializeBytes(responseBytes));
+                    onComplete(rpc.RpcEchoResponse.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));
                 },
                 function(err:*):void
                 {

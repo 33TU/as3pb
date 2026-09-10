@@ -194,7 +194,7 @@ package bench
                 for each (var bytes:ByteArray in serialized)
                 {
                     bytes.position = 0;
-                    BenchMessage.deserializeBytes(bytes, decoded);
+                    BenchMessage.deserializeBytes(bytes, decoded, bytes.bytesAvailable);
                 }
             }
             const deserializationTime:Number = new Date().time - startTime;

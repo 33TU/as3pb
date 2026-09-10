@@ -63,25 +63,25 @@ package example.game
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:example.game.MatchSnapshot = null, limit:uint = 0, reset:Boolean = true):example.game.MatchSnapshot
+        public static function deserializeBytes(src:ByteArray, dst:example.game.MatchSnapshot, length:uint, reset:Boolean = true):example.game.MatchSnapshot
         {
             if (!dst)
                 dst = new example.game.MatchSnapshot();
             else if (reset)
                 example.game.MatchSnapshot.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -102,7 +102,7 @@ package example.game
                     {
                         const msgPlayers:example.game.Player = new example.game.Player();
                         if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            example.game.Player.deserializeBytes(src, msgPlayers, src.position + messageLength);
+                            example.game.Player.deserializeBytes(src, msgPlayers, messageLength);
                         dst.players.push(msgPlayers);
                         break;
                     }

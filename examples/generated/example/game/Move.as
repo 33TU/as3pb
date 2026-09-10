@@ -61,25 +61,25 @@ package example.game
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:example.game.Move = null, limit:uint = 0, reset:Boolean = true):example.game.Move
+        public static function deserializeBytes(src:ByteArray, dst:example.game.Move, length:uint, reset:Boolean = true):example.game.Move
         {
             if (!dst)
                 dst = new example.game.Move();
             else if (reset)
                 example.game.Move.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -89,13 +89,13 @@ package example.game
                     case 10:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.from = example.game.Point.deserializeBytes(src, dst.from, src.position + messageLength, false);
+                        dst.from = example.game.Point.deserializeBytes(src, dst.from, messageLength, false);
                         break;
                     }
                     case 18:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.to = example.game.Point.deserializeBytes(src, dst.to, src.position + messageLength, false);
+                        dst.to = example.game.Point.deserializeBytes(src, dst.to, messageLength, false);
                         break;
                     }
                     case 24:

@@ -100,7 +100,7 @@ func (g *Generator) generateServiceMethod(packageName string, service *protogen.
 	g.w.Line("{")
 	g.w.Indent()
 	g.w.Line("BufferPool.release(buffer);")
-	g.w.Line("onComplete(%s.deserializeBytes(responseBytes));", outputType)
+	g.w.Line("onComplete(%s.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));", outputType)
 	g.w.Dedent()
 	g.w.Line("},")
 	g.w.Line("function(err:*):void")

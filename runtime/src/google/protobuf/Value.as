@@ -142,25 +142,25 @@ package google.protobuf
         /**
          * Deserializes the message from protobuf wire format.
          * @param src The source ByteArray.
-         * @param dst Optional reusable destination message.
-         * @param limit Optional end position; zero means the remaining bytes.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
          */
-        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Value = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Value
+        public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Value, length:uint, reset:Boolean = true):google.protobuf.Value
         {
             if (!dst)
                 dst = new google.protobuf.Value();
             else if (reset)
                 google.protobuf.Value.reset(dst);
 
+            if (!length)
+                return dst;
+            else if (length > src.bytesAvailable)
+                throw new Error("Invalid protobuf message length");
+
             var messageLength:uint = 0;
 
-            const end:uint = limit
-                ? limit
-                : src.position + src.bytesAvailable;
-
-            if (end < src.position || end > src.length)
-                throw new Error("Invalid protobuf message limit");
+            const end:uint = src.position + length;
 
             while (src.position < end)
             {
@@ -194,14 +194,14 @@ package google.protobuf
                     case 42:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, src.position + messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
+                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
                         dst.kindCase = FIELD_STRUCT_VALUE;
                         break;
                     }
                     case 50:
                     {
                         messageLength = Deserialize.readVarint32(src);
-                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, src.position + messageLength, dst.kindCase != FIELD_LIST_VALUE);
+                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, messageLength, dst.kindCase != FIELD_LIST_VALUE);
                         dst.kindCase = FIELD_LIST_VALUE;
                         break;
                     }

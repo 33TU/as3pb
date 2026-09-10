@@ -42,7 +42,7 @@ package example.game
                 function(responseBytes:ByteArray):void
                 {
                     BufferPool.release(buffer);
-                    onComplete(example.game.MatchSnapshot.deserializeBytes(responseBytes));
+                    onComplete(example.game.MatchSnapshot.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));
                 },
                 function(err:*):void
                 {
@@ -72,7 +72,7 @@ package example.game
                 function(responseBytes:ByteArray):void
                 {
                     BufferPool.release(buffer);
-                    onComplete(example.game.MatchSnapshot.deserializeBytes(responseBytes));
+                    onComplete(example.game.MatchSnapshot.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));
                 },
                 function(err:*):void
                 {
