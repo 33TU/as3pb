@@ -204,6 +204,24 @@ just build-swc
 
 Using the runtime source is recommended for game/runtime builds where inlining and allocation behavior matter. The SWC is convenient for packaging, IDE setup, or projects that prefer binary library dependencies.
 
+### Explicit decode lengths
+
+`Message.deserializeBytes(input, destination, length, reset = true)` requires
+both `destination` and `length`. Pass an existing message to reuse it, or `null`
+to allocate. `length` is a byte count from `input.position`; zero means an empty
+message and returns after allocation/reset without reading or moving the cursor,
+even past EOF. `reset = false` retains the existing merge behavior.
+
+```actionscript
+Message.deserializeBytes(input, existing, frameLength);
+const fresh:Message = Message.deserializeBytes(input, null, input.bytesAvailable);
+```
+
+This changes the previous API: omitted destinations/limits and `limit = 0` no
+longer mean decode all remaining bytes. Convert an old absolute `end` argument
+to `end - input.position`, or explicitly pass `input.bytesAvailable` to decode
+the remainder. Regenerate existing messages and update callers together.
+
 ## Commands
 
 List available recipes:

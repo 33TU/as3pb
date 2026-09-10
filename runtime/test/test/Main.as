@@ -43,7 +43,7 @@ package test
             runTest("testDeclaredDefaults", testDeclaredDefaults);
             runTest("testMalformedVarints", testMalformedVarints);
             runTest("testInvalidFieldNumbers", testInvalidFieldNumbers);
-            runTest("testInvalidMessageLimits", testInvalidMessageLimits);
+            runTest("testMessageLengths", testMessageLengths);
             runTest("testTruncatedLengthDelimitedFields", testTruncatedLengthDelimitedFields);
             runTest("testInt64FixedIO", testInt64FixedIO);
             runTest("testGeneratedMessageRoundTrip", testGeneratedMessageRoundTrip);
@@ -299,7 +299,7 @@ package test
                 Serialize.writeSint32(buffer, value);
             }
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("unpacked input length", out.scores.length, values.length);
             for (var i:uint = 0; i < values.length; i++)
                 assertEq("unpacked input " + i, out.scores[i], values[i]);
@@ -308,7 +308,7 @@ package test
             buffer.writeByte(98);
             Serialize.writeInt32Vector(buffer, values, Buffers.SHARED_BUFFER, values.length);
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("packed input length", out.expandedScores.length, values.length);
             for (i = 0; i < values.length; i++)
                 assertEq("packed input " + i, out.expandedScores[i], values[i]);
@@ -362,7 +362,7 @@ package test
             buffer.writeByte(10);
             Serialize.writeString(buffer, "after", Buffers.SHARED_BUFFER);
             buffer.position = 0;
-            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("known field after unknown wire types", out.id, "after");
             assertEq("unknown fields consumed", buffer.position, buffer.length);
 
@@ -372,7 +372,7 @@ package test
             buffer.position = 0;
             assertThrows("unknown length-delimited field overflow", function():void
                 {
-                    RuntimeSample.deserializeBytes(buffer);
+                    RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
                 });
 
             reset(buffer);
@@ -380,7 +380,7 @@ package test
             buffer.position = 0;
             assertThrows("start group wire type rejected", function():void
                 {
-                    RuntimeSample.deserializeBytes(buffer);
+                    RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
                 });
 
             reset(buffer);
@@ -388,7 +388,7 @@ package test
             buffer.position = 0;
             assertThrows("end group wire type rejected", function():void
                 {
-                    RuntimeSample.deserializeBytes(buffer);
+                    RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
                 });
         }
 
@@ -453,18 +453,82 @@ package test
                 });
         }
 
-        private static function testInvalidMessageLimits():void
+        private static function testMessageLengths():void
         {
             const buffer:ByteArray = Buffers.newByteArray();
 
-            assertThrows("generated invalid message limit", function():void
+            assertThrows("generated invalid message length", function():void
                 {
                     RuntimeNested.deserializeBytes(buffer, null, 1);
                 });
-            assertThrows("Any invalid message limit", function():void
+            assertThrows("Any invalid message length", function():void
                 {
                     Any.deserializeBytes(buffer, null, 1);
                 });
+
+            const message:RuntimeNested = new RuntimeNested();
+            message.label_ = "frame";
+            message.flags = 123;
+            buffer.writeByte(99);
+            const start:uint = buffer.position;
+            RuntimeNested.serializeBytes(message, buffer);
+            const length:uint = buffer.position - start;
+            buffer.writeByte(88);
+            buffer.position = start;
+            const decoded:RuntimeNested = RuntimeNested.deserializeBytes(buffer, null, length);
+            assertEq("byte count at nonzero cursor", decoded.label_, "frame");
+            assertUintEq("byte count stops at frame end", buffer.position, start + length);
+            assertUintEq("frame suffix untouched", buffer.readUnsignedByte(), 88);
+
+            buffer.position = start;
+            RuntimeNested.deserializeBytes(buffer, decoded, 0);
+            assertEq("zero length resets destination", decoded.label_, "");
+            assertUintEq("zero length does not consume following data", buffer.position, start);
+            decoded.flags = 42;
+            RuntimeNested.deserializeBytes(buffer, decoded, 0, false);
+            assertUintEq("zero length merge preserves destination", decoded.flags, 42);
+            assertUintEq("zero length merge leaves cursor", buffer.position, start);
+            const empty:RuntimeNested = RuntimeNested.deserializeBytes(buffer, null, 0);
+            assertTrue("zero length can allocate", empty != null);
+            assertEq("zero length allocates defaults", empty.label_, "");
+
+            assertThrows("length larger than remaining input", function():void
+                {
+                    RuntimeNested.deserializeBytes(buffer, null, buffer.length);
+                });
+            assertThrows("length addition cannot wrap", function():void
+                {
+                    RuntimeNested.deserializeBytes(buffer, null, 0xffffffff);
+                });
+            buffer.position = buffer.length;
+            RuntimeNested.deserializeBytes(buffer, decoded, 0);
+            assertUintEq("empty message at EOF", buffer.position, buffer.length);
+            buffer.position = buffer.length + 1;
+            const pastEnd:uint = buffer.position;
+            const beyond:RuntimeNested = RuntimeNested.deserializeBytes(buffer, null, 0);
+            assertTrue("empty message can allocate beyond EOF", beyond != null);
+            decoded.flags = 42;
+            RuntimeNested.deserializeBytes(buffer, decoded, 0);
+            assertUintEq("empty message beyond EOF resets destination", decoded.flags, 0);
+            decoded.flags = 42;
+            RuntimeNested.deserializeBytes(buffer, decoded, 0, false);
+            assertUintEq("empty message beyond EOF preserves merge destination", decoded.flags, 42);
+            assertUintEq("empty message beyond EOF preserves cursor", buffer.position, pastEnd);
+            assertThrows("nonempty message beyond EOF still rejects", function():void
+                {
+                    RuntimeNested.deserializeBytes(buffer, null, 1);
+                });
+
+            const parent:RuntimeSample = new RuntimeSample();
+            parent.nested = new RuntimeNested();
+            parent.children.push(message);
+            reset(buffer);
+            RuntimeSample.serializeBytes(parent, buffer);
+            buffer.position = 0;
+            const result:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
+            assertTrue("empty nested message is present", result.nested != null);
+            assertEq("empty nested message stays empty", result.nested.label_, "");
+            assertEq("field following empty nested message", result.children[0].label_, "frame");
         }
 
         private static function testTruncatedLengthDelimitedFields():void
@@ -523,13 +587,13 @@ package test
             buffer.position = 0;
             assertThrows("generated invalid field number", function():void
                 {
-                    RuntimeNested.deserializeBytes(buffer);
+                    RuntimeNested.deserializeBytes(buffer, null, buffer.bytesAvailable);
                 });
 
             buffer.position = 0;
             assertThrows("Any invalid field number", function():void
                 {
-                    Any.deserializeBytes(buffer);
+                    Any.deserializeBytes(buffer, null, buffer.bytesAvailable);
                 });
         }
 
@@ -578,7 +642,7 @@ package test
             RuntimeSample.serializeBytes(msg, buffer);
             buffer.position = 0;
 
-            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("generated id", out.id, msg.id);
             assertBytesEq("generated payload", out.payload, msg.payload);
             assertUintEq("generated uint64 low", out.count.low, msg.count.low);
@@ -604,7 +668,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(msg, buffer);
             buffer.position = 0;
-            RuntimeSample.deserializeBytes(buffer, out);
+            RuntimeSample.deserializeBytes(buffer, out, buffer.bytesAvailable);
             assertEq("generated reuse reset id", out.id, "reuse");
             assertEq("generated reuse reset payload", out.payload.length, 0);
         }
@@ -726,7 +790,7 @@ package test
             const buffer:ByteArray = Buffers.newByteArray();
             RuntimeIntegers.serializeBytes(msg, buffer);
             buffer.position = 0;
-            const out:RuntimeIntegers = RuntimeIntegers.deserializeBytes(buffer);
+            const out:RuntimeIntegers = RuntimeIntegers.deserializeBytes(buffer, null, buffer.bytesAvailable);
 
             assertEq("integer int32", out.int32Value, msg.int32Value);
             assertUintEq("integer uint32", out.uint32Value, msg.uint32Value);
@@ -799,7 +863,7 @@ package test
             RuntimeNode.serializeBytes(root, buffer);
             buffer.position = 0;
 
-            const out:RuntimeNode = RuntimeNode.deserializeBytes(buffer);
+            const out:RuntimeNode = RuntimeNode.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("recursive root", out.value, root.value);
             assertEq("recursive middle", out.next.value, root.next.value);
             assertEq("recursive leaf", out.next.next.value, root.next.next.value);
@@ -830,7 +894,7 @@ package test
 
             // Defaults never affect presence: a parse of an empty payload
             // leaves every explicit-presence field unset.
-            const msg:RuntimeDefaults = RuntimeDefaults.deserializeBytes(Buffers.newByteArray());
+            const msg:RuntimeDefaults = RuntimeDefaults.deserializeBytes(Buffers.newByteArray(), null, 0);
             assertEq("unset bool stays null", msg.enabled, null);
             assertEq("unset int32 stays null", msg.speed, null);
             assertEq("unset string stays null", msg.title, null);
@@ -862,7 +926,7 @@ package test
             assertTrue("present optional defaults serialized", buffer.length > 0);
             buffer.position = 0;
 
-            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertTrue("optional int present", out.optionalCount != null);
             assertEq("optional int default", out.optionalCount.value, 0);
             assertTrue("optional bool present", out.optionalEnabled != null);
@@ -888,7 +952,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(partial, buffer);
             buffer.position = 0;
-            const partialOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const partialOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("present optional survives round trip", partialOut.optionalCount.value, 7);
             assertEq("absent optional bool survives round trip", partialOut.optionalEnabled, null);
             assertEq("absent optional string survives round trip", partialOut.optionalLabel, null);
@@ -911,7 +975,7 @@ package test
             const buffer:ByteArray = Buffers.newByteArray();
             RuntimeSample.serializeBytes(msg, buffer);
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("optional enum", out.optionalStatus.value, RuntimeStatus.RUNTIME_STATUS_READY);
             assertEq("optional float", out.optionalFloat.value, 1.25);
             assertEq("optional double", out.optionalDouble.value, -2.5);
@@ -925,7 +989,7 @@ package test
             buffer.writeByte(0x01);
             Serialize.writeVarint32(buffer, 123);
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("unknown enum numeric value", out.optionalStatus.value, 123);
         }
 
@@ -937,7 +1001,7 @@ package test
             buffer.writeByte(10);
             Serialize.writeString(buffer, "last", Buffers.SHARED_BUFFER);
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("duplicate singular scalar", out.id, "last");
 
             reset(buffer);
@@ -946,7 +1010,7 @@ package test
             buffer.writeByte(104);
             Serialize.writeVarint32(buffer, 2);
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("repeated optional field", out.optionalCount.value, 2);
         }
 
@@ -1063,14 +1127,14 @@ package test
             buffer.writeByte(50);
             buffer.writeByte(0);
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertTrue("empty singular message presence", out.nested != null);
 
             reset(buffer);
             buffer.writeByte(82);
             buffer.writeByte(0);
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("empty oneof case", out.choiceCase, RuntimeSample.FIELD_SELECTED);
             assertTrue("empty oneof message presence", out.selected != null);
 
@@ -1078,7 +1142,7 @@ package test
             buffer.writeByte(10);
             buffer.writeByte(0);
             buffer.position = 0;
-            const envelope:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer);
+            const envelope:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertTrue("empty Any presence", envelope.payload != null);
 
             reset(buffer);
@@ -1094,7 +1158,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(selected, buffer);
             buffer.position = 0;
-            const selectedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const selectedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("null oneof message case", selectedOut.choiceCase, RuntimeSample.FIELD_SELECTED);
             assertTrue("null oneof empty message", selectedOut.selected != null);
 
@@ -1104,7 +1168,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(named, buffer);
             buffer.position = 0;
-            const namedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const namedOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("null oneof string case", namedOut.choiceCase, RuntimeSample.FIELD_NAME);
             assertEq("null oneof empty string", namedOut.name, "");
 
@@ -1114,7 +1178,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(delta, buffer);
             buffer.position = 0;
-            const deltaOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const deltaOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("null oneof int64 case", deltaOut.choiceCase, RuntimeSample.FIELD_CHOICE_DELTA);
             assertTrue("null oneof int64 value", deltaOut.choiceDelta != null);
             assertEq("null oneof int64 zero", deltaOut.choiceDelta.toNumber(), 0);
@@ -1125,7 +1189,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(payload, buffer);
             buffer.position = 0;
-            const payloadOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            const payloadOut:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("null oneof bytes case", payloadOut.choiceCase, RuntimeSample.FIELD_CHOICE_PAYLOAD);
             assertTrue("null oneof bytes value", payloadOut.choicePayload != null);
             assertEq("null oneof empty bytes", payloadOut.choicePayload.length, 0);
@@ -1138,7 +1202,7 @@ package test
             writeNestedField(buffer, 50, nested("merged", 0, 0.0));
             writeNestedField(buffer, 50, nested("", 0x12345678, 0.0));
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("merged singular label", out.nested.label_, "merged");
             assertUintEq("merged singular flags", out.nested.flags, 0x12345678);
 
@@ -1146,7 +1210,7 @@ package test
             writeNestedField(buffer, 82, nested("same case", 0, 0.0));
             writeNestedField(buffer, 82, nested("", 7, 0.0));
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("merged oneof label", out.selected.label_, "same case");
             assertUintEq("merged oneof flags", out.selected.flags, 7);
 
@@ -1156,7 +1220,7 @@ package test
             Serialize.writeString(buffer, "other case", Buffers.SHARED_BUFFER);
             writeNestedField(buffer, 82, nested("", 0, 2.5));
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("replaced oneof case", out.choiceCase, RuntimeSample.FIELD_SELECTED);
             assertEq("replaced oneof label", out.selected.label_, "");
             assertEq("replaced oneof ratio", out.selected.ratio, 2.5);
@@ -1168,7 +1232,7 @@ package test
             reset(buffer);
             RuntimeSample.serializeBytes(update, buffer);
             buffer.position = 0;
-            RuntimeSample.deserializeBytes(buffer, reusable, 0, false);
+            RuntimeSample.deserializeBytes(buffer, reusable, buffer.bytesAvailable, false);
             assertEq("top-level merge id", reusable.id, update.id);
             assertEq("top-level merge retained scores", reusable.scores.length, 1);
         }
@@ -1183,7 +1247,7 @@ package test
             buffer.writeByte(74);
             Serialize.writeString(buffer, "name", Buffers.SHARED_BUFFER);
             buffer.position = 0;
-            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer);
+            var out:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("oneof bytes to string", out.choiceCase, RuntimeSample.FIELD_NAME);
 
             reset(buffer);
@@ -1191,7 +1255,7 @@ package test
             Serialize.writeString(buffer, "name", Buffers.SHARED_BUFFER);
             writeNestedField(buffer, 82, nested("selected", 0, 0.0));
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("oneof string to message", out.choiceCase, RuntimeSample.FIELD_SELECTED);
 
             reset(buffer);
@@ -1200,7 +1264,7 @@ package test
             buffer.writeByte(0x01);
             Serialize.writeVarint64(buffer, 7, 0);
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("oneof message to int64", out.choiceCase, RuntimeSample.FIELD_CHOICE_DELTA);
 
             reset(buffer);
@@ -1211,7 +1275,7 @@ package test
             buffer.writeByte(0x01);
             Serialize.writeBytes(buffer, bytes(9));
             buffer.position = 0;
-            out = RuntimeSample.deserializeBytes(buffer);
+            out = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertEq("oneof int64 to bytes", out.choiceCase, RuntimeSample.FIELD_CHOICE_PAYLOAD);
             assertEq("oneof replacement bytes", out.choicePayload[0], 9);
         }
@@ -1241,7 +1305,7 @@ package test
             const buffer:ByteArray = Buffers.newByteArray();
             RuntimeAnyEnvelope.serializeBytes(envelope, buffer);
             buffer.position = 0;
-            const decoded:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer);
+            const decoded:RuntimeAnyEnvelope = RuntimeAnyEnvelope.deserializeBytes(buffer, null, buffer.bytesAvailable);
             const decodedMessage:RuntimeNested = AnyRegistry.unpack(decoded.payload) as RuntimeNested;
             assertEq("any wire round trip", decodedMessage.label_, msg.label_);
         }
