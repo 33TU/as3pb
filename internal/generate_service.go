@@ -84,7 +84,7 @@ func (g *Generator) generateServiceMethod(packageName string, service *protogen.
 	path := fmt.Sprintf("/%s.%s/%s", packageName, service.Desc.Name(), method.Desc.Name())
 
 	g.generateLeadingComment(serviceMethodComment(method, outputType), false)
-	g.w.Line("public function %s(request:%s, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest", methodName, inputType)
+	g.w.Line("public function %s(request:%s, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0, response:%s = null):HttpRequest", methodName, inputType, outputType)
 	g.w.Line("{")
 	g.w.Indent()
 
@@ -100,7 +100,7 @@ func (g *Generator) generateServiceMethod(packageName string, service *protogen.
 	g.w.Line("{")
 	g.w.Indent()
 	g.w.Line("BufferPool.release(buffer);")
-	g.w.Line("onComplete(%s.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));", outputType)
+	g.w.Line("onComplete(%s.deserializeBytes(responseBytes, response, responseBytes.bytesAvailable));", outputType)
 	g.w.Dedent()
 	g.w.Line("},")
 	g.w.Line("function(err:*):void")
@@ -127,6 +127,7 @@ func serviceMethodComment(method *protogen.Method, outputType string) protogen.C
 	comment += "@param onComplete Called with the decoded " + outputType + ".\n"
 	comment += "@param onError Called if the RPC request fails.\n"
 	comment += "@param timeoutMilliseconds Request timeout; zero uses the transport default.\n"
+	comment += "@param response Optional reusable response destination; do not share between overlapping calls.\n"
 	comment += "@return The active HTTP request handle."
 	return protogen.Comments(comment)
 }

@@ -453,12 +453,12 @@ func TestGenerateFileService(t *testing.T) {
 		"import as3pb.rpc.HttpRequest;",
 		`public function GreeterRpcClient(baseUrl:String, contentType:String = "application/proto", headers:Array = null, transport:HttpTransport = null)`,
 		"super(baseUrl, contentType, headers, transport);",
-		"public function sayHello(request:test.v1.HelloRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest",
+		"public function sayHello(request:test.v1.HelloRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0, response:test.v1.HelloResponse = null):HttpRequest",
 		"request:test.v1.HelloRequest,",
 		"const buffer:ByteArray = BufferPool.acquire();",
 		"test.v1.HelloRequest.serializeBytes(request, buffer);",
 		`"/test.v1.Greeter/SayHello",`,
-		"onComplete(test.v1.HelloResponse.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));",
+		"onComplete(test.v1.HelloResponse.deserializeBytes(responseBytes, response, responseBytes.bytesAvailable));",
 		"timeoutMilliseconds",
 	}
 	for _, want := range wantParts {

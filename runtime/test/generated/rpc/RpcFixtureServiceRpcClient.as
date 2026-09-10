@@ -32,9 +32,10 @@ package rpc
          * @param onComplete Called with the decoded rpc.RpcEchoResponse.
          * @param onError Called if the RPC request fails.
          * @param timeoutMilliseconds Request timeout; zero uses the transport default.
+         * @param response Optional reusable response destination; do not share between overlapping calls.
          * @return The active HTTP request handle.
          */
-        public function echo(request:rpc.RpcEchoRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0):HttpRequest
+        public function echo(request:rpc.RpcEchoRequest, onComplete:Function, onError:Function, timeoutMilliseconds:uint = 0, response:rpc.RpcEchoResponse = null):HttpRequest
         {
             const buffer:ByteArray = BufferPool.acquire();
             rpc.RpcEchoRequest.serializeBytes(request, buffer);
@@ -45,7 +46,7 @@ package rpc
                 function(responseBytes:ByteArray):void
                 {
                     BufferPool.release(buffer);
-                    onComplete(rpc.RpcEchoResponse.deserializeBytes(responseBytes, null, responseBytes.bytesAvailable));
+                    onComplete(rpc.RpcEchoResponse.deserializeBytes(responseBytes, response, responseBytes.bytesAvailable));
                 },
                 function(err:*):void
                 {

@@ -321,6 +321,13 @@ JSON/Proto total ratio: 15.76x
 AMF3/Proto total ratio: 4.76x
 ```
 
+Generated RPC methods accept an optional typed response destination after the
+timeout argument, for example `client.echo(request, onComplete, onError, 0, response)`.
+The decoded response is reset and populated in place, and the callback receives
+that same object. Omit it or pass `null` to allocate a response. Callers manage
+its lifetime: do not share a destination between overlapping calls, and remember
+that subsequent reuse changes references retained by previous callbacks.
+
 Build the RPC sample SWF:
 
 ```sh
