@@ -341,10 +341,14 @@ package as3pb.proto
             const end:uint = src.position + length;
             const tmp:UInt64 = TMP_UINT64;
 
+            const lowVec:Vector.<uint> = out.low;
+            const highVec:Vector.<uint> = out.high;
+
             while (src.position < end)
             {
                 readVarint64(src, tmp);
-                out.push(tmp.low, tmp.high);
+                lowVec.push(tmp.low);
+                highVec.push(tmp.high);
             }
 
             if (src.position != end)
@@ -478,10 +482,14 @@ package as3pb.proto
             const end:uint = src.position + length;
             const tmp:Int64 = TMP_INT64;
 
+            const lowVec:Vector.<uint> = out.low;
+            const highVec:Vector.<int> = out.high;
+
             while (src.position < end)
             {
                 readVarint64s(src, tmp);
-                out.push(tmp.low, tmp.high);
+                lowVec.push(tmp.low);
+                highVec.push(tmp.high);
             }
 
             if (src.position != end)
@@ -496,8 +504,49 @@ package as3pb.proto
         [Inline]
         public static function readSint32(src:ByteArray):int
         {
-            const value:uint = readVarint32(src);
-            return int((value >>> 1) ^ (-(value & 1)));
+            // Byte 1 (fast path)
+            var b:uint = src.readUnsignedByte();
+            if (b < 0x80)
+                return int((b >>> 1) ^ (-(b & 1)));
+            var result:uint = b & 0x7F;
+
+            // Byte 2
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return int(((result | (b << 7)) >>> 1) ^ (-(result & 1)));
+            result |= (b & 0x7F) << 7;
+
+            // Byte 3
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return int(((result | (b << 14)) >>> 1) ^ (-(result & 1)));
+            result |= (b & 0x7F) << 14;
+
+            // Byte 4
+            b = src.readUnsignedByte();
+            if (b < 0x80)
+                return int(((result | (b << 21)) >>> 1) ^ (-(result & 1)));
+            result |= (b & 0x7F) << 21;
+
+            // Byte 5 (only the low four bits land in a 32-bit value, but the
+            // spec requires accepting any varint up to 10 bytes and keeping
+            // just the low 32 bits)
+            b = src.readUnsignedByte();
+            result |= (b & 0x7F) << 28;
+            if (b < 0x80)
+                return int((result >>> 1) ^ (-(result & 1)));
+
+            // Bytes 6-10 only carry bits past 32; parse and discard them
+            for (var i:uint = 0; i < 5; i++)
+            {
+                b = src.readUnsignedByte();
+                if (i == 4 && b > 0x01)
+                    throw new IOError("Malformed varint32: exceeds 64 bits");
+                if (b < 0x80)
+                    return int((result >>> 1) ^ (-(result & 1)));
+            }
+
+            throw new IOError("Malformed varint32: exceeds 64 bits");
         }
 
         /**
@@ -528,22 +577,102 @@ package as3pb.proto
         [Inline]
         public static function readSint64(src:ByteArray, out:Int64):void
         {
-            readVarint64s(src, out);
+            var b:uint;
+            var low:uint = 0;
+            var high:uint = 0;
+            do
+            {
+                // byte 0
+                b = src.readUnsignedByte();
+                low = b & 0x7F;
+                if (b < 0x80)
+                {
+                    high = 0;
+                    break;
+                }
 
-            var low:uint = out.low;
-            var high:int = out.high;
-            const sign:uint = low & 1;
+                // byte 1
+                b = src.readUnsignedByte();
+                low |= (b & 0x7F) << 7;
+                if (b < 0x80)
+                {
+                    high = 0;
+                    break;
+                }
 
-            // logical shift right across the 64-bit value
-            low = (low >>> 1) | (high << 31);
-            high = uint(high) >>> 1;
+                // byte 2
+                b = src.readUnsignedByte();
+                low |= (b & 0x7F) << 14;
+                if (b < 0x80)
+                {
+                    high = 0;
+                    break;
+                }
 
-            const mask:int = -sign;
-            low ^= mask;
-            high ^= mask;
+                // byte 3
+                b = src.readUnsignedByte();
+                low |= (b & 0x7F) << 21;
+                if (b < 0x80)
+                {
+                    high = 0;
+                    break;
+                }
 
-            out.low = low;
-            out.high = high;
+                // byte 4
+                b = src.readUnsignedByte();
+                low |= (b & 0x7F) << 28;
+                if (b < 0x80)
+                {
+                    high = (b & 0x70) >>> 4;
+                    break;
+                }
+
+                high = (b & 0x7F) >>> 4;
+
+                // byte 5
+                b = src.readUnsignedByte();
+                high |= (b & 0x7F) << 3;
+                if (b < 0x80)
+                {
+                    break;
+                }
+
+                // byte 6
+                b = src.readUnsignedByte();
+                high |= (b & 0x7F) << 10;
+                if (b < 0x80)
+                {
+                    break;
+                }
+
+                // byte 7
+                b = src.readUnsignedByte();
+                high |= (b & 0x7F) << 17;
+                if (b < 0x80)
+                {
+                    break;
+                }
+
+                // byte 8
+                b = src.readUnsignedByte();
+                high |= (b & 0x7F) << 24;
+                if (b < 0x80)
+                {
+                    break;
+                }
+
+                // byte 9 (only 1 bit used)
+                b = src.readUnsignedByte();
+                if (b > 0x01)
+                    throw new IOError("Malformed varint64: exceeds 64 bits");
+
+                high |= (b & 0x01) << 31;
+            }
+            while (false);
+
+            const mask:int = -(low & 1);
+            out.low = ((low >>> 1) | (high << 31)) ^ mask;
+            out.high = (high >>> 1) ^ mask;
         }
 
         /**
@@ -605,10 +734,12 @@ package as3pb.proto
             const length:uint = readVarint32(src);
             const n:uint = length >>> 2;
 
-            out.length = n;
+            const start:uint = out.length;
+            out.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 out[i] = src.readUnsignedInt();
                 out[i + 1] = src.readUnsignedInt();
@@ -616,7 +747,7 @@ package as3pb.proto
                 out[i + 3] = src.readUnsignedInt();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
                 out[i] = src.readUnsignedInt();
 
             if ((n << 2) != length)
@@ -649,11 +780,13 @@ package as3pb.proto
             const lowVec:Vector.<uint> = out.low;
             const highVec:Vector.<uint> = out.high;
 
-            lowVec.length = n;
-            highVec.length = n;
+            const start:uint = lowVec.length;
+            lowVec.length = start + n;
+            highVec.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 lowVec[i] = src.readUnsignedInt();
                 highVec[i] = src.readUnsignedInt();
@@ -668,7 +801,7 @@ package as3pb.proto
                 highVec[i + 3] = src.readUnsignedInt();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
             {
                 lowVec[i] = src.readUnsignedInt();
                 highVec[i] = src.readUnsignedInt();
@@ -700,10 +833,12 @@ package as3pb.proto
             const length:uint = readVarint32(src);
             const n:uint = length >>> 2;
 
-            out.length = n;
+            const start:uint = out.length;
+            out.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 out[i] = src.readInt();
                 out[i + 1] = src.readInt();
@@ -711,7 +846,7 @@ package as3pb.proto
                 out[i + 3] = src.readInt();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
                 out[i] = src.readInt();
 
             if ((n << 2) != length)
@@ -744,11 +879,13 @@ package as3pb.proto
             const lowVec:Vector.<uint> = out.low;
             const highVec:Vector.<int> = out.high;
 
-            lowVec.length = n;
-            highVec.length = n;
+            const start:uint = lowVec.length;
+            lowVec.length = start + n;
+            highVec.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 lowVec[i] = src.readUnsignedInt();
                 highVec[i] = src.readInt();
@@ -763,7 +900,7 @@ package as3pb.proto
                 highVec[i + 3] = src.readInt();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
             {
                 lowVec[i] = src.readUnsignedInt();
                 highVec[i] = src.readInt();
@@ -795,10 +932,12 @@ package as3pb.proto
         {
             const length:uint = readVarint32(src);
             const n:uint = length >>> 2;
-            out.length = n;
+            const start:uint = out.length;
+            out.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 out[i] = src.readFloat();
                 out[i + 1] = src.readFloat();
@@ -806,7 +945,7 @@ package as3pb.proto
                 out[i + 3] = src.readFloat();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
                 out[i] = src.readFloat();
 
             if ((n << 2) != length)
@@ -836,10 +975,12 @@ package as3pb.proto
             const length:uint = readVarint32(src);
             const n:uint = length >>> 3;
 
-            out.length = n;
+            const start:uint = out.length;
+            out.length = start + n;
 
-            var i:uint = 0;
-            for (; i + 3 < n; i += 4)
+            const end:uint = start + n;
+            var i:uint = start;
+            for (; i + 3 < end; i += 4)
             {
                 out[i] = src.readDouble();
                 out[i + 1] = src.readDouble();
@@ -847,7 +988,7 @@ package as3pb.proto
                 out[i + 3] = src.readDouble();
             }
 
-            for (; i < n; i++)
+            for (; i < end; i++)
                 out[i] = src.readDouble();
 
             if ((n << 3) != length)

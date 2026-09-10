@@ -111,67 +111,78 @@ package as3pb.proto
         [Inline]
         public static function writeVarint64(dst:ByteArray, low:uint, high:uint):void
         {
-            // 32-bit varint encoding (common case) (this is manually inlined for better performance, nested functions don't inline everything automatically)
-            if (high == 0)
+            if (high != 0)
             {
-                // 1 byte
-                if (low < 0x80)
-                {
-                    dst.writeByte(low);
-                    return;
-                }
+                // A nonzero high word guarantees at least five encoded bytes.
+                dst.writeUnsignedInt(
+                    (((low >>> 21) & 0x7F) << 24) |
+                    (((low >>> 14) & 0x7F) << 16) |
+                    (((low >>> 7) & 0x7F) << 8) |
+                    (low & 0x7F) | 0x80808080);
+                low = (low >>> 28) | (high << 4);
+                high >>>= 28;
 
-                // 2 bytes
-                if (low < 0x4000)
-                {
-                    dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
-                    return;
-                }
-
-                // 3 bytes
-                if (low < 0x200000)
-                {
-                    dst.writeShort(
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
-                    dst.writeByte(low >>> 14);
-                    return;
-                }
-
-                // 4 bytes
-                if (low < 0x10000000)
+                if (high != 0)
                 {
                     dst.writeUnsignedInt(
-                            ((low >>> 21) << 24) |
-                            ((((low >>> 14) & 0x7F) | 0x80) << 16) |
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
+                        (((low >>> 21) & 0x7F) << 24) |
+                        (((low >>> 14) & 0x7F) << 16) |
+                        (((low >>> 7) & 0x7F) << 8) |
+                        (low & 0x7F) | 0x80808080);
+                    const last:uint = (low >>> 28) | (high << 4);
+                    if (last < 0x80)
+                        dst.writeByte(last);
+                    else
+                        dst.writeShort(((last >>> 7) << 8) | (last & 0x7F) | 0x80);
                     return;
                 }
+            }
 
-                // 5 bytes
+            // 1 byte
+            if (low < 0x80)
+            {
+                dst.writeByte(low);
+                return;
+            }
+
+            // 2 bytes
+            if (low < 0x4000)
+            {
+                dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
+                return;
+            }
+
+            // 3 bytes
+            if (low < 0x200000)
+            {
+                dst.writeShort(
+                        ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((low & 0x7F) | 0x80)
+                    );
+                dst.writeByte(low >>> 14);
+                return;
+            }
+
+            // 4 bytes
+            if (low < 0x10000000)
+            {
                 dst.writeUnsignedInt(
-                        ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                        ((low >>> 21) << 24) |
                         ((((low >>> 14) & 0x7F) | 0x80) << 16) |
                         ((((low >>> 7) & 0x7F) | 0x80) << 8) |
                         ((low & 0x7F) | 0x80)
                     );
-                dst.writeByte(low >>> 28);
                 return;
             }
 
-            // 64-bit varint encoding
-            do
-            {
-                dst.writeByte((low & 0x7F) | 0x80);
-                low = (low >>> 7) | (high << 25);
-                high >>>= 7;
-            }
-            while (high != 0 || low >= 0x80);
-
-            dst.writeByte(low);
+            // 5 bytes
+            dst.writeUnsignedInt(
+                    ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((low >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((low & 0x7F) | 0x80)
+                );
+            dst.writeByte(low >>> 28);
         }
 
         /**
@@ -204,67 +215,78 @@ package as3pb.proto
         [Inline]
         public static function writeVarint64s(dst:ByteArray, low:uint, high:int):void
         {
-            // 32-bit varint encoding (common case) (this is manually inlined for better performance, nested functions don't inline everything automatically)
-            if (high == 0)
+            if (high != 0)
             {
-                // 1 byte
-                if (low < 0x80)
-                {
-                    dst.writeByte(low);
-                    return;
-                }
+                // A nonzero high word guarantees at least five encoded bytes.
+                dst.writeUnsignedInt(
+                    (((low >>> 21) & 0x7F) << 24) |
+                    (((low >>> 14) & 0x7F) << 16) |
+                    (((low >>> 7) & 0x7F) << 8) |
+                    (low & 0x7F) | 0x80808080);
+                low = (low >>> 28) | (high << 4);
+                high >>>= 28;
 
-                // 2 bytes
-                if (low < 0x4000)
-                {
-                    dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
-                    return;
-                }
-
-                // 3 bytes
-                if (low < 0x200000)
-                {
-                    dst.writeShort(
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
-                    dst.writeByte(low >>> 14);
-                    return;
-                }
-
-                // 4 bytes
-                if (low < 0x10000000)
+                if (high != 0)
                 {
                     dst.writeUnsignedInt(
-                            ((low >>> 21) << 24) |
-                            ((((low >>> 14) & 0x7F) | 0x80) << 16) |
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
+                        (((low >>> 21) & 0x7F) << 24) |
+                        (((low >>> 14) & 0x7F) << 16) |
+                        (((low >>> 7) & 0x7F) << 8) |
+                        (low & 0x7F) | 0x80808080);
+                    const last:uint = (low >>> 28) | (high << 4);
+                    if (last < 0x80)
+                        dst.writeByte(last);
+                    else
+                        dst.writeShort(((last >>> 7) << 8) | (last & 0x7F) | 0x80);
                     return;
                 }
+            }
 
-                // 5 bytes
+            // 1 byte
+            if (low < 0x80)
+            {
+                dst.writeByte(low);
+                return;
+            }
+
+            // 2 bytes
+            if (low < 0x4000)
+            {
+                dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
+                return;
+            }
+
+            // 3 bytes
+            if (low < 0x200000)
+            {
+                dst.writeShort(
+                        ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((low & 0x7F) | 0x80)
+                    );
+                dst.writeByte(low >>> 14);
+                return;
+            }
+
+            // 4 bytes
+            if (low < 0x10000000)
+            {
                 dst.writeUnsignedInt(
-                        ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                        ((low >>> 21) << 24) |
                         ((((low >>> 14) & 0x7F) | 0x80) << 16) |
                         ((((low >>> 7) & 0x7F) | 0x80) << 8) |
                         ((low & 0x7F) | 0x80)
                     );
-                dst.writeByte(low >>> 28);
                 return;
             }
 
-            // 64-bit varint encoding
-            do
-            {
-                dst.writeByte((low & 0x7F) | 0x80);
-                low = (low >>> 7) | (high << 25);
-                high >>>= 7;
-            }
-            while (high != 0 || low >= 0x80);
-
-            dst.writeByte(low);
+            // 5 bytes
+            dst.writeUnsignedInt(
+                    ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((low >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((low & 0x7F) | 0x80)
+                );
+            dst.writeByte(low >>> 28);
         }
 
         /**
@@ -299,7 +321,14 @@ package as3pb.proto
         {
             if (value < 0)
             {
-                writeVarint64(dst, uint(value), 0xffffffff);
+                // Negative int32 values always occupy ten sign-extended varint bytes.
+                dst.writeUnsignedInt(
+                    (((value >>> 21) & 0x7F) << 24) |
+                    (((value >>> 14) & 0x7F) << 16) |
+                    (((value >>> 7) & 0x7F) << 8) |
+                    (value & 0x7F) | 0x80808080);
+                dst.writeUnsignedInt(0xFFFFFFF0 | (value >>> 28));
+                dst.writeShort(0x01FF);
                 return;
             }
 
@@ -377,7 +406,53 @@ package as3pb.proto
         [Inline]
         public static function writeSint32(dst:ByteArray, value:int):void
         {
-            writeVarint32(dst, uint((value << 1) ^ (value >> 31)));
+            const encoded:uint = uint((value << 1) ^ (value >> 31));
+
+            // 1 byte
+            if (encoded < 0x80)
+            {
+                dst.writeByte(encoded);
+                return;
+            }
+
+            // 2 bytes
+            if (encoded < 0x4000)
+            {
+                dst.writeShort(((encoded >>> 7) << 8) | ((encoded & 0x7F) | 0x80));
+                return;
+            }
+
+            // 3 bytes
+            if (encoded < 0x200000)
+            {
+                dst.writeShort(
+                        ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((encoded & 0x7F) | 0x80)
+                    );
+                dst.writeByte(encoded >>> 14);
+                return;
+            }
+
+            // 4 bytes
+            if (encoded < 0x10000000)
+            {
+                dst.writeUnsignedInt(
+                        ((encoded >>> 21) << 24) |
+                        ((((encoded >>> 14) & 0x7F) | 0x80) << 16) |
+                        ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((encoded & 0x7F) | 0x80)
+                    );
+                return;
+            }
+
+            // 5 bytes
+            dst.writeUnsignedInt(
+                    ((((encoded >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((encoded >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((encoded >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((encoded & 0x7F) | 0x80)
+                );
+            dst.writeByte(encoded >>> 28);
         }
 
         /**
@@ -415,67 +490,78 @@ package as3pb.proto
             low = (low << 1) ^ mask;
             high = ((high << 1) | carry) ^ mask;
 
-            // 32-bit varint encoding (common case) (this is manually inlined for better performance, nested functions don't inline everything automatically)
-            if (high == 0)
+            if (high != 0)
             {
-                // 1 byte
-                if (low < 0x80)
-                {
-                    dst.writeByte(low);
-                    return;
-                }
+                // A nonzero high word guarantees at least five encoded bytes.
+                dst.writeUnsignedInt(
+                    (((low >>> 21) & 0x7F) << 24) |
+                    (((low >>> 14) & 0x7F) << 16) |
+                    (((low >>> 7) & 0x7F) << 8) |
+                    (low & 0x7F) | 0x80808080);
+                low = (low >>> 28) | (high << 4);
+                high >>>= 28;
 
-                // 2 bytes
-                if (low < 0x4000)
-                {
-                    dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
-                    return;
-                }
-
-                // 3 bytes
-                if (low < 0x200000)
-                {
-                    dst.writeShort(
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
-                    dst.writeByte(low >>> 14);
-                    return;
-                }
-
-                // 4 bytes
-                if (low < 0x10000000)
+                if (high != 0)
                 {
                     dst.writeUnsignedInt(
-                            ((low >>> 21) << 24) |
-                            ((((low >>> 14) & 0x7F) | 0x80) << 16) |
-                            ((((low >>> 7) & 0x7F) | 0x80) << 8) |
-                            ((low & 0x7F) | 0x80)
-                        );
+                        (((low >>> 21) & 0x7F) << 24) |
+                        (((low >>> 14) & 0x7F) << 16) |
+                        (((low >>> 7) & 0x7F) << 8) |
+                        (low & 0x7F) | 0x80808080);
+                    const last:uint = (low >>> 28) | (high << 4);
+                    if (last < 0x80)
+                        dst.writeByte(last);
+                    else
+                        dst.writeShort(((last >>> 7) << 8) | (last & 0x7F) | 0x80);
                     return;
                 }
+            }
 
-                // 5 bytes
+            // 1 byte
+            if (low < 0x80)
+            {
+                dst.writeByte(low);
+                return;
+            }
+
+            // 2 bytes
+            if (low < 0x4000)
+            {
+                dst.writeShort(((low >>> 7) << 8) | ((low & 0x7F) | 0x80));
+                return;
+            }
+
+            // 3 bytes
+            if (low < 0x200000)
+            {
+                dst.writeShort(
+                        ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((low & 0x7F) | 0x80)
+                    );
+                dst.writeByte(low >>> 14);
+                return;
+            }
+
+            // 4 bytes
+            if (low < 0x10000000)
+            {
                 dst.writeUnsignedInt(
-                        ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                        ((low >>> 21) << 24) |
                         ((((low >>> 14) & 0x7F) | 0x80) << 16) |
                         ((((low >>> 7) & 0x7F) | 0x80) << 8) |
                         ((low & 0x7F) | 0x80)
                     );
-                dst.writeByte(low >>> 28);
                 return;
             }
 
-            // 64-bit varint encoding
-            do
-            {
-                dst.writeByte((low & 0x7F) | 0x80);
-                low = (low >>> 7) | (high << 25);
-                high >>>= 7;
-            }
-            while (high != 0 || low >= 0x80);
-
-            dst.writeByte(low);
+            // 5 bytes
+            dst.writeUnsignedInt(
+                    ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((low >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((low & 0x7F) | 0x80)
+                );
+            dst.writeByte(low >>> 28);
         }
 
         /**
@@ -788,10 +874,11 @@ package as3pb.proto
             var i:uint = 0;
             for (; i + 3 < n; i += 4)
             {
-                dst.writeByte(vec[i] ? 1 : 0);
-                dst.writeByte(vec[i + 1] ? 1 : 0);
-                dst.writeByte(vec[i + 2] ? 1 : 0);
-                dst.writeByte(vec[i + 3] ? 1 : 0);
+                dst.writeUnsignedInt(
+                    (vec[i] ? 1 : 0) |
+                    (vec[i + 1] ? 0x100 : 0) |
+                    (vec[i + 2] ? 0x10000 : 0) |
+                    (vec[i + 3] ? 0x1000000 : 0));
             }
 
             // tail loop
