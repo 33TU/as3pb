@@ -120,7 +120,7 @@ func (g *Generator) generateCloneSingularField(field *protogen.Field, names *Mes
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind,
 		protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
 		if hasExplicitPresence(field) {
-			g.w.Line("%s = %s ? %s.clone() : null;", dst, src, src)
+			g.w.Line("%s = %s.clone(%s);", dst, AS3Type(field, currentPackage), src)
 		} else if isRealOneof(field) {
 			g.w.Line("if (%s)", src)
 			g.w.Indent()
@@ -131,7 +131,7 @@ func (g *Generator) generateCloneSingularField(field *protogen.Field, names *Mes
 		}
 	default:
 		if hasExplicitPresence(field) && field.Desc.Kind() != protoreflect.StringKind {
-			g.w.Line("%s = %s ? %s.clone() : null;", dst, src, src)
+			g.w.Line("%s = %s.clone(%s);", dst, AS3Type(field, currentPackage), src)
 		} else {
 			g.w.Line("%s = %s;", dst, src)
 		}

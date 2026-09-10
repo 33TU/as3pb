@@ -67,12 +67,17 @@ package as3pb.types
         }
 
         /**
-         * Creates a copy of this instance.
-         * @return A new copy of this instance.
+         * Creates a copy of the source.
+         * @param src Source to clone.
+         * @return A new copy, or null when src is null.
          */
-        public function clone():Int64
+        [Inline]
+        public static function clone(src:Int64):Int64
         {
-            return new Int64(low, high);
+            if (!src)
+                return null;
+
+            return new Int64(src.low, src.high);
         }
 
         /**

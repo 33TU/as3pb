@@ -28,6 +28,7 @@ package test
         public function Main()
         {
             trace("as3pb runtime tests");
+            runTest("testTypeClones", testTypeClones);
 
             runTest("testVarint32", testVarint32);
             runTest("testVarint64", testVarint64);
@@ -64,6 +65,68 @@ package test
             runTest("testAnyRegistryFailure", testAnyRegistryFailure);
 
             trace("ok");
+        }
+
+        private static function testTypeClones():void
+        {
+            assertEq("OptionalInt clone null", OptionalInt.clone(null), null);
+            const optionalInt:OptionalInt = new OptionalInt(-42);
+            const optionalIntCopy:OptionalInt = OptionalInt.clone(optionalInt);
+            assertTrue("OptionalInt clone identity", optionalIntCopy !== optionalInt);
+            assertEq("OptionalInt clone value", optionalIntCopy.value, optionalInt.value);
+            assertEq("OptionalUint clone null", OptionalUint.clone(null), null);
+            const optionalUint:OptionalUint = new OptionalUint(42);
+            const optionalUintCopy:OptionalUint = OptionalUint.clone(optionalUint);
+            assertTrue("OptionalUint clone identity", optionalUintCopy !== optionalUint);
+            assertEq("OptionalUint clone value", optionalUintCopy.value, optionalUint.value);
+            assertEq("OptionalNumber clone null", OptionalNumber.clone(null), null);
+            const optionalNumber:OptionalNumber = new OptionalNumber(1.25);
+            const optionalNumberCopy:OptionalNumber = OptionalNumber.clone(optionalNumber);
+            assertTrue("OptionalNumber clone identity", optionalNumberCopy !== optionalNumber);
+            assertEq("OptionalNumber clone value", optionalNumberCopy.value, optionalNumber.value);
+            assertEq("OptionalBoolean clone null", OptionalBoolean.clone(null), null);
+            const optionalBoolean:OptionalBoolean = new OptionalBoolean(true);
+            const optionalBooleanCopy:OptionalBoolean = OptionalBoolean.clone(optionalBoolean);
+            assertTrue("OptionalBoolean clone identity", optionalBooleanCopy !== optionalBoolean);
+            assertEq("OptionalBoolean clone value", optionalBooleanCopy.value, optionalBoolean.value);
+            assertEq("Int64 clone null", Int64.clone(null), null);
+            const int64:Int64 = new Int64(42, -1);
+            const int64Copy:Int64 = Int64.clone(int64);
+            assertTrue("Int64 clone identity", int64Copy !== int64);
+            assertEq("Int64 clone low", int64Copy.low, int64.low);
+            assertEq("Int64 clone high", int64Copy.high, int64.high);
+            assertEq("UInt64 clone null", UInt64.clone(null), null);
+            const uInt64:UInt64 = new UInt64(42, 1);
+            const uInt64Copy:UInt64 = UInt64.clone(uInt64);
+            assertTrue("UInt64 clone identity", uInt64Copy !== uInt64);
+            assertEq("UInt64 clone low", uInt64Copy.low, uInt64.low);
+            assertEq("UInt64 clone high", uInt64Copy.high, uInt64.high);
+            assertEq("Int64Vector clone null", Int64Vector.clone(null), null);
+            const int64Vector:Int64Vector = new Int64Vector(2, true);
+            int64Vector.set(0, 42, 1);
+            int64Vector.set(1, 99, 2);
+            const int64VectorCopy:Int64Vector = Int64Vector.clone(int64Vector);
+            assertEq("Int64Vector clone length", int64VectorCopy.length, 2);
+            assertEq("Int64Vector clone low", int64VectorCopy.low[1], 99);
+            assertEq("Int64Vector clone high", int64VectorCopy.high[1], 2);
+            int64VectorCopy.set(0, 0, 0);
+            assertEq("Int64Vector clone independent low", int64Vector.low[0], 42);
+            assertEq("Int64Vector clone independent high", int64Vector.high[0], 1);
+            int64VectorCopy.push(3, 4);
+            assertEq("Int64Vector empty clone", Int64Vector.clone(new Int64Vector()).length, 0);
+            assertEq("UInt64Vector clone null", UInt64Vector.clone(null), null);
+            const uInt64Vector:UInt64Vector = new UInt64Vector(2, true);
+            uInt64Vector.set(0, 42, 1);
+            uInt64Vector.set(1, 99, 2);
+            const uInt64VectorCopy:UInt64Vector = UInt64Vector.clone(uInt64Vector);
+            assertEq("UInt64Vector clone length", uInt64VectorCopy.length, 2);
+            assertEq("UInt64Vector clone low", uInt64VectorCopy.low[1], 99);
+            assertEq("UInt64Vector clone high", uInt64VectorCopy.high[1], 2);
+            uInt64VectorCopy.set(0, 0, 0);
+            assertEq("UInt64Vector clone independent low", uInt64Vector.low[0], 42);
+            assertEq("UInt64Vector clone independent high", uInt64Vector.high[0], 1);
+            uInt64VectorCopy.push(3, 4);
+            assertEq("UInt64Vector empty clone", UInt64Vector.clone(new UInt64Vector()).length, 0);
         }
 
         private static function runTest(name:String, test:Function):void

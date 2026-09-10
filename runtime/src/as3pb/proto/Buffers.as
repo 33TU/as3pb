@@ -41,6 +41,7 @@ package as3pb.proto
          * @param src Source byte array; null returns null.
          * @return A new byte array containing the same bytes.
          */
+        [Inline]
         public static function cloneByteArray(src:ByteArray):ByteArray
         {
             if (!src)

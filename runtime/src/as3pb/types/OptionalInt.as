@@ -20,12 +20,17 @@ package as3pb.types
         }
 
         /**
-         * Creates a copy of this optional value.
-         * @return A new copy.
+         * Creates a copy of the source.
+         * @param src Source to clone.
+         * @return A new copy, or null when src is null.
          */
-        public function clone():OptionalInt
+        [Inline]
+        public static function clone(src:OptionalInt):OptionalInt
         {
-            return new OptionalInt(value);
+            if (!src)
+                return null;
+
+            return new OptionalInt(src.value);
         }
     }
 }

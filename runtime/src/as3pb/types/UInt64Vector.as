@@ -131,12 +131,24 @@ package as3pb.types
         }
 
         /**
-         * Creates a copy of this vector.
-         * @return A new copy.
+         * Creates a copy of the source.
+         * @param src Source to clone.
+         * @return A new copy, or null when src is null.
          */
-        public function clone():UInt64Vector
+        [Inline]
+        public static function clone(src:UInt64Vector):UInt64Vector
         {
-            return new UInt64Vector().copyFrom(this);
+            if (!src)
+                return null;
+
+            const n:uint = src.low.length;
+            const dst:UInt64Vector = new UInt64Vector(n);
+            for (var i:uint = 0; i < n; i++)
+            {
+                dst.low[i] = src.low[i];
+                dst.high[i] = src.high[i];
+            }
+            return dst;
         }
     }
 }

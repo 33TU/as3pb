@@ -115,16 +115,16 @@ package test
                 return null;
 
             const dst:test.RuntimeDefaults = new test.RuntimeDefaults();
-            dst.enabled = src.enabled ? src.enabled.clone() : null;
-            dst.speed = src.speed ? src.speed.clone() : null;
-            dst.mask = src.mask ? src.mask.clone() : null;
-            dst.delta = src.delta ? src.delta.clone() : null;
+            dst.enabled = OptionalBoolean.clone(src.enabled);
+            dst.speed = OptionalInt.clone(src.speed);
+            dst.mask = OptionalUint.clone(src.mask);
+            dst.delta = OptionalInt.clone(src.delta);
             dst.title = src.title;
-            dst.ratio = src.ratio ? src.ratio.clone() : null;
-            dst.scale = src.scale ? src.scale.clone() : null;
-            dst.big = src.big ? src.big.clone() : null;
-            dst.huge = src.huge ? src.huge.clone() : null;
-            dst.mode = src.mode ? src.mode.clone() : null;
+            dst.ratio = OptionalNumber.clone(src.ratio);
+            dst.scale = OptionalNumber.clone(src.scale);
+            dst.big = Int64.clone(src.big);
+            dst.huge = UInt64.clone(src.huge);
+            dst.mode = OptionalInt.clone(src.mode);
             dst.motd = Buffers.cloneByteArray(src.motd);
             dst.blob = Buffers.cloneByteArray(src.blob);
 

@@ -67,12 +67,17 @@ package as3pb.types
         }
 
         /**
-         * Creates a copy of this instance.
-         * @return A new copy of this instance.
+         * Creates a copy of the source.
+         * @param src Source to clone.
+         * @return A new copy, or null when src is null.
          */
-        public function clone():UInt64
+        [Inline]
+        public static function clone(src:UInt64):UInt64
         {
-            return new UInt64(low, high);
+            if (!src)
+                return null;
+
+            return new UInt64(src.low, src.high);
         }
 
         /**
@@ -335,7 +340,7 @@ package as3pb.types
             if (isZero())
                 return "0";
 
-            const tmp:UInt64 = clone();
+            const tmp:UInt64 = UInt64.clone(this);
             const parts:Array = [];
 
             while (!tmp.isZero())

@@ -131,19 +131,19 @@ package test
             dst.checksum.copyFrom(src.checksum);
             dst.signedCount = src.signedCount;
             dst.expandedScores = src.expandedScores.concat();
-            dst.optionalCount = src.optionalCount ? src.optionalCount.clone() : null;
-            dst.optionalEnabled = src.optionalEnabled ? src.optionalEnabled.clone() : null;
+            dst.optionalCount = OptionalInt.clone(src.optionalCount);
+            dst.optionalEnabled = OptionalBoolean.clone(src.optionalEnabled);
             dst.optionalLabel = src.optionalLabel;
             dst.optionalPayload = Buffers.cloneByteArray(src.optionalPayload);
-            dst.optionalTotal = src.optionalTotal ? src.optionalTotal.clone() : null;
+            dst.optionalTotal = UInt64.clone(src.optionalTotal);
             dst.optionalNested = test.RuntimeNested.clone(src.optionalNested);
-            dst.optionalDelta = src.optionalDelta ? src.optionalDelta.clone() : null;
-            dst.optionalStatus = src.optionalStatus ? src.optionalStatus.clone() : null;
-            dst.optionalFloat = src.optionalFloat ? src.optionalFloat.clone() : null;
-            dst.optionalDouble = src.optionalDouble ? src.optionalDouble.clone() : null;
-            dst.optionalFixed32 = src.optionalFixed32 ? src.optionalFixed32.clone() : null;
-            dst.optionalFixed64 = src.optionalFixed64 ? src.optionalFixed64.clone() : null;
-            dst.optionalInt64 = src.optionalInt64 ? src.optionalInt64.clone() : null;
+            dst.optionalDelta = Int64.clone(src.optionalDelta);
+            dst.optionalStatus = OptionalInt.clone(src.optionalStatus);
+            dst.optionalFloat = OptionalNumber.clone(src.optionalFloat);
+            dst.optionalDouble = OptionalNumber.clone(src.optionalDouble);
+            dst.optionalFixed32 = OptionalUint.clone(src.optionalFixed32);
+            dst.optionalFixed64 = UInt64.clone(src.optionalFixed64);
+            dst.optionalInt64 = Int64.clone(src.optionalInt64);
 
             dst.choiceCase = src.choiceCase;
             switch (src.choiceCase)
