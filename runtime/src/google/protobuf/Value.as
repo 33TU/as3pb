@@ -5,7 +5,9 @@
 package google.protobuf
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
@@ -20,6 +22,7 @@ package google.protobuf
      */
     public final class Value
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/google.protobuf.Value";
 
         public static const FIELD_NULL_VALUE:uint = 1;
@@ -148,6 +151,22 @@ package google.protobuf
          */
         public static function deserializeBytes(src:ByteArray, dst:google.protobuf.Value = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Value
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Value = null, limit:uint = 0, reset:Boolean = true):google.protobuf.Value
+        {
             if (!dst)
                 dst = new google.protobuf.Value();
             else if (reset)
@@ -157,71 +176,84 @@ package google.protobuf
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 8:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        dst.nullValue = Deserialize.readInt32(src);
-                        dst.kindCase = FIELD_NULL_VALUE;
-                        break;
-                    }
-                    case 17:
-                    {
-                        dst.numberValue = src.readDouble();
-                        dst.kindCase = FIELD_NUMBER_VALUE;
-                        break;
-                    }
-                    case 26:
-                    {
-                        dst.stringValue = src.readUTFBytes(Deserialize.readVarint32(src));
-                        dst.kindCase = FIELD_STRING_VALUE;
-                        break;
-                    }
-                    case 32:
-                    {
-                        dst.boolValue = Deserialize.readBool(src);
-                        dst.kindCase = FIELD_BOOL_VALUE;
-                        break;
-                    }
-                    case 42:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, src.position + messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
-                        dst.kindCase = FIELD_STRUCT_VALUE;
-                        break;
-                    }
-                    case 50:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, src.position + messageLength, dst.kindCase != FIELD_LIST_VALUE);
-                        dst.kindCase = FIELD_LIST_VALUE;
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 8:
+                        {
+                            dst.nullValue = Unpack.readInt32(src);
+                            dst.kindCase = FIELD_NULL_VALUE;
+                            break;
+                        }
+                        case 17:
+                        {
+                            dst.numberValue = Unpack.readDouble(src);
+                            dst.kindCase = FIELD_NUMBER_VALUE;
+                            break;
+                        }
+                        case 26:
+                        {
+                            dst.stringValue = Unpack.readString(src);
+                            dst.kindCase = FIELD_STRING_VALUE;
+                            break;
+                        }
+                        case 32:
+                        {
+                            dst.boolValue = Unpack.readBool(src);
+                            dst.kindCase = FIELD_BOOL_VALUE;
+                            break;
+                        }
+                        case 42:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.structValue = google.protobuf.Struct.deserializeMemory(src, dst.structValue, src.position + messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
+                            dst.kindCase = FIELD_STRUCT_VALUE;
+                            break;
+                        }
+                        case 50:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.listValue = google.protobuf.ListValue.deserializeMemory(src, dst.listValue, src.position + messageLength, dst.kindCase != FIELD_LIST_VALUE);
+                            dst.kindCase = FIELD_LIST_VALUE;
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

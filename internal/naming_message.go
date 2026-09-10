@@ -21,10 +21,12 @@ type MessageNames struct {
 func NewMessageNames(message *protogen.Message) *MessageNames {
 	names := &MessageNames{
 		used: map[string]struct{}{
-			"clone":       {},
-			"deserialize": {},
-			"reset":       {},
-			"serialize":   {},
+			"clone":             {},
+			"deserializeMemory": {},
+			"UNPACK":            {},
+			"deserialize":       {},
+			"reset":             {},
+			"serialize":         {},
 		},
 		fields:        make(map[*protogen.Field]string, len(message.Fields)),
 		fieldNumbers:  make(map[*protogen.Field]string, len(message.Fields)),

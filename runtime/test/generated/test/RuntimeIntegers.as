@@ -5,7 +5,9 @@
 package test
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
@@ -16,6 +18,7 @@ package test
 
     public final class RuntimeIntegers
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeIntegers";
         private static const TMP_UINT64:UInt64 = new UInt64();
         private static const TMP_INT64:Int64 = new Int64();
@@ -127,6 +130,22 @@ package test
          */
         public static function deserializeBytes(src:ByteArray, dst:test.RuntimeIntegers = null, limit:uint = 0, reset:Boolean = true):test.RuntimeIntegers
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:test.RuntimeIntegers = null, limit:uint = 0, reset:Boolean = true):test.RuntimeIntegers
+        {
             if (!dst)
                 dst = new test.RuntimeIntegers();
             else if (reset)
@@ -134,186 +153,195 @@ package test
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 8:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        dst.int32Value = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 16:
-                    {
-                        dst.uint32Value = Deserialize.readVarint32(src);
-                        break;
-                    }
-                    case 24:
-                    {
-                        dst.sint32Value = Deserialize.readSint32(src);
-                        break;
-                    }
-                    case 37:
-                    {
-                        dst.fixed32Value = src.readUnsignedInt();
-                        break;
-                    }
-                    case 45:
-                    {
-                        dst.sfixed32Value = src.readInt();
-                        break;
-                    }
-                    case 48:
-                    {
-                        Deserialize.readVarint64s(src, dst.int64Value);
-                        break;
-                    }
-                    case 56:
-                    {
-                        Deserialize.readVarint64(src, dst.uint64Value);
-                        break;
-                    }
-                    case 64:
-                    {
-                        Deserialize.readSint64(src, dst.sint64Value);
-                        break;
-                    }
-                    case 73:
-                    {
-                        Deserialize.readFixed64(src, dst.fixed64Value);
-                        break;
-                    }
-                    case 81:
-                    {
-                        Deserialize.readSfixed64(src, dst.sfixed64Value);
-                        break;
-                    }
-                    case 88:
-                    {
-                        dst.int32Values.push(Deserialize.readInt32(src));
-                        break;
-                    }
-                    case 90:
-                    {
-                        Deserialize.readInt32Vector(src, dst.int32Values);
-                        break;
-                    }
-                    case 96:
-                    {
-                        dst.uint32Values.push(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 98:
-                    {
-                        Deserialize.readVarint32Vector(src, dst.uint32Values);
-                        break;
-                    }
-                    case 104:
-                    {
-                        dst.sint32Values.push(Deserialize.readSint32(src));
-                        break;
-                    }
-                    case 106:
-                    {
-                        Deserialize.readSint32Vector(src, dst.sint32Values);
-                        break;
-                    }
-                    case 117:
-                    {
-                        dst.fixed32Values.push(src.readUnsignedInt());
-                        break;
-                    }
-                    case 114:
-                    {
-                        Deserialize.readFixed32Vector(src, dst.fixed32Values);
-                        break;
-                    }
-                    case 125:
-                    {
-                        dst.sfixed32Values.push(src.readInt());
-                        break;
-                    }
-                    case 122:
-                    {
-                        Deserialize.readFixed32sVector(src, dst.sfixed32Values);
-                        break;
-                    }
-                    case 128:
-                    {
-                        Deserialize.readVarint64s(src, TMP_INT64);
-                        dst.int64Values.push(TMP_INT64.low, TMP_INT64.high);
-                        break;
-                    }
-                    case 130:
-                    {
-                        Deserialize.readVarint64sVector(src, dst.int64Values);
-                        break;
-                    }
-                    case 136:
-                    {
-                        Deserialize.readVarint64(src, TMP_UINT64);
-                        dst.uint64Values.push(TMP_UINT64.low, TMP_UINT64.high);
-                        break;
-                    }
-                    case 138:
-                    {
-                        Deserialize.readVarint64Vector(src, dst.uint64Values);
-                        break;
-                    }
-                    case 144:
-                    {
-                        Deserialize.readSint64(src, TMP_INT64);
-                        dst.sint64Values.push(TMP_INT64.low, TMP_INT64.high);
-                        break;
-                    }
-                    case 146:
-                    {
-                        Deserialize.readSint64Vector(src, dst.sint64Values);
-                        break;
-                    }
-                    case 153:
-                    {
-                        dst.fixed64Values.push(src.readUnsignedInt(), src.readUnsignedInt());
-                        break;
-                    }
-                    case 154:
-                    {
-                        Deserialize.readFixed64Vector(src, dst.fixed64Values);
-                        break;
-                    }
-                    case 161:
-                    {
-                        dst.sfixed64Values.push(src.readUnsignedInt(), src.readInt());
-                        break;
-                    }
-                    case 162:
-                    {
-                        Deserialize.readFixed64sVector(src, dst.sfixed64Values);
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 8:
+                        {
+                            dst.int32Value = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 16:
+                        {
+                            dst.uint32Value = Unpack.readVarint32(src);
+                            break;
+                        }
+                        case 24:
+                        {
+                            dst.sint32Value = Unpack.readSint32(src);
+                            break;
+                        }
+                        case 37:
+                        {
+                            dst.fixed32Value = Unpack.readFixed32(src);
+                            break;
+                        }
+                        case 45:
+                        {
+                            dst.sfixed32Value = Unpack.readSfixed32(src);
+                            break;
+                        }
+                        case 48:
+                        {
+                            Unpack.readVarint64s(src, dst.int64Value);
+                            break;
+                        }
+                        case 56:
+                        {
+                            Unpack.readVarint64(src, dst.uint64Value);
+                            break;
+                        }
+                        case 64:
+                        {
+                            Unpack.readSint64(src, dst.sint64Value);
+                            break;
+                        }
+                        case 73:
+                        {
+                            Unpack.readFixed64(src, dst.fixed64Value);
+                            break;
+                        }
+                        case 81:
+                        {
+                            Unpack.readSfixed64(src, dst.sfixed64Value);
+                            break;
+                        }
+                        case 88:
+                        {
+                            dst.int32Values.push(Unpack.readInt32(src));
+                            break;
+                        }
+                        case 90:
+                        {
+                            Unpack.readInt32Vector(src, dst.int32Values);
+                            break;
+                        }
+                        case 96:
+                        {
+                            dst.uint32Values.push(Unpack.readVarint32(src));
+                            break;
+                        }
+                        case 98:
+                        {
+                            Unpack.readVarint32Vector(src, dst.uint32Values);
+                            break;
+                        }
+                        case 104:
+                        {
+                            dst.sint32Values.push(Unpack.readSint32(src));
+                            break;
+                        }
+                        case 106:
+                        {
+                            Unpack.readSint32Vector(src, dst.sint32Values);
+                            break;
+                        }
+                        case 117:
+                        {
+                            dst.fixed32Values.push(Unpack.readFixed32(src));
+                            break;
+                        }
+                        case 114:
+                        {
+                            Unpack.readFixed32Vector(src, dst.fixed32Values);
+                            break;
+                        }
+                        case 125:
+                        {
+                            dst.sfixed32Values.push(Unpack.readSfixed32(src));
+                            break;
+                        }
+                        case 122:
+                        {
+                            Unpack.readFixed32sVector(src, dst.sfixed32Values);
+                            break;
+                        }
+                        case 128:
+                        {
+                            Unpack.readVarint64s(src, TMP_INT64);
+                            dst.int64Values.push(TMP_INT64.low, TMP_INT64.high);
+                            break;
+                        }
+                        case 130:
+                        {
+                            Unpack.readVarint64sVector(src, dst.int64Values);
+                            break;
+                        }
+                        case 136:
+                        {
+                            Unpack.readVarint64(src, TMP_UINT64);
+                            dst.uint64Values.push(TMP_UINT64.low, TMP_UINT64.high);
+                            break;
+                        }
+                        case 138:
+                        {
+                            Unpack.readVarint64Vector(src, dst.uint64Values);
+                            break;
+                        }
+                        case 144:
+                        {
+                            Unpack.readSint64(src, TMP_INT64);
+                            dst.sint64Values.push(TMP_INT64.low, TMP_INT64.high);
+                            break;
+                        }
+                        case 146:
+                        {
+                            Unpack.readSint64Vector(src, dst.sint64Values);
+                            break;
+                        }
+                        case 153:
+                        {
+                            dst.fixed64Values.push(Unpack.readFixed32(src), Unpack.readFixed32(src));
+                            break;
+                        }
+                        case 154:
+                        {
+                            Unpack.readFixed64Vector(src, dst.fixed64Values);
+                            break;
+                        }
+                        case 161:
+                        {
+                            dst.sfixed64Values.push(Unpack.readFixed32(src), Unpack.readSfixed32(src));
+                            break;
+                        }
+                        case 162:
+                        {
+                            Unpack.readFixed64sVector(src, dst.sfixed64Values);
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

@@ -90,7 +90,9 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 		g.w.Line("import flash.utils.ByteArray;")
 	}
 	if g.opts.generateDeserialize() {
-		g.w.Line("import as3pb.proto.Deserialize;")
+		g.w.Line("import flash.errors.EOFError;")
+		g.w.Line("import as3pb.proto.Unpack;")
+		g.w.Line("import as3pb.proto.UnpackContext;")
 	}
 	if g.opts.generateSerialize() {
 		g.w.Line("import as3pb.proto.Serialize;")
@@ -136,6 +138,9 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 }
 
 func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
+	if g.opts.generateDeserialize() {
+		g.w.Line("private static const UNPACK:UnpackContext = new UnpackContext();")
+	}
 	if g.opts.generateAny() {
 		g.w.Line(
 			`public static const TYPE_URL:String = "type.googleapis.com/%s";`,
@@ -159,9 +164,7 @@ func (g *Generator) generateAnyRegistration() {
 }
 
 func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
-	return g.opts.generateAny() ||
-		(g.opts.generateDeserialize() && (hasRepeatedSignedVarint64Fields(message) ||
-			hasRepeatedUnsignedVarint64Fields(message)))
+	return g.opts.generateDeserialize() || g.opts.generateAny()
 }
 
 func (g *Generator) needsByteArrayImport(_ *protogen.Message) bool {

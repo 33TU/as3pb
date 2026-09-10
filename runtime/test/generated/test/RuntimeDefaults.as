@@ -5,7 +5,9 @@
 package test
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
@@ -22,6 +24,7 @@ package test
      */
     public final class RuntimeDefaults
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeDefaults";
 
         public static const FIELD_PICK_A:uint = 13;
@@ -151,6 +154,22 @@ package test
          */
         public static function deserializeBytes(src:ByteArray, dst:test.RuntimeDefaults = null, limit:uint = 0, reset:Boolean = true):test.RuntimeDefaults
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:test.RuntimeDefaults = null, limit:uint = 0, reset:Boolean = true):test.RuntimeDefaults
+        {
             if (!dst)
                 dst = new test.RuntimeDefaults();
             else if (reset)
@@ -158,121 +177,130 @@ package test
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 8:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        if (dst.enabled == null)
-                            dst.enabled = new OptionalBoolean();
-                        dst.enabled.value = Deserialize.readBool(src);
-                        break;
-                    }
-                    case 16:
-                    {
-                        if (dst.speed == null)
-                            dst.speed = new OptionalInt();
-                        dst.speed.value = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 24:
-                    {
-                        if (dst.mask == null)
-                            dst.mask = new OptionalUint();
-                        dst.mask.value = Deserialize.readVarint32(src);
-                        break;
-                    }
-                    case 32:
-                    {
-                        if (dst.delta == null)
-                            dst.delta = new OptionalInt();
-                        dst.delta.value = Deserialize.readSint32(src);
-                        break;
-                    }
-                    case 42:
-                    {
-                        dst.title = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 49:
-                    {
-                        if (dst.ratio == null)
-                            dst.ratio = new OptionalNumber();
-                        dst.ratio.value = src.readDouble();
-                        break;
-                    }
-                    case 61:
-                    {
-                        if (dst.scale == null)
-                            dst.scale = new OptionalNumber();
-                        dst.scale.value = src.readFloat();
-                        break;
-                    }
-                    case 64:
-                    {
-                        if (dst.big == null)
-                            dst.big = new Int64();
-                        Deserialize.readVarint64s(src, dst.big);
-                        break;
-                    }
-                    case 72:
-                    {
-                        if (dst.huge == null)
-                            dst.huge = new UInt64();
-                        Deserialize.readVarint64(src, dst.huge);
-                        break;
-                    }
-                    case 80:
-                    {
-                        if (dst.mode == null)
-                            dst.mode = new OptionalInt();
-                        dst.mode.value = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 90:
-                    {
-                        if (dst.motd == null)
-                            dst.motd = Buffers.newByteArray();
-                        Deserialize.readBytesInto(src, dst.motd);
-                        break;
-                    }
-                    case 98:
-                    {
-                        if (dst.blob == null)
-                            dst.blob = Buffers.newByteArray();
-                        Deserialize.readBytesInto(src, dst.blob);
-                        break;
-                    }
-                    case 104:
-                    {
-                        dst.pickA = Deserialize.readInt32(src);
-                        dst.pickCase = FIELD_PICK_A;
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 8:
+                        {
+                            if (dst.enabled == null)
+                                dst.enabled = new OptionalBoolean();
+                            dst.enabled.value = Unpack.readBool(src);
+                            break;
+                        }
+                        case 16:
+                        {
+                            if (dst.speed == null)
+                                dst.speed = new OptionalInt();
+                            dst.speed.value = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 24:
+                        {
+                            if (dst.mask == null)
+                                dst.mask = new OptionalUint();
+                            dst.mask.value = Unpack.readVarint32(src);
+                            break;
+                        }
+                        case 32:
+                        {
+                            if (dst.delta == null)
+                                dst.delta = new OptionalInt();
+                            dst.delta.value = Unpack.readSint32(src);
+                            break;
+                        }
+                        case 42:
+                        {
+                            dst.title = Unpack.readString(src);
+                            break;
+                        }
+                        case 49:
+                        {
+                            if (dst.ratio == null)
+                                dst.ratio = new OptionalNumber();
+                            dst.ratio.value = Unpack.readDouble(src);
+                            break;
+                        }
+                        case 61:
+                        {
+                            if (dst.scale == null)
+                                dst.scale = new OptionalNumber();
+                            dst.scale.value = Unpack.readFloat(src);
+                            break;
+                        }
+                        case 64:
+                        {
+                            if (dst.big == null)
+                                dst.big = new Int64();
+                            Unpack.readVarint64s(src, dst.big);
+                            break;
+                        }
+                        case 72:
+                        {
+                            if (dst.huge == null)
+                                dst.huge = new UInt64();
+                            Unpack.readVarint64(src, dst.huge);
+                            break;
+                        }
+                        case 80:
+                        {
+                            if (dst.mode == null)
+                                dst.mode = new OptionalInt();
+                            dst.mode.value = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 90:
+                        {
+                            if (dst.motd == null)
+                                dst.motd = Buffers.newByteArray();
+                            Unpack.readBytesInto(src, dst.motd);
+                            break;
+                        }
+                        case 98:
+                        {
+                            if (dst.blob == null)
+                                dst.blob = Buffers.newByteArray();
+                            Unpack.readBytesInto(src, dst.blob);
+                            break;
+                        }
+                        case 104:
+                        {
+                            dst.pickA = Unpack.readInt32(src);
+                            dst.pickCase = FIELD_PICK_A;
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

@@ -204,6 +204,35 @@ just build-swc
 
 Using the runtime source is recommended for game/runtime builds where inlining and allocation behavior matter. The SWC is convenient for packaging, IDE setup, or projects that prefer binary library dependencies.
 
+### Memory decoding
+
+This branch contains an experimental AVM2 decoder. Per-message copying and
+binding can make small messages slower than the ByteArray decoder; batching and
+scalar-vector reuse show better results. It is not yet intended for main.
+
+Generated `deserializeBytes(src, dst, limit, reset)` methods retain the ByteArray API.
+They copy the range from `src.position` to the absolute `limit` (or `src.length`
+when zero) into a cached `UnpackContext`, decode through AVM2 intrinsics, and
+advance the input cursor by the bytes consumed. The input length, contents, and
+endian setting are preserved. Numeric reads use protobuf's little-endian order;
+strings still use native `readUTFBytes`.
+
+Nested messages call `deserializeMemory(context, dst, limit, reset)` and share
+the root binding. Memory positions and limits are relative to the copied range.
+The context enforces logical message bounds independently of scratch capacity.
+Each generated class caches its own context, but all contexts share one scratch
+buffer. Ordinary recursive fields share the active context instead of entering
+the ByteArray wrapper again. Independent decode operations must not overlap,
+even when they use different contexts, because a new copy overwrites the scratch
+buffer. Scratch includes 10 bytes of physical headroom for AIR's unrolled
+intrinsic readers; this does not extend the logical message limit.
+
+For internal batch operations, pair `Unpack.begin(context, input, limit)` with
+`Unpack.end(context)` in `finally`. Begin copies and binds the input; end restores
+the previous application-domain memory and publishes the consumed input cursor,
+including on decode failure. Do not begin another operation on an already active
+context. Serialization still uses the existing ByteArray implementation.
+
 ## Commands
 
 List available recipes:

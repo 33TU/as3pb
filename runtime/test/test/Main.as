@@ -63,6 +63,8 @@ package test
             runTest("testAnyRegistry", testAnyRegistry);
             runTest("testAnyRegistryFailure", testAnyRegistryFailure);
 
+            runTest("MemoryTests", MemoryTests.run);
+
             trace("ok");
         }
 

@@ -5,7 +5,9 @@
 package bench
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
@@ -15,6 +17,7 @@ package bench
 
     public final class BenchMessage
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/bench.BenchMessage";
 
         public var id:String = "";
@@ -110,6 +113,22 @@ package bench
          */
         public static function deserializeBytes(src:ByteArray, dst:bench.BenchMessage = null, limit:uint = 0, reset:Boolean = true):bench.BenchMessage
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:bench.BenchMessage = null, limit:uint = 0, reset:Boolean = true):bench.BenchMessage
+        {
             if (!dst)
                 dst = new bench.BenchMessage();
             else if (reset)
@@ -117,138 +136,147 @@ package bench
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 10:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        dst.id = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 16:
-                    {
-                        dst.sequence = Deserialize.readVarint32(src);
-                        break;
-                    }
-                    case 24:
-                    {
-                        dst.delta = Deserialize.readSint32(src);
-                        break;
-                    }
-                    case 32:
-                    {
-                        Deserialize.readVarint64(src, dst.accountId);
-                        break;
-                    }
-                    case 40:
-                    {
-                        Deserialize.readSint64(src, dst.scoreDelta);
-                        break;
-                    }
-                    case 53:
-                    {
-                        dst.checksum = src.readUnsignedInt();
-                        break;
-                    }
-                    case 57:
-                    {
-                        Deserialize.readSfixed64(src, dst.signedTick);
-                        break;
-                    }
-                    case 69:
-                    {
-                        dst.x = src.readFloat();
-                        break;
-                    }
-                    case 73:
-                    {
-                        dst.precision = src.readDouble();
-                        break;
-                    }
-                    case 80:
-                    {
-                        dst.active = Deserialize.readBool(src);
-                        break;
-                    }
-                    case 90:
-                    {
-                        Deserialize.readBytesInto(src, dst.payload);
-                        break;
-                    }
-                    case 160:
-                    {
-                        dst.samples.push(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 162:
-                    {
-                        Deserialize.readVarint32Vector(src, dst.samples);
-                        break;
-                    }
-                    case 168:
-                    {
-                        dst.offsets.push(Deserialize.readSint32(src));
-                        break;
-                    }
-                    case 170:
-                    {
-                        Deserialize.readSint32Vector(src, dst.offsets);
-                        break;
-                    }
-                    case 181:
-                    {
-                        dst.hashes.push(src.readUnsignedInt());
-                        break;
-                    }
-                    case 178:
-                    {
-                        Deserialize.readFixed32Vector(src, dst.hashes);
-                        break;
-                    }
-                    case 185:
-                    {
-                        dst.ticks.push(src.readUnsignedInt(), src.readInt());
-                        break;
-                    }
-                    case 186:
-                    {
-                        Deserialize.readFixed64sVector(src, dst.ticks);
-                        break;
-                    }
-                    case 197:
-                    {
-                        dst.positions.push(src.readFloat());
-                        break;
-                    }
-                    case 194:
-                    {
-                        Deserialize.readFloatVector(src, dst.positions);
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 10:
+                        {
+                            dst.id = Unpack.readString(src);
+                            break;
+                        }
+                        case 16:
+                        {
+                            dst.sequence = Unpack.readVarint32(src);
+                            break;
+                        }
+                        case 24:
+                        {
+                            dst.delta = Unpack.readSint32(src);
+                            break;
+                        }
+                        case 32:
+                        {
+                            Unpack.readVarint64(src, dst.accountId);
+                            break;
+                        }
+                        case 40:
+                        {
+                            Unpack.readSint64(src, dst.scoreDelta);
+                            break;
+                        }
+                        case 53:
+                        {
+                            dst.checksum = Unpack.readFixed32(src);
+                            break;
+                        }
+                        case 57:
+                        {
+                            Unpack.readSfixed64(src, dst.signedTick);
+                            break;
+                        }
+                        case 69:
+                        {
+                            dst.x = Unpack.readFloat(src);
+                            break;
+                        }
+                        case 73:
+                        {
+                            dst.precision = Unpack.readDouble(src);
+                            break;
+                        }
+                        case 80:
+                        {
+                            dst.active = Unpack.readBool(src);
+                            break;
+                        }
+                        case 90:
+                        {
+                            Unpack.readBytesInto(src, dst.payload);
+                            break;
+                        }
+                        case 160:
+                        {
+                            dst.samples.push(Unpack.readVarint32(src));
+                            break;
+                        }
+                        case 162:
+                        {
+                            Unpack.readVarint32Vector(src, dst.samples);
+                            break;
+                        }
+                        case 168:
+                        {
+                            dst.offsets.push(Unpack.readSint32(src));
+                            break;
+                        }
+                        case 170:
+                        {
+                            Unpack.readSint32Vector(src, dst.offsets);
+                            break;
+                        }
+                        case 181:
+                        {
+                            dst.hashes.push(Unpack.readFixed32(src));
+                            break;
+                        }
+                        case 178:
+                        {
+                            Unpack.readFixed32Vector(src, dst.hashes);
+                            break;
+                        }
+                        case 185:
+                        {
+                            dst.ticks.push(Unpack.readFixed32(src), Unpack.readSfixed32(src));
+                            break;
+                        }
+                        case 186:
+                        {
+                            Unpack.readFixed64sVector(src, dst.ticks);
+                            break;
+                        }
+                        case 197:
+                        {
+                            dst.positions.push(Unpack.readFloat(src));
+                            break;
+                        }
+                        case 194:
+                        {
+                            Unpack.readFloatVector(src, dst.positions);
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

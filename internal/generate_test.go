@@ -140,7 +140,14 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 	content := files[0].GetContent()
 	wantParts := []string{
 		"import flash.utils.ByteArray;",
-		"import as3pb.proto.Deserialize;",
+		"import as3pb.proto.Unpack;",
+		"import as3pb.proto.UnpackContext;",
+		"private static const UNPACK:UnpackContext = new UnpackContext();",
+		"Unpack.begin(context, src, limit);",
+		"Unpack.end(context);",
+		"src.limit = previousLimit;",
+		"messageLength = Unpack.readVarint32(src);",
+		"if (src.position > src.limit || messageLength > src.limit - src.position)",
 		"import as3pb.proto.Serialize;",
 		"import as3pb.proto.Buffers;",
 		"import as3pb.types.Int64;",
@@ -165,9 +172,9 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"else",
 		"dst.actionCase = FIELD_MOVE;",
 		"case 32:",
-		"dst.scores.push(Deserialize.readInt32(src));",
-		"dst.move = test.v1.Player.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
-		"Deserialize.readInt32Vector(src, dst.scores);",
+		"dst.scores.push(Unpack.readInt32(src));",
+		"dst.move = test.v1.Player.deserializeMemory(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);",
+		"Unpack.readInt32Vector(src, dst.scores);",
 		"public static function serializeBytes(src:test.v1.Player, dst:ByteArray):void",
 		"if (!src)",
 		"const reuseBuffer:ByteArray = Buffers.SHARED_BUFFER;",
@@ -277,8 +284,8 @@ func TestGenerateFileCanDisableDeserialize(t *testing.T) {
 	if strings.Contains(content, "public static function deserializeBytes") {
 		t.Fatalf("generated content contains deserializeBytes:\n%s", content)
 	}
-	if strings.Contains(content, "import as3pb.proto.Deserialize;") {
-		t.Fatalf("generated content contains Deserialize import:\n%s", content)
+	if strings.Contains(content, "import as3pb.proto.Unpack;") {
+		t.Fatalf("generated content contains Unpack import:\n%s", content)
 	}
 	if !strings.Contains(content, "public static function serializeBytes") {
 		t.Fatalf("generated content missing serializeBytes:\n%s", content)
@@ -297,7 +304,7 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	wantParts := []string{
 		"import google.protobuf.Any;",
 		"public var payload:google.protobuf.Any = null;",
-		"dst.payload = google.protobuf.Any.deserializeBytes(src, dst.payload, src.position + messageLength, false);",
+		"dst.payload = google.protobuf.Any.deserializeMemory(src, dst.payload, src.position + messageLength, false);",
 		"google.protobuf.Any.serializeBytes(localPayload, messageReuseBuffer);",
 	}
 	for _, want := range wantParts {
@@ -475,16 +482,16 @@ func TestGenerateFileIntegerKindsUseCorrectCodecs(t *testing.T) {
 
 	content := plugin.Response().GetFile()[0].GetContent()
 	wantParts := []string{
-		"dst.int32Value = Deserialize.readInt32(src);",
-		"dst.uint32Value = Deserialize.readVarint32(src);",
-		"dst.sint32Value = Deserialize.readSint32(src);",
-		"dst.fixed32Value = src.readUnsignedInt();",
-		"dst.sfixed32Value = src.readInt();",
-		"Deserialize.readVarint64s(src, dst.int64Value);",
-		"Deserialize.readVarint64(src, dst.uint64Value);",
-		"Deserialize.readSint64(src, dst.sint64Value);",
-		"Deserialize.readFixed64(src, dst.fixed64Value);",
-		"Deserialize.readSfixed64(src, dst.sfixed64Value);",
+		"dst.int32Value = Unpack.readInt32(src);",
+		"dst.uint32Value = Unpack.readVarint32(src);",
+		"dst.sint32Value = Unpack.readSint32(src);",
+		"dst.fixed32Value = Unpack.readFixed32(src);",
+		"dst.sfixed32Value = Unpack.readSfixed32(src);",
+		"Unpack.readVarint64s(src, dst.int64Value);",
+		"Unpack.readVarint64(src, dst.uint64Value);",
+		"Unpack.readSint64(src, dst.sint64Value);",
+		"Unpack.readFixed64(src, dst.fixed64Value);",
+		"Unpack.readSfixed64(src, dst.sfixed64Value);",
 		"Serialize.writeInt32(dst, localInt32Value);",
 		"Serialize.writeVarint32(dst, localUint32Value);",
 		"Serialize.writeSint32(dst, localSint32Value);",
@@ -495,16 +502,16 @@ func TestGenerateFileIntegerKindsUseCorrectCodecs(t *testing.T) {
 		"Serialize.writeSint64(dst, localSint64Value.low, localSint64Value.high);",
 		"dst.writeUnsignedInt(localFixed64Value.low);",
 		"dst.writeInt(localSfixed64Value.high);",
-		"Deserialize.readInt32Vector(src, dst.int32Values);",
-		"Deserialize.readVarint32Vector(src, dst.uint32Values);",
-		"Deserialize.readSint32Vector(src, dst.sint32Values);",
-		"Deserialize.readFixed32Vector(src, dst.fixed32Values);",
-		"Deserialize.readFixed32sVector(src, dst.sfixed32Values);",
-		"Deserialize.readVarint64sVector(src, dst.int64Values);",
-		"Deserialize.readVarint64Vector(src, dst.uint64Values);",
-		"Deserialize.readSint64Vector(src, dst.sint64Values);",
-		"Deserialize.readFixed64Vector(src, dst.fixed64Values);",
-		"Deserialize.readFixed64sVector(src, dst.sfixed64Values);",
+		"Unpack.readInt32Vector(src, dst.int32Values);",
+		"Unpack.readVarint32Vector(src, dst.uint32Values);",
+		"Unpack.readSint32Vector(src, dst.sint32Values);",
+		"Unpack.readFixed32Vector(src, dst.fixed32Values);",
+		"Unpack.readFixed32sVector(src, dst.sfixed32Values);",
+		"Unpack.readVarint64sVector(src, dst.int64Values);",
+		"Unpack.readVarint64Vector(src, dst.uint64Values);",
+		"Unpack.readSint64Vector(src, dst.sint64Values);",
+		"Unpack.readFixed64Vector(src, dst.fixed64Values);",
+		"Unpack.readFixed64sVector(src, dst.sfixed64Values);",
 		"Serialize.writeInt32Vector(dst, localInt32Values, reuseBuffer, vecLength);",
 		"Serialize.writeVarint32Vector(dst, localUint32Values, reuseBuffer, vecLength);",
 		"Serialize.writeSint32Vector(dst, localSint32Values, reuseBuffer, vecLength);",

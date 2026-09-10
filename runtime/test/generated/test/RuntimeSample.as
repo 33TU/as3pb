@@ -5,7 +5,9 @@
 package test
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
@@ -18,6 +20,7 @@ package test
 
     public final class RuntimeSample
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/test.RuntimeSample";
 
         public static const FIELD_NAME:uint = 9;
@@ -185,6 +188,22 @@ package test
          */
         public static function deserializeBytes(src:ByteArray, dst:test.RuntimeSample = null, limit:uint = 0, reset:Boolean = true):test.RuntimeSample
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:test.RuntimeSample = null, limit:uint = 0, reset:Boolean = true):test.RuntimeSample
+        {
             if (!dst)
                 dst = new test.RuntimeSample();
             else if (reset)
@@ -194,210 +213,228 @@ package test
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 10:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        dst.id = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 18:
-                    {
-                        Deserialize.readBytesInto(src, dst.payload);
-                        break;
-                    }
-                    case 24:
-                    {
-                        Deserialize.readVarint64(src, dst.count);
-                        break;
-                    }
-                    case 32:
-                    {
-                        Deserialize.readSint64(src, dst.delta);
-                        break;
-                    }
-                    case 40:
-                    {
-                        dst.scores.push(Deserialize.readSint32(src));
-                        break;
-                    }
-                    case 42:
-                    {
-                        Deserialize.readSint32Vector(src, dst.scores);
-                        break;
-                    }
-                    case 50:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, src.position + messageLength, false);
-                        break;
-                    }
-                    case 58:
-                    {
-                        const msgChildren:test.RuntimeNested = new test.RuntimeNested();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            test.RuntimeNested.deserializeBytes(src, msgChildren, src.position + messageLength);
-                        dst.children.push(msgChildren);
-                        break;
-                    }
-                    case 65:
-                    {
-                        Deserialize.readFixed64(src, dst.checksum);
-                        break;
-                    }
-                    case 88:
-                    {
-                        dst.signedCount = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 96:
-                    {
-                        dst.expandedScores.push(Deserialize.readInt32(src));
-                        break;
-                    }
-                    case 98:
-                    {
-                        Deserialize.readInt32Vector(src, dst.expandedScores);
-                        break;
-                    }
-                    case 104:
-                    {
-                        if (dst.optionalCount == null)
-                            dst.optionalCount = new OptionalInt();
-                        dst.optionalCount.value = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 112:
-                    {
-                        if (dst.optionalEnabled == null)
-                            dst.optionalEnabled = new OptionalBoolean();
-                        dst.optionalEnabled.value = Deserialize.readBool(src);
-                        break;
-                    }
-                    case 122:
-                    {
-                        dst.optionalLabel = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 130:
-                    {
-                        if (dst.optionalPayload == null)
-                            dst.optionalPayload = Buffers.newByteArray();
-                        Deserialize.readBytesInto(src, dst.optionalPayload);
-                        break;
-                    }
-                    case 136:
-                    {
-                        if (dst.optionalTotal == null)
-                            dst.optionalTotal = new UInt64();
-                        Deserialize.readVarint64(src, dst.optionalTotal);
-                        break;
-                    }
-                    case 146:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, src.position + messageLength, false);
-                        break;
-                    }
-                    case 152:
-                    {
-                        if (dst.optionalDelta == null)
-                            dst.optionalDelta = new Int64();
-                        Deserialize.readSint64(src, dst.optionalDelta);
-                        break;
-                    }
-                    case 176:
-                    {
-                        if (dst.optionalStatus == null)
-                            dst.optionalStatus = new OptionalInt();
-                        dst.optionalStatus.value = Deserialize.readInt32(src);
-                        break;
-                    }
-                    case 189:
-                    {
-                        if (dst.optionalFloat == null)
-                            dst.optionalFloat = new OptionalNumber();
-                        dst.optionalFloat.value = src.readFloat();
-                        break;
-                    }
-                    case 193:
-                    {
-                        if (dst.optionalDouble == null)
-                            dst.optionalDouble = new OptionalNumber();
-                        dst.optionalDouble.value = src.readDouble();
-                        break;
-                    }
-                    case 205:
-                    {
-                        if (dst.optionalFixed32 == null)
-                            dst.optionalFixed32 = new OptionalUint();
-                        dst.optionalFixed32.value = src.readUnsignedInt();
-                        break;
-                    }
-                    case 209:
-                    {
-                        if (dst.optionalFixed64 == null)
-                            dst.optionalFixed64 = new UInt64();
-                        Deserialize.readFixed64(src, dst.optionalFixed64);
-                        break;
-                    }
-                    case 216:
-                    {
-                        if (dst.optionalInt64 == null)
-                            dst.optionalInt64 = new Int64();
-                        Deserialize.readVarint64s(src, dst.optionalInt64);
-                        break;
-                    }
-                    case 74:
-                    {
-                        dst.name = src.readUTFBytes(Deserialize.readVarint32(src));
-                        dst.choiceCase = FIELD_NAME;
-                        break;
-                    }
-                    case 82:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
-                        dst.choiceCase = FIELD_SELECTED;
-                        break;
-                    }
-                    case 160:
-                    {
-                        Deserialize.readVarint64s(src, dst.choiceDelta);
-                        dst.choiceCase = FIELD_CHOICE_DELTA;
-                        break;
-                    }
-                    case 170:
-                    {
-                        Deserialize.readBytesInto(src, dst.choicePayload);
-                        dst.choiceCase = FIELD_CHOICE_PAYLOAD;
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 10:
+                        {
+                            dst.id = Unpack.readString(src);
+                            break;
+                        }
+                        case 18:
+                        {
+                            Unpack.readBytesInto(src, dst.payload);
+                            break;
+                        }
+                        case 24:
+                        {
+                            Unpack.readVarint64(src, dst.count);
+                            break;
+                        }
+                        case 32:
+                        {
+                            Unpack.readSint64(src, dst.delta);
+                            break;
+                        }
+                        case 40:
+                        {
+                            dst.scores.push(Unpack.readSint32(src));
+                            break;
+                        }
+                        case 42:
+                        {
+                            Unpack.readSint32Vector(src, dst.scores);
+                            break;
+                        }
+                        case 50:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.nested = test.RuntimeNested.deserializeMemory(src, dst.nested, src.position + messageLength, false);
+                            break;
+                        }
+                        case 58:
+                        {
+                            const msgChildren:test.RuntimeNested = new test.RuntimeNested();
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            if (messageLength !== 0)
+                                test.RuntimeNested.deserializeMemory(src, msgChildren, src.position + messageLength);
+                            dst.children.push(msgChildren);
+                            break;
+                        }
+                        case 65:
+                        {
+                            Unpack.readFixed64(src, dst.checksum);
+                            break;
+                        }
+                        case 88:
+                        {
+                            dst.signedCount = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 96:
+                        {
+                            dst.expandedScores.push(Unpack.readInt32(src));
+                            break;
+                        }
+                        case 98:
+                        {
+                            Unpack.readInt32Vector(src, dst.expandedScores);
+                            break;
+                        }
+                        case 104:
+                        {
+                            if (dst.optionalCount == null)
+                                dst.optionalCount = new OptionalInt();
+                            dst.optionalCount.value = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 112:
+                        {
+                            if (dst.optionalEnabled == null)
+                                dst.optionalEnabled = new OptionalBoolean();
+                            dst.optionalEnabled.value = Unpack.readBool(src);
+                            break;
+                        }
+                        case 122:
+                        {
+                            dst.optionalLabel = Unpack.readString(src);
+                            break;
+                        }
+                        case 130:
+                        {
+                            if (dst.optionalPayload == null)
+                                dst.optionalPayload = Buffers.newByteArray();
+                            Unpack.readBytesInto(src, dst.optionalPayload);
+                            break;
+                        }
+                        case 136:
+                        {
+                            if (dst.optionalTotal == null)
+                                dst.optionalTotal = new UInt64();
+                            Unpack.readVarint64(src, dst.optionalTotal);
+                            break;
+                        }
+                        case 146:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.optionalNested = test.RuntimeNested.deserializeMemory(src, dst.optionalNested, src.position + messageLength, false);
+                            break;
+                        }
+                        case 152:
+                        {
+                            if (dst.optionalDelta == null)
+                                dst.optionalDelta = new Int64();
+                            Unpack.readSint64(src, dst.optionalDelta);
+                            break;
+                        }
+                        case 176:
+                        {
+                            if (dst.optionalStatus == null)
+                                dst.optionalStatus = new OptionalInt();
+                            dst.optionalStatus.value = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 189:
+                        {
+                            if (dst.optionalFloat == null)
+                                dst.optionalFloat = new OptionalNumber();
+                            dst.optionalFloat.value = Unpack.readFloat(src);
+                            break;
+                        }
+                        case 193:
+                        {
+                            if (dst.optionalDouble == null)
+                                dst.optionalDouble = new OptionalNumber();
+                            dst.optionalDouble.value = Unpack.readDouble(src);
+                            break;
+                        }
+                        case 205:
+                        {
+                            if (dst.optionalFixed32 == null)
+                                dst.optionalFixed32 = new OptionalUint();
+                            dst.optionalFixed32.value = Unpack.readFixed32(src);
+                            break;
+                        }
+                        case 209:
+                        {
+                            if (dst.optionalFixed64 == null)
+                                dst.optionalFixed64 = new UInt64();
+                            Unpack.readFixed64(src, dst.optionalFixed64);
+                            break;
+                        }
+                        case 216:
+                        {
+                            if (dst.optionalInt64 == null)
+                                dst.optionalInt64 = new Int64();
+                            Unpack.readVarint64s(src, dst.optionalInt64);
+                            break;
+                        }
+                        case 74:
+                        {
+                            dst.name = Unpack.readString(src);
+                            dst.choiceCase = FIELD_NAME;
+                            break;
+                        }
+                        case 82:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.selected = test.RuntimeNested.deserializeMemory(src, dst.selected, src.position + messageLength, dst.choiceCase != FIELD_SELECTED);
+                            dst.choiceCase = FIELD_SELECTED;
+                            break;
+                        }
+                        case 160:
+                        {
+                            Unpack.readVarint64s(src, dst.choiceDelta);
+                            dst.choiceCase = FIELD_CHOICE_DELTA;
+                            break;
+                        }
+                        case 170:
+                        {
+                            Unpack.readBytesInto(src, dst.choicePayload);
+                            dst.choiceCase = FIELD_CHOICE_PAYLOAD;
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

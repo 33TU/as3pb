@@ -5,7 +5,9 @@
 package example.game
 {
     import flash.utils.ByteArray;
-    import as3pb.proto.Deserialize;
+    import flash.errors.EOFError;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Serialize;
     import as3pb.proto.Buffers;
     import as3pb.types.UInt64;
@@ -13,6 +15,7 @@ package example.game
 
     public final class Player
     {
+        private static const UNPACK:UnpackContext = new UnpackContext();
         public static const TYPE_URL:String = "type.googleapis.com/example.game.Player";
 
         public static const FIELD_MOVE:uint = 7;
@@ -105,6 +108,22 @@ package example.game
          */
         public static function deserializeBytes(src:ByteArray, dst:example.game.Player = null, limit:uint = 0, reset:Boolean = true):example.game.Player
         {
+            const context:UnpackContext = UNPACK;
+            Unpack.begin(context, src, limit);
+            try
+            {
+                dst = deserializeMemory(context, dst, context.limit, reset);
+            }
+            finally
+            {
+                Unpack.end(context);
+            }
+            return dst;
+        }
+
+        /** Decode within an active memory binding; nested messages share the context. */
+        public static function deserializeMemory(src:UnpackContext, dst:example.game.Player = null, limit:uint = 0, reset:Boolean = true):example.game.Player
+        {
             if (!dst)
                 dst = new example.game.Player();
             else if (reset)
@@ -114,83 +133,98 @@ package example.game
 
             const end:uint = limit
                 ? limit
-                : src.position + src.bytesAvailable;
+                : src.limit;
 
-            if (end < src.position || end > src.length)
+            if (end < src.position || end > src.limit)
                 throw new Error("Invalid protobuf message limit");
 
-            while (src.position < end)
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
             {
-                const tag:uint = Deserialize.readTag(src);
-                switch (tag)
+                while (src.position < end)
                 {
-                    case 10:
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
                     {
-                        dst.id = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 18:
-                    {
-                        dst.displayName = src.readUTFBytes(Deserialize.readVarint32(src));
-                        break;
-                    }
-                    case 24:
-                    {
-                        Deserialize.readVarint64(src, dst.score);
-                        break;
-                    }
-                    case 32:
-                    {
-                        dst.inventoryItemIds.push(Deserialize.readInt32(src));
-                        break;
-                    }
-                    case 34:
-                    {
-                        Deserialize.readInt32Vector(src, dst.inventoryItemIds);
-                        break;
-                    }
-                    case 42:
-                    {
-                        Deserialize.readBytesInto(src, dst.avatar);
-                        break;
-                    }
-                    case 50:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.position = example.game.Point.deserializeBytes(src, dst.position, src.position + messageLength, false);
-                        break;
-                    }
-                    case 58:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.move = example.game.Move.deserializeBytes(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);
-                        dst.actionCase = FIELD_MOVE;
-                        break;
-                    }
-                    case 66:
-                    {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.chat = example.game.Chat.deserializeBytes(src, dst.chat, src.position + messageLength, dst.actionCase != FIELD_CHAT);
-                        dst.actionCase = FIELD_CHAT;
-                        break;
-                    }
-                    default:
-                    {
-                        if ((tag >>> 3) == 0)
-                            throw new Error("Invalid protobuf field number");
+                        case 10:
+                        {
+                            dst.id = Unpack.readString(src);
+                            break;
+                        }
+                        case 18:
+                        {
+                            dst.displayName = Unpack.readString(src);
+                            break;
+                        }
+                        case 24:
+                        {
+                            Unpack.readVarint64(src, dst.score);
+                            break;
+                        }
+                        case 32:
+                        {
+                            dst.inventoryItemIds.push(Unpack.readInt32(src));
+                            break;
+                        }
+                        case 34:
+                        {
+                            Unpack.readInt32Vector(src, dst.inventoryItemIds);
+                            break;
+                        }
+                        case 42:
+                        {
+                            Unpack.readBytesInto(src, dst.avatar);
+                            break;
+                        }
+                        case 50:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.position = example.game.Point.deserializeMemory(src, dst.position, src.position + messageLength, false);
+                            break;
+                        }
+                        case 58:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.move = example.game.Move.deserializeMemory(src, dst.move, src.position + messageLength, dst.actionCase != FIELD_MOVE);
+                            dst.actionCase = FIELD_MOVE;
+                            break;
+                        }
+                        case 66:
+                        {
+                            messageLength = Unpack.readVarint32(src);
+                            if (src.position > src.limit || messageLength > src.limit - src.position)
+                                throw new EOFError("Truncated protobuf input");
+                            dst.chat = example.game.Chat.deserializeMemory(src, dst.chat, src.position + messageLength, dst.actionCase != FIELD_CHAT);
+                            dst.actionCase = FIELD_CHAT;
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
 
-                        if (dst.unknownFields == null)
-                            dst.unknownFields = Buffers.newByteArray();
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
 
-                        Deserialize.captureUnknownField(src, tag, dst.unknownFields);
-                        break;
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
                     }
                 }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
             }
-
-            if (src.position > end)
-                throw new Error("Truncated protobuf message");
-
+            finally
+            {
+                src.limit = previousLimit;
+            }
             return dst;
         }
 

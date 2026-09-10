@@ -27,6 +27,29 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Line("{")
 	g.w.Indent()
 
+	g.w.Line("const context:UnpackContext = UNPACK;")
+	g.w.Line("Unpack.begin(context, src, limit);")
+	g.w.Line("try")
+	g.w.Line("{")
+	g.w.Indent()
+	g.w.Line("dst = deserializeMemory(context, dst, context.limit, reset);")
+	g.w.Dedent()
+	g.w.Line("}")
+	g.w.Line("finally")
+	g.w.Line("{")
+	g.w.Indent()
+	g.w.Line("Unpack.end(context);")
+	g.w.Dedent()
+	g.w.Line("}")
+	g.w.Line("return dst;")
+	g.w.Dedent()
+	g.w.Line("}")
+	g.w.BlankLine()
+	g.w.Line("/** Decode within an active memory binding; nested messages share the context. */")
+	g.w.Line("public static function deserializeMemory(src:UnpackContext, dst:%s = null, limit:uint = 0, reset:Boolean = true):%s", messageName, messageName)
+	g.w.Line("{")
+	g.w.Indent()
+
 	g.w.Line("if (!dst)")
 	g.w.Indent()
 	g.w.Line("dst = new %s();", messageName)
@@ -45,18 +68,23 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Line("const end:uint = limit")
 	g.w.Indent()
 	g.w.Line("? limit")
-	g.w.Line(": src.position + src.bytesAvailable;")
+	g.w.Line(": src.limit;")
 	g.w.Dedent()
 	g.w.BlankLine()
-	g.w.Line("if (end < src.position || end > src.length)")
+	g.w.Line("if (end < src.position || end > src.limit)")
 	g.w.Indent()
 	g.w.Line(`throw new Error("Invalid protobuf message limit");`)
 	g.w.Dedent()
 	g.w.BlankLine()
+	g.w.Line("const previousLimit:uint = src.limit;")
+	g.w.Line("src.limit = end;")
+	g.w.Line("try")
+	g.w.Line("{")
+	g.w.Indent()
 	g.w.Line("while (src.position < end)")
 	g.w.Line("{")
 	g.w.Indent()
-	g.w.Line("const tag:uint = Deserialize.readTag(src);")
+	g.w.Line("const tag:uint = Unpack.readTag(src);")
 	g.w.Line("switch (tag)")
 	g.w.Line("{")
 	g.w.Indent()
@@ -90,7 +118,7 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Line("dst.unknownFields = Buffers.newByteArray();")
 	g.w.Dedent()
 	g.w.BlankLine()
-	g.w.Line("Deserialize.captureUnknownField(src, tag, dst.unknownFields);")
+	g.w.Line("Unpack.captureUnknownField(src, tag, dst.unknownFields);")
 	g.w.Line("break;")
 	g.w.Dedent()
 	g.w.Line("}")
@@ -107,6 +135,14 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Dedent()
 	g.w.BlankLine()
 
+	g.w.Dedent()
+	g.w.Line("}")
+	g.w.Line("finally")
+	g.w.Line("{")
+	g.w.Indent()
+	g.w.Line("src.limit = previousLimit;")
+	g.w.Dedent()
+	g.w.Line("}")
 	g.w.Line("return dst;")
 	g.w.Dedent()
 	g.w.Line("}")
@@ -185,40 +221,40 @@ func (g *Generator) generateFieldDeserializerForType(
 ) {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
-		g.w.Line("%s = Deserialize.readBool(src);", fieldName)
+		g.w.Line("%s = Unpack.readBool(src);", fieldName)
 	case protoreflect.Uint32Kind:
-		g.w.Line("%s = Deserialize.readVarint32(src);", fieldName)
+		g.w.Line("%s = Unpack.readVarint32(src);", fieldName)
 	case protoreflect.EnumKind, protoreflect.Int32Kind:
-		g.w.Line("%s = Deserialize.readInt32(src);", fieldName)
+		g.w.Line("%s = Unpack.readInt32(src);", fieldName)
 	case protoreflect.Sint32Kind:
-		g.w.Line("%s = Deserialize.readSint32(src);", fieldName)
+		g.w.Line("%s = Unpack.readSint32(src);", fieldName)
 	case protoreflect.Sfixed32Kind:
-		g.w.Line("%s = src.readInt();", fieldName)
+		g.w.Line("%s = Unpack.readSfixed32(src);", fieldName)
 	case protoreflect.Fixed32Kind:
-		g.w.Line("%s = src.readUnsignedInt();", fieldName)
+		g.w.Line("%s = Unpack.readFixed32(src);", fieldName)
 	case protoreflect.Int64Kind:
-		g.w.Line("Deserialize.readVarint64s(src, %s);", fieldName)
+		g.w.Line("Unpack.readVarint64s(src, %s);", fieldName)
 	case protoreflect.Sint64Kind:
-		g.w.Line("Deserialize.readSint64(src, %s);", fieldName)
+		g.w.Line("Unpack.readSint64(src, %s);", fieldName)
 	case protoreflect.Uint64Kind:
-		g.w.Line("Deserialize.readVarint64(src, %s);", fieldName)
+		g.w.Line("Unpack.readVarint64(src, %s);", fieldName)
 	case protoreflect.Sfixed64Kind:
-		g.w.Line("Deserialize.readSfixed64(src, %s);", fieldName)
+		g.w.Line("Unpack.readSfixed64(src, %s);", fieldName)
 	case protoreflect.Fixed64Kind:
-		g.w.Line("Deserialize.readFixed64(src, %s);", fieldName)
+		g.w.Line("Unpack.readFixed64(src, %s);", fieldName)
 	case protoreflect.FloatKind:
-		g.w.Line("%s = src.readFloat();", fieldName)
+		g.w.Line("%s = Unpack.readFloat(src);", fieldName)
 	case protoreflect.DoubleKind:
-		g.w.Line("%s = src.readDouble();", fieldName)
+		g.w.Line("%s = Unpack.readDouble(src);", fieldName)
 	case protoreflect.StringKind:
-		g.w.Line("%s = src.readUTFBytes(Deserialize.readVarint32(src));", fieldName)
+		g.w.Line("%s = Unpack.readString(src);", fieldName)
 	case protoreflect.BytesKind:
-		g.w.Line("Deserialize.readBytesInto(src, %s);", fieldName)
+		g.w.Line("Unpack.readBytesInto(src, %s);", fieldName)
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
-		g.w.Line("messageLength = Deserialize.readVarint32(src);")
+		g.generateMessageLength()
 		g.w.Line(
-			"%s = %s.deserializeBytes(src, %s, src.position + messageLength, %s);",
+			"%s = %s.deserializeMemory(src, %s, src.position + messageLength, %s);",
 			fieldName,
 			messageType,
 			fieldName,
@@ -230,47 +266,48 @@ func (g *Generator) generateFieldDeserializerForType(
 func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *protogen.Field, fieldName string, currentPackage string) {
 	switch field.Desc.Kind() {
 	case protoreflect.BoolKind:
-		g.w.Line("%s.push(Deserialize.readBool(src));", fieldName)
+		g.w.Line("%s.push(Unpack.readBool(src));", fieldName)
 	case protoreflect.Uint32Kind:
-		g.w.Line("%s.push(Deserialize.readVarint32(src));", fieldName)
+		g.w.Line("%s.push(Unpack.readVarint32(src));", fieldName)
 	case protoreflect.EnumKind, protoreflect.Int32Kind:
-		g.w.Line("%s.push(Deserialize.readInt32(src));", fieldName)
+		g.w.Line("%s.push(Unpack.readInt32(src));", fieldName)
 	case protoreflect.Sint32Kind:
-		g.w.Line("%s.push(Deserialize.readSint32(src));", fieldName)
+		g.w.Line("%s.push(Unpack.readSint32(src));", fieldName)
 	case protoreflect.Sfixed32Kind:
-		g.w.Line("%s.push(src.readInt());", fieldName)
+		g.w.Line("%s.push(Unpack.readSfixed32(src));", fieldName)
 	case protoreflect.Fixed32Kind:
-		g.w.Line("%s.push(src.readUnsignedInt());", fieldName)
+		g.w.Line("%s.push(Unpack.readFixed32(src));", fieldName)
 	case protoreflect.Uint64Kind:
-		g.w.Line("Deserialize.readVarint64(src, TMP_UINT64);")
+		g.w.Line("Unpack.readVarint64(src, TMP_UINT64);")
 		g.w.Line("%s.push(TMP_UINT64.low, TMP_UINT64.high);", fieldName)
 	case protoreflect.Int64Kind:
-		g.w.Line("Deserialize.readVarint64s(src, TMP_INT64);")
+		g.w.Line("Unpack.readVarint64s(src, TMP_INT64);")
 		g.w.Line("%s.push(TMP_INT64.low, TMP_INT64.high);", fieldName)
 	case protoreflect.Sint64Kind:
-		g.w.Line("Deserialize.readSint64(src, TMP_INT64);")
+		g.w.Line("Unpack.readSint64(src, TMP_INT64);")
 		g.w.Line("%s.push(TMP_INT64.low, TMP_INT64.high);", fieldName)
 	case protoreflect.Sfixed64Kind:
-		g.w.Line("%s.push(src.readUnsignedInt(), src.readInt());", fieldName)
+		g.w.Line("%s.push(Unpack.readFixed32(src), Unpack.readSfixed32(src));", fieldName)
 	case protoreflect.Fixed64Kind:
-		g.w.Line("%s.push(src.readUnsignedInt(), src.readUnsignedInt());", fieldName)
+		g.w.Line("%s.push(Unpack.readFixed32(src), Unpack.readFixed32(src));", fieldName)
 	case protoreflect.FloatKind:
-		g.w.Line("%s.push(src.readFloat());", fieldName)
+		g.w.Line("%s.push(Unpack.readFloat(src));", fieldName)
 	case protoreflect.DoubleKind:
-		g.w.Line("%s.push(src.readDouble());", fieldName)
+		g.w.Line("%s.push(Unpack.readDouble(src));", fieldName)
 	case protoreflect.StringKind:
-		g.w.Line("%s.push(src.readUTFBytes(Deserialize.readVarint32(src)));", fieldName)
+		g.w.Line("%s.push(Unpack.readString(src));", fieldName)
 	case protoreflect.BytesKind:
 		g.w.Line("var tmp:ByteArray = Buffers.newByteArray();")
-		g.w.Line("Deserialize.readBytesInto(src, tmp);")
+		g.w.Line("Unpack.readBytesInto(src, tmp);")
 		g.w.Line("%s.push(tmp);", fieldName)
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
 		messageName := "msg" + FieldNamePascal(field)
 		g.w.Line("const %s:%s = new %s();", messageName, messageType, messageType)
-		g.w.Line("if ((messageLength = Deserialize.readVarint32(src)) !== 0)")
+		g.generateMessageLength()
+		g.w.Line("if (messageLength !== 0)")
 		g.w.Indent()
-		g.w.Line("%s.deserializeBytes(src, %s, src.position + messageLength);", messageType, messageName)
+		g.w.Line("%s.deserializeMemory(src, %s, src.position + messageLength);", messageType, messageName)
 		g.w.Dedent()
 		g.w.Line("%s.push(%s);", fieldName, messageName)
 	}
@@ -279,32 +316,41 @@ func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *prot
 func (g *Generator) generateFieldDeserializerForRepeatedPackedType(field *protogen.Field, fieldName string) {
 	switch field.Desc.Kind() {
 	case protoreflect.Uint32Kind:
-		g.w.Line("Deserialize.readVarint32Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readVarint32Vector(src, %s);", fieldName)
 	case protoreflect.EnumKind, protoreflect.Int32Kind:
-		g.w.Line("Deserialize.readInt32Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readInt32Vector(src, %s);", fieldName)
 	case protoreflect.Sint32Kind:
-		g.w.Line("Deserialize.readSint32Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readSint32Vector(src, %s);", fieldName)
 	case protoreflect.Int64Kind:
-		g.w.Line("Deserialize.readVarint64sVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readVarint64sVector(src, %s);", fieldName)
 	case protoreflect.Uint64Kind:
-		g.w.Line("Deserialize.readVarint64Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readVarint64Vector(src, %s);", fieldName)
 	case protoreflect.Sint64Kind:
-		g.w.Line("Deserialize.readSint64Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readSint64Vector(src, %s);", fieldName)
 	case protoreflect.Fixed32Kind:
-		g.w.Line("Deserialize.readFixed32Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readFixed32Vector(src, %s);", fieldName)
 	case protoreflect.Sfixed32Kind:
-		g.w.Line("Deserialize.readFixed32sVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readFixed32sVector(src, %s);", fieldName)
 	case protoreflect.Fixed64Kind:
-		g.w.Line("Deserialize.readFixed64Vector(src, %s);", fieldName)
+		g.w.Line("Unpack.readFixed64Vector(src, %s);", fieldName)
 	case protoreflect.Sfixed64Kind:
-		g.w.Line("Deserialize.readFixed64sVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readFixed64sVector(src, %s);", fieldName)
 	case protoreflect.FloatKind:
-		g.w.Line("Deserialize.readFloatVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readFloatVector(src, %s);", fieldName)
 	case protoreflect.DoubleKind:
-		g.w.Line("Deserialize.readDoubleVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readDoubleVector(src, %s);", fieldName)
 	case protoreflect.BoolKind:
-		g.w.Line("Deserialize.readBoolVector(src, %s);", fieldName)
+		g.w.Line("Unpack.readBoolVector(src, %s);", fieldName)
 	default:
 		g.w.Line("// unsupported packed field %s", fmt.Sprint(field.Desc.FullName()))
 	}
+}
+
+// Emit the length read here so ASC2 can inline the varint reader directly.
+func (g *Generator) generateMessageLength() {
+	g.w.Line("messageLength = Unpack.readVarint32(src);")
+	g.w.Line("if (src.position > src.limit || messageLength > src.limit - src.position)")
+	g.w.Indent()
+	g.w.Line(`throw new EOFError("Truncated protobuf input");`)
+	g.w.Dedent()
 }
