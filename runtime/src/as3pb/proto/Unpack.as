@@ -720,28 +720,32 @@ package as3pb.proto
             highVec.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                lowVec[i] = readFixed32(src);
-                highVec[i] = readFixed32(src);
+                lowVec[i] = uint(li32(position));
+                highVec[i] = uint(li32(position + 4));
 
-                lowVec[i + 1] = readFixed32(src);
-                highVec[i + 1] = readFixed32(src);
+                lowVec[i + 1] = uint(li32(position + 8));
+                highVec[i + 1] = uint(li32(position + 12));
 
-                lowVec[i + 2] = readFixed32(src);
-                highVec[i + 2] = readFixed32(src);
+                lowVec[i + 2] = uint(li32(position + 16));
+                highVec[i + 2] = uint(li32(position + 20));
 
-                lowVec[i + 3] = readFixed32(src);
-                highVec[i + 3] = readFixed32(src);
+                lowVec[i + 3] = uint(li32(position + 24));
+                highVec[i + 3] = uint(li32(position + 28));
+                position += 32;
             }
 
             for (; i < outEnd; i++)
             {
-                lowVec[i] = readFixed32(src);
-                highVec[i] = readFixed32(src);
+                lowVec[i] = uint(li32(position));
+                highVec[i] = uint(li32(position + 4));
+                position += 8;
             }
 
+            src.position = position;
             if ((n << 3) != length)
                 throw new IOError("Fixed64 vector length mismatch");
         }
@@ -834,28 +838,32 @@ package as3pb.proto
             highVec.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                lowVec[i] = readFixed32(src);
-                highVec[i] = readSfixed32(src);
+                lowVec[i] = uint(li32(position));
+                highVec[i] = int(li32(position + 4));
 
-                lowVec[i + 1] = readFixed32(src);
-                highVec[i + 1] = readSfixed32(src);
+                lowVec[i + 1] = uint(li32(position + 8));
+                highVec[i + 1] = int(li32(position + 12));
 
-                lowVec[i + 2] = readFixed32(src);
-                highVec[i + 2] = readSfixed32(src);
+                lowVec[i + 2] = uint(li32(position + 16));
+                highVec[i + 2] = int(li32(position + 20));
 
-                lowVec[i + 3] = readFixed32(src);
-                highVec[i + 3] = readSfixed32(src);
+                lowVec[i + 3] = uint(li32(position + 24));
+                highVec[i + 3] = int(li32(position + 28));
+                position += 32;
             }
 
             for (; i < outEnd; i++)
             {
-                lowVec[i] = readFixed32(src);
-                highVec[i] = readSfixed32(src);
+                lowVec[i] = uint(li32(position));
+                highVec[i] = int(li32(position + 4));
+                position += 8;
             }
 
+            src.position = position;
             if ((n << 3) != length)
                 throw new IOError("Fixed64 vector length mismatch");
         }

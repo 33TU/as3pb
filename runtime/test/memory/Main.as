@@ -5,6 +5,10 @@ package memory
     import flash.utils.ByteArray;
     import flash.utils.Endian;
     import as3pb.proto.*;
+    import as3pb.types.Int64Vector;
+    import as3pb.types.UInt64Vector;
+    import flash.errors.IOError;
+    import flash.errors.EOFError;
     import test.RuntimeSample;
     import test.RuntimeNested;
     import test.RuntimeAnyEnvelope;
@@ -27,6 +31,7 @@ package memory
                 nestedContexts(sentinel);
                 failureRestoration(sentinel);
                 capacityAndBinding(sentinel);
+                fixedVectors(sentinel);
                 trace("MEMORY BACKEND TESTS PASSED");
             }
             finally
@@ -284,6 +289,79 @@ package memory
             check(failed && input.position == 1, "logical varint boundary");
             check(ApplicationDomain.currentDomain.domainMemory === previous, "failed varint restored binding");
         }
+        private static function fixedVectors(previous:ByteArray):void
+        {
+            const bytes:ByteArray = new ByteArray();
+            bytes.endian = Endian.LITTLE_ENDIAN;
+            const context:UnpackContext = new UnpackContext();
+            const unsigned:UInt64Vector = new UInt64Vector();
+            const signed:Int64Vector = new Int64Vector();
+            for each (var count:uint in [0, 1, 3, 4, 5, 8, 9])
+            {
+                bytes.position = 7;
+                bytes.writeByte(count * 8);
+                for (var i:uint = 0; i < count; i++)
+                {
+                    bytes.writeUnsignedInt(0xabcdef00 + i);
+                    bytes.writeInt(-1 - i);
+                }
+                bytes.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+                bytes.position = 7;
+                unsigned.length = 0;
+                signed.length = 0;
+                Unpack.begin(context, bytes, 1 + count * 8);
+                try
+                {
+                    for (var pass:uint = 0; pass < 2; pass++)
+                    {
+                        context.position = 7;
+                        Unpack.readFixed64Vector(context, unsigned);
+                        check(context.position == 8 + count * 8, "unsigned fixed vector cursor");
+                        context.position = 7;
+                        Unpack.readFixed64sVector(context, signed);
+                        check(context.position == 8 + count * 8, "signed fixed vector cursor");
+                    }
+                    check(unsigned.length == count * 2 && signed.length == count * 2,
+                        "fixed vectors append, including empty vectors");
+                    for (i = 0; i < count * 2; i++)
+                    {
+                        check(unsigned.low[i] == uint(0xabcdef00 + i % count) &&
+                            unsigned.high[i] == uint(-1 - int(i % count)), "unsigned fixed vector words");
+                        check(signed.low[i] == uint(0xabcdef00 + i % count) &&
+                            signed.high[i] == -1 - int(i % count), "signed fixed vector words");
+                    }
+                }
+                finally { Unpack.end(context); }
+            }
+            for each (var length:uint in [1, 7, 9, 15])
+            {
+                bytes[7] = length;
+                for (var variant:uint = 0; variant < 2; variant++)
+                {
+                    bytes.position = 7;
+                    Unpack.begin(context, bytes, 1 + length);
+                    var failed:Boolean = false;
+                    try
+                    {
+                        if (variant) Unpack.readFixed64sVector(context, signed);
+                        else Unpack.readFixed64Vector(context, unsigned);
+                    }
+                    catch (error:IOError) { failed = true; }
+                    finally { Unpack.end(context); }
+                    check(failed && context.position == 8 + (length & ~7), "fixed vector partial element");
+                }
+            }
+            bytes[7] = 8;
+            bytes.position = 7;
+            Unpack.begin(context, bytes, 1);
+            failed = false;
+            try { Unpack.readFixed64Vector(context, unsigned); }
+            catch (error:EOFError) { failed = true; }
+            finally { Unpack.end(context); }
+            check(failed, "fixed vector respects logical limit despite spare capacity");
+            check(ApplicationDomain.currentDomain.domainMemory === previous, "fixed vectors restore binding");
+        }
+
         private static function capacityAndBinding(previous:ByteArray):void
         {
             const bytes:ByteArray = new ByteArray();
