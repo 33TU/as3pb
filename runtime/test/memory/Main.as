@@ -33,6 +33,7 @@ package memory
                 capacityAndBinding(sentinel);
                 fixedVectors(sentinel);
                 boolVectors(sentinel);
+                varint32Vectors(sentinel);
                 trace("MEMORY BACKEND TESTS PASSED");
             }
             finally
@@ -290,6 +291,58 @@ package memory
             check(failed && input.position == 1, "logical varint boundary");
             check(ApplicationDomain.currentDomain.domainMemory === previous, "failed varint restored binding");
         }
+        private static function varint32Vectors(previous:ByteArray):void
+        {
+            const bytes:ByteArray = new ByteArray();
+            const context:UnpackContext = new UnpackContext();
+            const fixtures:Array = [
+                [], [127], [0, 1, 127], [0, 1, 2, 127], [0, 1, 2, 127, 126],
+                [128, 1, 0, 1, 2, 127], [0, 128, 1, 1, 2, 127],
+                [0, 1, 128, 1, 2, 127], [0, 1, 2, 128, 1, 127],
+                [0, 1, 2, 127, 255, 255, 255, 255, 15, 0, 1, 2, 127],
+                [0, 1, 2, 127, 255, 255, 255, 255, 255, 255, 255, 255, 255, 1]
+            ];
+            for each (var data:Array in fixtures)
+            {
+                bytes.position = 3;
+                bytes.writeByte(data.length);
+                for each (var value:uint in data) bytes.writeByte(value);
+                bytes.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+                for (var variant:uint = 0; variant < 4; variant++)
+                {
+                    const expectedUnsigned:Vector.<uint> = new <uint>[42];
+                    const actualUnsigned:Vector.<uint> = new <uint>[42];
+                    const expectedSigned:Vector.<int> = new <int>[42];
+                    const actualSigned:Vector.<int> = new <int>[42];
+                    bytes.position = 3;
+                    switch (variant)
+                    {
+                        case 0: Deserialize.readVarint32Vector(bytes, expectedUnsigned); break;
+                        case 1: Deserialize.readVarint32sVector(bytes, expectedSigned); break;
+                        case 2: Deserialize.readInt32Vector(bytes, expectedSigned); break;
+                        case 3: Deserialize.readSint32Vector(bytes, expectedSigned); break;
+                    }
+                    bytes.position = 3;
+                    Unpack.begin(context, bytes, 1 + data.length);
+                    try
+                    {
+                        switch (variant)
+                        {
+                            case 0: Unpack.readVarint32Vector(context, actualUnsigned); break;
+                            case 1: Unpack.readVarint32sVector(context, actualSigned); break;
+                            case 2: Unpack.readInt32Vector(context, actualSigned); break;
+                            case 3: Unpack.readSint32Vector(context, actualSigned); break;
+                        }
+                        check(actualUnsigned.join() == expectedUnsigned.join() &&
+                            actualSigned.join() == expectedSigned.join(), "batched varint values and append");
+                        check(context.position == 4 + data.length, "batched varint cursor");
+                    }
+                    finally { Unpack.end(context); }
+                }
+            }
+            check(ApplicationDomain.currentDomain.domainMemory === previous, "varint vectors restore binding");
+        }
+
         private static function boolVectors(previous:ByteArray):void
         {
             const bytes:ByteArray = new ByteArray();

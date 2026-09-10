@@ -198,6 +198,21 @@ package as3pb.proto
             if (end > src.limit)
                 throw new EOFError("Truncated protobuf input");
 
+            while (src.position + 4 <= end)
+            {
+                const word:uint = uint(li32(src.position));
+                if ((word & 0x80808080) == 0)
+                {
+                    out.push(word & 0x7f, (word >>> 8) & 0x7f,
+                        (word >>> 16) & 0x7f, word >>> 24);
+                    src.position += 4;
+                }
+                else
+                {
+                    out.push(readVarint32(src));
+                }
+            }
+
             while (src.position < end)
                 out.push(readVarint32(src));
 
@@ -217,6 +232,21 @@ package as3pb.proto
 
             if (end > src.limit)
                 throw new EOFError("Truncated protobuf input");
+
+            while (src.position + 4 <= end)
+            {
+                const word:uint = uint(li32(src.position));
+                if ((word & 0x80808080) == 0)
+                {
+                    out.push(word & 0x7f, (word >>> 8) & 0x7f,
+                        (word >>> 16) & 0x7f, word >>> 24);
+                    src.position += 4;
+                }
+                else
+                {
+                    out.push(readVarint32(src));
+                }
+            }
 
             while (src.position < end)
                 out.push(readVarint32(src));
@@ -306,6 +336,21 @@ package as3pb.proto
 
             if (end > src.limit)
                 throw new EOFError("Truncated protobuf input");
+
+            while (src.position + 4 <= end)
+            {
+                const word:uint = uint(li32(src.position));
+                if ((word & 0x80808080) == 0)
+                {
+                    out.push(word & 0x7f, (word >>> 8) & 0x7f,
+                        (word >>> 16) & 0x7f, word >>> 24);
+                    src.position += 4;
+                }
+                else
+                {
+                    out.push(readInt32(src));
+                }
+            }
 
             while (src.position < end)
                 out.push(readInt32(src));
@@ -548,6 +593,22 @@ package as3pb.proto
 
             if (end > src.limit)
                 throw new EOFError("Truncated protobuf input");
+
+            while (src.position + 4 <= end)
+            {
+                const word:uint = uint(li32(src.position));
+                if ((word & 0x80808080) == 0)
+                {
+                    out.push(int(((word >>> 1) & 0x3f) ^ (-((word >>> 0) & 1))), int(((word >>> 9) & 0x3f) ^ (-((word >>> 8) & 1))),
+                        int(((word >>> 17) & 0x3f) ^ (-((word >>> 16) & 1))), int(((word >>> 25) & 0x3f) ^ (-((word >>> 24) & 1))));
+                    src.position += 4;
+                }
+                else
+                {
+                    const value:uint = readVarint32(src);
+                    out.push(int((value >>> 1) ^ (-(value & 1))));
+                }
+            }
 
             while (src.position < end)
             {
