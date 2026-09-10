@@ -10,6 +10,7 @@ package as3pb.proto
     /**
      * Serialization utilities for Protocol Buffers in ActionScript 3 using AVM2 domain memory.
      * Intrinsic writes always use little-endian byte order.
+     * Writers reserve their own capacity; packed vectors reserve once before looping.
      */
     public final class Pack
     {
@@ -22,6 +23,8 @@ package as3pb.proto
         {
             if (!dst || context.bytes)
                 throw new ArgumentError("Destination must be non-null and context must be inactive");
+            if (dst.length > 0x7fffffff)
+                throw new RangeError("Domain memory output is too large");
             const previous:ByteArray = DOMAIN.domainMemory;
             DOMAIN.domainMemory = dst;
             context.previous = previous;
@@ -41,18 +44,18 @@ package as3pb.proto
             context.bytes = null;
         }
 
-        /** Grow the caller-owned buffer before intrinsic writes when needed. */
+        /** Reserve capacity before intrinsic writes. The context must already be bound. */
         [Inline]
         public static function ensure(context:PackContext, count:Number):void
         {
-            if (!context.bytes)
-                throw new Error("Pack context is not active");
-
-            const required:Number = Number(context.position) + count;
-            if (required > 0x7fffffff)
-                throw new RangeError("Domain memory output is too large");
+            const required:Number = context.position + count;
             if (required > context.bytes.length)
-                context.bytes.length = uint(Math.min(0x7fffffff, Math.max(required, Number(context.bytes.length) * 2)));
+            {
+                if (required > 0x7fffffff)
+                    throw new RangeError("Domain memory output is too large");
+                const bytes:ByteArray = context.bytes;
+                bytes.length = uint(Math.min(0x7fffffff, Math.max(required, Number(bytes.length) * 2)));
+            }
         }
 
         [Inline]
@@ -108,7 +111,7 @@ package as3pb.proto
                 dst.bytes.writeBytes(dst.bytes, start + 5, length);
             }
             dst.position = start;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
             dst.position = start + width + length;
         }
 
@@ -120,7 +123,7 @@ package as3pb.proto
         [Inline]
         public static function writeVarint32(dst:PackContext, value:uint):void
         {
-            ensure(dst, 10);
+            ensure(dst, 5);
             // 1 byte
             if (value < 0x80)
             {
@@ -183,9 +186,11 @@ package as3pb.proto
          */
         public static function writeVarint32Vector(dst:PackContext, vec:Vector.<uint>, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 5 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             for (var i:uint = 0; i < n; i++)
-                writeVarint32(dst, vec[i]);
+                writeVarint32Unchecked(dst, uint(vec[i]));
             endMessage(dst, start);
         }
 
@@ -197,9 +202,11 @@ package as3pb.proto
          */
         public static function writeVarint32sVector(dst:PackContext, vec:Vector.<int>, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 5 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             for (var i:uint = 0; i < n; i++)
-                writeVarint32(dst, vec[i]);
+                writeVarint32Unchecked(dst, uint(vec[i]));
             endMessage(dst, start);
         }
 
@@ -310,11 +317,13 @@ package as3pb.proto
          */
         public static function writeVarint64Vector(dst:PackContext, vec:UInt64Vector, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 10 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             const low:Vector.<uint> = vec.low;
             const high:Vector.<uint> = vec.high;
             for (var i:uint = 0; i < n; i++)
-                writeVarint64(dst, low[i], high[i]);
+                writeVarint64Unchecked(dst, low[i], uint(high[i]));
             endMessage(dst, start);
         }
 
@@ -425,11 +434,13 @@ package as3pb.proto
          */
         public static function writeVarint64sVector(dst:PackContext, vec:Int64Vector, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 10 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             const low:Vector.<uint> = vec.low;
             const high:Vector.<int> = vec.high;
             for (var i:uint = 0; i < n; i++)
-                writeVarint64s(dst, low[i], high[i]);
+                writeVarint64Unchecked(dst, low[i], uint(high[i]));
             endMessage(dst, start);
         }
 
@@ -522,9 +533,11 @@ package as3pb.proto
          */
         public static function writeInt32Vector(dst:PackContext, vec:Vector.<int>, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 10 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             for (var i:uint = 0; i < n; i++)
-                writeInt32(dst, vec[i]);
+                writeVarint64Unchecked(dst, uint(vec[i]), vec[i] < 0 ? 0xffffffff : 0);
             endMessage(dst, start);
         }
 
@@ -536,7 +549,7 @@ package as3pb.proto
         [Inline]
         public static function writeSint32(dst:PackContext, value:int):void
         {
-            ensure(dst, 10);
+            ensure(dst, 5);
             const encoded:uint = uint((value << 1) ^ (value >> 31));
 
             // 1 byte
@@ -601,9 +614,11 @@ package as3pb.proto
          */
         public static function writeSint32Vector(dst:PackContext, vec:Vector.<int>, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 5 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             for (var i:uint = 0; i < n; i++)
-                writeSint32(dst, vec[i]);
+                writeVarint32Unchecked(dst, uint((vec[i] << 1) ^ (vec[i] >> 31)));
             endMessage(dst, start);
         }
 
@@ -722,11 +737,14 @@ package as3pb.proto
          */
         public static function writeSint64Vector(dst:PackContext, vec:Int64Vector, n:uint):void
         {
-            const start:uint = startMessage(dst);
+            ensure(dst, Number(n) * 10 + 5);
+            const start:uint = dst.position;
+            dst.position += 5;
             const low:Vector.<uint> = vec.low;
             const high:Vector.<int> = vec.high;
             for (var i:uint = 0; i < n; i++)
-                writeSint64(dst, low[i], high[i]);
+                writeVarint64Unchecked(dst, uint((low[i] << 1) ^ (high[i] >> 31)),
+                    uint(((high[i] << 1) | (low[i] >>> 31)) ^ (high[i] >> 31)));
             endMessage(dst, start);
         }
 
@@ -753,7 +771,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 4 + 5);
             const length:uint = n << 2;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             // 4x unrolled loop
             var i:uint = 0;
@@ -801,7 +819,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 4 + 5);
             const length:uint = n << 2;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             // 4x unrolled loop
             var i:uint = 0;
@@ -853,7 +871,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 8 + 5);
             const length:uint = n << 3;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             const lowVec:Vector.<uint> = vec.low;
             const highVec:Vector.<uint> = vec.high;
@@ -921,7 +939,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 8 + 5);
             const length:uint = n << 3;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             const lowVec:Vector.<uint> = vec.low;
             const highVec:Vector.<int> = vec.high;
@@ -986,7 +1004,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 4 + 5);
             const length:uint = n << 2;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             var i:uint = 0;
 
@@ -1036,7 +1054,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 8 + 5);
             const length:uint = n << 3;
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             // 4x unrolled loop
             var i:uint = 0;
@@ -1084,7 +1102,7 @@ package as3pb.proto
         {
             ensure(dst, Number(n) * 1 + 5);
             const length:uint = n; // 1 byte per boolean
-            writeVarint32(dst, length);
+            writeVarint32Unchecked(dst, length);
 
             // 4x unrolled loop
             var i:uint = 0;
@@ -1118,7 +1136,8 @@ package as3pb.proto
             reuseBuffer.writeUTFBytes(value);
 
             const length:uint = reuseBuffer.length;
-            writeVarint32(dst, length);
+            ensure(dst, Number(length) + 5);
+            writeVarint32Unchecked(dst, length);
             writeRawBytes(dst, reuseBuffer, 0, length);
         }
 
@@ -1130,7 +1149,8 @@ package as3pb.proto
         public static function writeBytes(dst:PackContext, value:ByteArray):void
         {
             const length:uint = value.length;
-            writeVarint32(dst, length);
+            ensure(dst, Number(length) + 5);
+            writeVarint32Unchecked(dst, length);
             writeRawBytes(dst, value, 0, length);
         }
 
@@ -1143,7 +1163,159 @@ package as3pb.proto
          */
         public static function writeTag(dst:PackContext, fieldNumber:uint, wireType:uint):void
         {
-            writeVarint32(dst, (fieldNumber << 3) | wireType);
+            ensure(dst, 5);
+            writeVarint32Unchecked(dst, (fieldNumber << 3) | wireType);
+        }
+
+        /** Write into capacity already reserved by the enclosing operation. */
+        [Inline]
+        private static function writeVarint32Unchecked(dst:PackContext, value:uint):void
+        {
+            // 1 byte
+            if (value < 0x80)
+            {
+                si8(value, dst.position);
+                dst.position++;
+                return;
+            }
+
+            // 2 bytes
+            if (value < 0x4000)
+            {
+                si16(((value >>> 7) << 8) | ((value & 0x7F) | 0x80), dst.position);
+                dst.position += 2;
+                return;
+            }
+
+            // 3 bytes
+            if (value < 0x200000)
+            {
+                si16(
+                        ((((value >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((value & 0x7F) | 0x80),
+                        dst.position);
+                dst.position += 2;
+                si8(value >>> 14, dst.position);
+                dst.position++;
+                return;
+            }
+
+            // 4 bytes
+            if (value < 0x10000000)
+            {
+                si32(
+                        ((value >>> 21) << 24) |
+                        ((((value >>> 14) & 0x7F) | 0x80) << 16) |
+                        ((((value >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((value & 0x7F) | 0x80),
+                        dst.position);
+                dst.position += 4;
+                return;
+            }
+
+            // 5 bytes
+            si32(
+                    ((((value >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((value >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((value >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((value & 0x7F) | 0x80),
+                    dst.position);
+            dst.position += 4;
+            si8(value >>> 28, dst.position);
+            dst.position++;
+        }
+
+        /** Write into capacity already reserved by the enclosing operation. */
+        [Inline]
+        private static function writeVarint64Unchecked(dst:PackContext, low:uint, high:uint):void
+        {
+            if (high != 0)
+            {
+                // A nonzero high word guarantees at least five encoded bytes.
+                si32(
+                        (((low >>> 21) & 0x7F) << 24) |
+                        (((low >>> 14) & 0x7F) << 16) |
+                        (((low >>> 7) & 0x7F) << 8) |
+                        (low & 0x7F) | 0x80808080, dst.position);
+                dst.position += 4;
+                low = (low >>> 28) | (high << 4);
+                high >>>= 28;
+
+                if (high != 0)
+                {
+                    si32(
+                            (((low >>> 21) & 0x7F) << 24) |
+                            (((low >>> 14) & 0x7F) << 16) |
+                            (((low >>> 7) & 0x7F) << 8) |
+                            (low & 0x7F) | 0x80808080, dst.position);
+                    dst.position += 4;
+                    const last:uint = (low >>> 28) | (high << 4);
+                    if (last < 0x80)
+                    {
+                        si8(last, dst.position);
+                        dst.position++;
+                    }
+                    else
+                    {
+                        si16(((last >>> 7) << 8) | (last & 0x7F) | 0x80, dst.position);
+                        dst.position += 2;
+                    }
+                    return;
+                }
+            }
+
+            // 1 byte
+            if (low < 0x80)
+            {
+                si8(low, dst.position);
+                dst.position++;
+                return;
+            }
+
+            // 2 bytes
+            if (low < 0x4000)
+            {
+                si16(((low >>> 7) << 8) | ((low & 0x7F) | 0x80), dst.position);
+                dst.position += 2;
+                return;
+            }
+
+            // 3 bytes
+            if (low < 0x200000)
+            {
+                si16(
+                        ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((low & 0x7F) | 0x80),
+                        dst.position);
+                dst.position += 2;
+                si8(low >>> 14, dst.position);
+                dst.position++;
+                return;
+            }
+
+            // 4 bytes
+            if (low < 0x10000000)
+            {
+                si32(
+                        ((low >>> 21) << 24) |
+                        ((((low >>> 14) & 0x7F) | 0x80) << 16) |
+                        ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                        ((low & 0x7F) | 0x80),
+                        dst.position);
+                dst.position += 4;
+                return;
+            }
+
+            // 5 bytes
+            si32(
+                    ((((low >>> 21) & 0x7F) | 0x80) << 24) |
+                    ((((low >>> 14) & 0x7F) | 0x80) << 16) |
+                    ((((low >>> 7) & 0x7F) | 0x80) << 8) |
+                    ((low & 0x7F) | 0x80),
+                    dst.position);
+            dst.position += 4;
+            si8(low >>> 28, dst.position);
+            dst.position++;
         }
     }
 }

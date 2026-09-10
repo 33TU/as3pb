@@ -297,6 +297,12 @@ package memory
                 check(ApplicationDomain.currentDomain.domainMemory === bytes, "caller buffer bound for encode");
                 Pack.writeVarint32(encoder, 42);
                 check(bytes[start] == 42, "encoded byte immediately visible");
+                const capacityBefore:uint = bytes.length;
+                var oversized:Boolean = false;
+                try { Pack.ensure(encoder, 0x80000000); }
+                catch (error:RangeError) { oversized = true; }
+                check(oversized && bytes.length == capacityBefore && encoder.position == start + 1,
+                    "oversized reservation rejected before resizing or advancing");
             }
             finally
             {
@@ -330,6 +336,21 @@ package memory
             }
             check(failed && bytes.length == capacity, "caller must supply spare capacity");
             check(ApplicationDomain.currentDomain.domainMemory === previous, "failed begin preserves binding");
+
+            bytes.position = capacity - 1;
+            Pack.begin(encoder, bytes);
+            try
+            {
+                Pack.writeVarint32(encoder, 0xffffffff);
+                check(bytes.length > capacity && encoder.position == capacity + 4,
+                    "scalar writer grows capacity without an explicit reservation");
+                check(bytes[capacity - 1] == 0xff && bytes[capacity + 3] == 0x0f,
+                    "scalar growth preserves encoded bytes");
+            }
+            finally
+            {
+                Pack.end(encoder);
+            }
         }
     }
 }

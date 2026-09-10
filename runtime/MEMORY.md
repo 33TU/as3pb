@@ -66,6 +66,9 @@ little-endian values. A null source writes an empty payload.
 length when sending the result. Truncate only after unbinding if you need a compact
 ByteArray, and restore its minimum capacity before binding it again.
 
+Writers handle capacity internally. Packed vectors reserve their maximum encoded
+size once before writing elements.
+
 ## Decoding directly from caller-owned memory
 
 ```actionscript
