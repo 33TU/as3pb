@@ -720,25 +720,24 @@ package as3pb.proto
             out.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                out[i] = uint(li32(src.position));
-                src.position += 4;
-                out[i + 1] = uint(li32(src.position));
-                src.position += 4;
-                out[i + 2] = uint(li32(src.position));
-                src.position += 4;
-                out[i + 3] = uint(li32(src.position));
-                src.position += 4;
+                out[i] = uint(li32(position));
+                out[i + 1] = uint(li32(position + 4));
+                out[i + 2] = uint(li32(position + 8));
+                out[i + 3] = uint(li32(position + 12));
+                position += 16;
             }
 
             for (; i < outEnd; i++)
             {
-                out[i] = uint(li32(src.position));
-                src.position += 4;
+                out[i] = uint(li32(position));
+                position += 4;
             }
 
+            src.position = position;
             if ((n << 2) != length)
                 throw new IOError("Fixed32 vector length mismatch");
         }

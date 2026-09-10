@@ -412,7 +412,7 @@ package memory
             const context:UnpackContext = new UnpackContext();
             const words:Array = [0, 0x80000000, 0x7f800000, 0xff800000, 0x7fc00001, 0x3fa00000, 0xbfa00000, 1];
             const highWords:Array = [0, 0x80000000, 0x7ff00000, 0xfff00000, 0x7ff80000, 0x3ff40000, 0xbff40000, 1];
-            for (var variant:uint = 0; variant < 3; variant++)
+            for (var variant:uint = 0; variant < 4; variant++)
             {
                 const width:uint = variant == 2 ? 8 : 4;
                 for each (var count:uint in [0, 1, 3, 4, 5, 8, 9])
@@ -429,23 +429,28 @@ package memory
                         else bytes.writeUnsignedInt(words[i % words.length]);
                     }
                     bytes.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+                    const expectedUnsigned:Vector.<uint> = new <uint>[42];
+                    const actualUnsigned:Vector.<uint> = new <uint>[42];
                     const expectedInts:Vector.<int> = new <int>[42];
                     const actualInts:Vector.<int> = new <int>[42];
                     const expected:Vector.<Number> = new <Number>[42];
                     const actual:Vector.<Number> = new <Number>[42];
                     bytes.position = 5;
-                    if (variant == 0) Deserialize.readFixed32sVector(bytes, expectedInts);
+                    if (variant == 3) Deserialize.readFixed32Vector(bytes, expectedUnsigned);
+                    else if (variant == 0) Deserialize.readFixed32sVector(bytes, expectedInts);
                     else if (variant == 1) Deserialize.readFloatVector(bytes, expected);
                     else Deserialize.readDoubleVector(bytes, expected);
                     bytes.position = 5;
                     Unpack.begin(context, bytes, 1 + count * width);
                     try
                     {
-                        if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
+                        if (variant == 3) Unpack.readFixed32Vector(context, actualUnsigned);
+                        else if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
                         else if (variant == 1) Unpack.readFloatVector(context, actual);
                         else Unpack.readDoubleVector(context, actual);
                         check(context.position == 6 + count * width, "fixed width vector cursor");
-                        check(actualInts.join() == expectedInts.join() && actual.length == expected.length,
+                        check(actualUnsigned.join() == expectedUnsigned.join() &&
+                            actualInts.join() == expectedInts.join() && actual.length == expected.length,
                             "fixed width vectors append, including empty input");
                         for (i = 0; i < expected.length; i++)
                             check((isNaN(actual[i]) && isNaN(expected[i])) ||
@@ -462,7 +467,8 @@ package memory
                     var failed:Boolean = false;
                     try
                     {
-                        if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
+                        if (variant == 3) Unpack.readFixed32Vector(context, actualUnsigned);
+                        else if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
                         else if (variant == 1) Unpack.readFloatVector(context, actual);
                         else Unpack.readDoubleVector(context, actual);
                     }
