@@ -15,9 +15,11 @@ import (
 
 func main() {
 	options := internal.Options{
-		Debug:          parseBool(os.Getenv("AS3PB_DEBUG")),
-		GenerateAlways: parseBool(os.Getenv("AS3PB_GENERATE_ALWAYS")),
-		Indent:         os.Getenv("AS3PB_INDENT"),
+		Debug:                     parseBool(os.Getenv("AS3PB_DEBUG")),
+		GenerateAlways:            parseBool(os.Getenv("AS3PB_GENERATE_ALWAYS")),
+		Indent:                    os.Getenv("AS3PB_INDENT"),
+		GenerateSerializeMemory:   parseBool(os.Getenv("AS3PB_GENERATE_SERIALIZE_MEMORY")),
+		GenerateDeserializeMemory: parseBool(os.Getenv("AS3PB_GENERATE_DESERIALIZE_MEMORY")),
 	}
 	if value := os.Getenv("AS3PB_INLINE_RESET"); value != "" {
 		inlineReset := parseBool(value)
@@ -61,6 +63,10 @@ func main() {
 			case "generate_serialize":
 				generateSerialize := parseBool(value)
 				options.GenerateSerialize = &generateSerialize
+			case "generate_serialize_memory":
+				options.GenerateSerializeMemory = parseBool(value)
+			case "generate_deserialize_memory":
+				options.GenerateDeserializeMemory = parseBool(value)
 			case "generate_deserialize":
 				generateDeserialize := parseBool(value)
 				options.GenerateDeserialize = &generateDeserialize

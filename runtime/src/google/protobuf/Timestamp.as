@@ -7,6 +7,10 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Buffers;
     import as3pb.types.Int64;
     import as3pb.wkt.AnyRegistry;
@@ -242,6 +246,99 @@ package google.protobuf
 
             if (src.unknownFields)
                 dst.writeBytes(src.unknownFields);
+        }
+
+        /**
+         * Deserializes the message from protobuf wire format.
+         * @param src The active UnpackContext; bind with Unpack.begin first.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
+         * @param reset Whether to reset a reusable destination before decoding.
+         */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Timestamp, length:uint, reset:Boolean = true):google.protobuf.Timestamp
+        {
+            if (!dst)
+                dst = new google.protobuf.Timestamp();
+            else if (reset)
+                google.protobuf.Timestamp.reset(dst);
+
+            if (!length)
+                return dst;
+            else if (src.position > src.limit || length > src.limit - src.position)
+                throw new Error("Invalid protobuf message length");
+
+            const end:uint = src.position + length;
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
+            {
+
+                while (src.position < end)
+                {
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
+                    {
+                        case 8:
+                        {
+                            Unpack.readVarint64s(src, dst.seconds);
+                            break;
+                        }
+                        case 16:
+                        {
+                            dst.nanos = Unpack.readInt32(src);
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
+
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
+
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
+                    }
+                }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
+            }
+            finally
+            {
+                src.limit = previousLimit;
+            }
+            return dst;
+        }
+
+        /**
+         * Serializes the message to protobuf wire format.
+         * @param src The message to serialize; null writes an empty payload.
+         * @param dst The active PackContext; bind with Pack.begin first.
+         */
+        public static function serializeMemory(src:google.protobuf.Timestamp, dst:PackContext):void
+        {
+            if (!src)
+                return;
+
+            const localSeconds:Int64 = src.seconds;
+            const localNanos:int = src.nanos;
+
+            if (localSeconds.low || localSeconds.high)
+            {
+                Pack.writeByte(dst, 8);
+                Pack.writeVarint64s(dst, localSeconds.low, localSeconds.high);
+            }
+            if (localNanos)
+            {
+                Pack.writeByte(dst, 16);
+                Pack.writeInt32(dst, localNanos);
+            }
+
+            if (src.unknownFields)
+                Pack.writeRawBytes(dst, src.unknownFields);
         }
 
         {

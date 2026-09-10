@@ -151,7 +151,7 @@ as3-protoc \
 Available options:
 
 - `debug`: print generator debug logs.
-- `generate_always`: generate files even when protoc did not mark them for generation.
+- `generate_always`: generate files even when protoc did not mark them for generation, except bundled Google protobuf types.
 - `indent`: set the generated indentation string. Defaults to four spaces.
 - `inline_reset`: emit `[Inline]` on generated reset methods. Defaults to true.
 - `generate_any`: emit message type URLs and automatic `AnyRegistry` registration. Defaults to true.
@@ -160,6 +160,8 @@ Available options:
   saves real SWF bytes when the app never clones messages.
 - `generate_serialize`: emit `serializeBytes` methods. Defaults to true.
 - `generate_deserialize`: emit `deserializeBytes` methods. Defaults to true.
+- `generate_serialize_memory`: emit `serializeMemory` methods. Defaults to false.
+- `generate_deserialize_memory`: emit `deserializeMemory` methods. Defaults to false.
 
 The same options can be set with environment variables:
 
@@ -171,6 +173,10 @@ The same options can be set with environment variables:
 - `AS3PB_GENERATE_CLONE`
 - `AS3PB_GENERATE_SERIALIZE`
 - `AS3PB_GENERATE_DESERIALIZE`
+- `AS3PB_GENERATE_SERIALIZE_MEMORY`
+- `AS3PB_GENERATE_DESERIALIZE_MEMORY`
+
+See [the memory backend guide](runtime/MEMORY.md) for the opt-in AVM2 APIs and context lifecycle.
 
 ## Use The Runtime
 
@@ -255,7 +261,7 @@ Build the runtime SWC:
 just build-swc
 ```
 
-Regenerate the runtime-provided Google protobuf types:
+The runtime-provided Google protobuf types ship with both ByteArray and memory methods. Regenerate them with:
 
 ```sh
 just generate-google-protobuf

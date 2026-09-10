@@ -4,15 +4,17 @@ import "log/slog"
 
 // Options controls generator behavior.
 type Options struct {
-	Debug               bool
-	GenerateAlways      bool
-	GenerateAny         *bool
-	GenerateClone       *bool
-	GenerateSerialize   *bool
-	GenerateDeserialize *bool
-	Indent              string
-	InlineReset         *bool
-	Logger              *slog.Logger
+	Debug                     bool
+	GenerateAlways            bool
+	GenerateAny               *bool
+	GenerateClone             *bool
+	GenerateSerialize         *bool
+	GenerateDeserialize       *bool
+	GenerateSerializeMemory   bool
+	GenerateDeserializeMemory bool
+	Indent                    string
+	InlineReset               *bool
+	Logger                    *slog.Logger
 }
 
 func (o Options) logger() *slog.Logger {
@@ -47,4 +49,16 @@ func (o Options) generateSerialize() bool {
 
 func (o Options) generateDeserialize() bool {
 	return o.GenerateDeserialize == nil || *o.GenerateDeserialize
+}
+
+func (o Options) generateSerializeMemory() bool {
+	return o.GenerateSerializeMemory
+}
+
+func (o Options) generateDeserializeMemory() bool {
+	return o.GenerateDeserializeMemory
+}
+
+func (o Options) anyDeserialize() bool {
+	return o.generateDeserialize() || o.generateDeserializeMemory()
 }

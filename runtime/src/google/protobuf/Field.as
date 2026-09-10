@@ -7,6 +7,10 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
 
@@ -313,6 +317,196 @@ package google.protobuf
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        /**
+         * Deserializes the message from protobuf wire format.
+         * @param src The active UnpackContext; bind with Unpack.begin first.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
+         * @param reset Whether to reset a reusable destination before decoding.
+         */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Field, length:uint, reset:Boolean = true):google.protobuf.Field
+        {
+            if (!dst)
+                dst = new google.protobuf.Field();
+            else if (reset)
+                google.protobuf.Field.reset(dst);
+
+            if (!length)
+                return dst;
+            else if (src.position > src.limit || length > src.limit - src.position)
+                throw new Error("Invalid protobuf message length");
+
+            const end:uint = src.position + length;
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
+            {
+
+                while (src.position < end)
+                {
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
+                    {
+                        case 8:
+                        {
+                            dst.kind = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 16:
+                        {
+                            dst.cardinality = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 24:
+                        {
+                            dst.number = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 34:
+                        {
+                            dst.name = Unpack.readString(src);
+                            break;
+                        }
+                        case 50:
+                        {
+                            dst.typeUrl = Unpack.readString(src);
+                            break;
+                        }
+                        case 56:
+                        {
+                            dst.oneofIndex = Unpack.readInt32(src);
+                            break;
+                        }
+                        case 64:
+                        {
+                            dst.packed = Unpack.readBool(src);
+                            break;
+                        }
+                        case 74:
+                        {
+                            dst.options.push(google.protobuf.Option.deserializeMemory(src, null, Unpack.readVarint32(src)));
+                            break;
+                        }
+                        case 82:
+                        {
+                            dst.jsonName = Unpack.readString(src);
+                            break;
+                        }
+                        case 90:
+                        {
+                            dst.defaultValue = Unpack.readString(src);
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
+
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
+
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
+                    }
+                }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
+            }
+            finally
+            {
+                src.limit = previousLimit;
+            }
+            return dst;
+        }
+
+        /**
+         * Serializes the message to protobuf wire format.
+         * @param src The message to serialize; null writes an empty payload.
+         * @param dst The active PackContext; bind with Pack.begin first.
+         */
+        public static function serializeMemory(src:google.protobuf.Field, dst:PackContext):void
+        {
+            if (!src)
+                return;
+
+            var vecIndex:uint = 0;
+            var vecLength:uint = 0;
+            var messageStart:uint;
+
+            const localKind:int = src.kind;
+            const localCardinality:int = src.cardinality;
+            const localNumber:int = src.number;
+            const localName:String = src.name;
+            const localTypeUrl:String = src.typeUrl;
+            const localOneofIndex:int = src.oneofIndex;
+            const localPacked:Boolean = src.packed;
+            const localOptions:Vector.<google.protobuf.Option> = src.options;
+            const localJsonName:String = src.jsonName;
+            const localDefaultValue:String = src.defaultValue;
+
+            if (localKind)
+            {
+                Pack.writeByte(dst, 8);
+                Pack.writeInt32(dst, localKind);
+            }
+            if (localCardinality)
+            {
+                Pack.writeByte(dst, 16);
+                Pack.writeInt32(dst, localCardinality);
+            }
+            if (localNumber)
+            {
+                Pack.writeByte(dst, 24);
+                Pack.writeInt32(dst, localNumber);
+            }
+            if (localName)
+            {
+                Pack.writeByte(dst, 34);
+                Pack.writeString(dst, localName);
+            }
+            if (localTypeUrl)
+            {
+                Pack.writeByte(dst, 50);
+                Pack.writeString(dst, localTypeUrl);
+            }
+            if (localOneofIndex)
+            {
+                Pack.writeByte(dst, 56);
+                Pack.writeInt32(dst, localOneofIndex);
+            }
+            if (localPacked)
+            {
+                Pack.writeByte(dst, 64);
+                Pack.writeByte(dst, localPacked ? 1 : 0);
+            }
+            if ((vecLength = localOptions.length) !== 0)
+            {
+                for (vecIndex = 0; vecIndex < vecLength; vecIndex++)
+                {
+                    Pack.writeByte(dst, 74);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.Option.serializeMemory(localOptions[vecIndex], dst);
+                    Pack.endMessage(dst, messageStart);
+                }
+            }
+            if (localJsonName)
+            {
+                Pack.writeByte(dst, 82);
+                Pack.writeString(dst, localJsonName);
+            }
+            if (localDefaultValue)
+            {
+                Pack.writeByte(dst, 90);
+                Pack.writeString(dst, localDefaultValue);
+            }
+
+            if (src.unknownFields)
+                Pack.writeRawBytes(dst, src.unknownFields);
         }
 
         {

@@ -7,6 +7,10 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
 
@@ -303,6 +307,171 @@ package google.protobuf
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        /**
+         * Deserializes the message from protobuf wire format.
+         * @param src The active UnpackContext; bind with Unpack.begin first.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
+         * @param reset Whether to reset a reusable destination before decoding.
+         */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Value, length:uint, reset:Boolean = true):google.protobuf.Value
+        {
+            if (!dst)
+                dst = new google.protobuf.Value();
+            else if (reset)
+                google.protobuf.Value.reset(dst);
+
+            if (!length)
+                return dst;
+            else if (src.position > src.limit || length > src.limit - src.position)
+                throw new Error("Invalid protobuf message length");
+
+            const end:uint = src.position + length;
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+            try
+            {
+
+                while (src.position < end)
+                {
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
+                    {
+                        case 8:
+                        {
+                            dst.nullValue = Unpack.readInt32(src);
+                            dst.kindCase = FIELD_NULL_VALUE;
+                            break;
+                        }
+                        case 17:
+                        {
+                            dst.numberValue = Unpack.readDouble(src);
+                            dst.kindCase = FIELD_NUMBER_VALUE;
+                            break;
+                        }
+                        case 26:
+                        {
+                            dst.stringValue = Unpack.readString(src);
+                            dst.kindCase = FIELD_STRING_VALUE;
+                            break;
+                        }
+                        case 32:
+                        {
+                            dst.boolValue = Unpack.readBool(src);
+                            dst.kindCase = FIELD_BOOL_VALUE;
+                            break;
+                        }
+                        case 42:
+                        {
+                            dst.structValue = google.protobuf.Struct.deserializeMemory(src, dst.structValue, Unpack.readVarint32(src), dst.kindCase != FIELD_STRUCT_VALUE);
+                            dst.kindCase = FIELD_STRUCT_VALUE;
+                            break;
+                        }
+                        case 50:
+                        {
+                            dst.listValue = google.protobuf.ListValue.deserializeMemory(src, dst.listValue, Unpack.readVarint32(src), dst.kindCase != FIELD_LIST_VALUE);
+                            dst.kindCase = FIELD_LIST_VALUE;
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
+
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
+
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
+                    }
+                }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+
+            }
+            finally
+            {
+                src.limit = previousLimit;
+            }
+            return dst;
+        }
+
+        /**
+         * Serializes the message to protobuf wire format.
+         * @param src The message to serialize; null writes an empty payload.
+         * @param dst The active PackContext; bind with Pack.begin first.
+         */
+        public static function serializeMemory(src:google.protobuf.Value, dst:PackContext):void
+        {
+            if (!src)
+                return;
+
+            var messageStart:uint;
+
+            const localNullValue:int = src.nullValue;
+            const localNumberValue:Number = src.numberValue;
+            const localStringValue:String = src.stringValue;
+            const localBoolValue:Boolean = src.boolValue;
+            const localStructValue:google.protobuf.Struct = src.structValue;
+            const localListValue:google.protobuf.ListValue = src.listValue;
+
+            switch (src.kindCase)
+            {
+                case FIELD_NULL_VALUE:
+                {
+                    Pack.writeByte(dst, 8);
+                    Pack.writeInt32(dst, localNullValue);
+                    break;
+                }
+                case FIELD_NUMBER_VALUE:
+                {
+                    Pack.writeByte(dst, 17);
+                    Pack.writeDouble(dst, localNumberValue);
+                    break;
+                }
+                case FIELD_STRING_VALUE:
+                {
+                    Pack.writeByte(dst, 26);
+                    if (localStringValue != null)
+                    {
+                        Pack.writeString(dst, localStringValue);
+                    }
+                    else
+                    {
+                        Pack.writeVarint32(dst, 0);
+                    }
+                    break;
+                }
+                case FIELD_BOOL_VALUE:
+                {
+                    Pack.writeByte(dst, 32);
+                    Pack.writeByte(dst, localBoolValue ? 1 : 0);
+                    break;
+                }
+                case FIELD_STRUCT_VALUE:
+                {
+                    Pack.writeByte(dst, 42);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.Struct.serializeMemory(localStructValue, dst);
+                    Pack.endMessage(dst, messageStart);
+                    break;
+                }
+                case FIELD_LIST_VALUE:
+                {
+                    Pack.writeByte(dst, 50);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.ListValue.serializeMemory(localListValue, dst);
+                    Pack.endMessage(dst, messageStart);
+                    break;
+                }
+            }
+
+            if (src.unknownFields)
+                Pack.writeRawBytes(dst, src.unknownFields);
         }
 
         {
