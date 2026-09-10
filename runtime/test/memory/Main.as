@@ -32,6 +32,7 @@ package memory
                 failureRestoration(sentinel);
                 capacityAndBinding(sentinel);
                 fixedVectors(sentinel);
+                fixedWidthVectors(sentinel);
                 boolVectors(sentinel);
                 varint32Vectors(sentinel);
                 trace("MEMORY BACKEND TESTS PASSED");
@@ -402,6 +403,76 @@ package memory
                 check(failed, "packed bool validates fallback after fast block");
             }
             check(ApplicationDomain.currentDomain.domainMemory === previous, "packed bool restores binding");
+        }
+
+        private static function fixedWidthVectors(previous:ByteArray):void
+        {
+            const bytes:ByteArray = new ByteArray();
+            bytes.endian = Endian.LITTLE_ENDIAN;
+            const context:UnpackContext = new UnpackContext();
+            const words:Array = [0, 0x80000000, 0x7f800000, 0xff800000, 0x7fc00001, 0x3fa00000, 0xbfa00000, 1];
+            const highWords:Array = [0, 0x80000000, 0x7ff00000, 0xfff00000, 0x7ff80000, 0x3ff40000, 0xbff40000, 1];
+            for (var variant:uint = 0; variant < 3; variant++)
+            {
+                const width:uint = variant == 2 ? 8 : 4;
+                for each (var count:uint in [0, 1, 3, 4, 5, 8, 9])
+                {
+                    bytes.position = 5;
+                    bytes.writeByte(count * width);
+                    for (var i:uint = 0; i < count; i++)
+                    {
+                        if (variant == 2)
+                        {
+                            bytes.writeUnsignedInt(0);
+                            bytes.writeUnsignedInt(highWords[i % highWords.length]);
+                        }
+                        else bytes.writeUnsignedInt(words[i % words.length]);
+                    }
+                    bytes.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+                    const expectedInts:Vector.<int> = new <int>[42];
+                    const actualInts:Vector.<int> = new <int>[42];
+                    const expected:Vector.<Number> = new <Number>[42];
+                    const actual:Vector.<Number> = new <Number>[42];
+                    bytes.position = 5;
+                    if (variant == 0) Deserialize.readFixed32sVector(bytes, expectedInts);
+                    else if (variant == 1) Deserialize.readFloatVector(bytes, expected);
+                    else Deserialize.readDoubleVector(bytes, expected);
+                    bytes.position = 5;
+                    Unpack.begin(context, bytes, 1 + count * width);
+                    try
+                    {
+                        if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
+                        else if (variant == 1) Unpack.readFloatVector(context, actual);
+                        else Unpack.readDoubleVector(context, actual);
+                        check(context.position == 6 + count * width, "fixed width vector cursor");
+                        check(actualInts.join() == expectedInts.join() && actual.length == expected.length,
+                            "fixed width vectors append, including empty input");
+                        for (i = 0; i < expected.length; i++)
+                            check((isNaN(actual[i]) && isNaN(expected[i])) ||
+                                (actual[i] === expected[i] && (actual[i] != 0 || 1 / actual[i] == 1 / expected[i])),
+                                "fixed width vector values include infinities, NaN and signed zero");
+                    }
+                    finally { Unpack.end(context); }
+                }
+                for each (var length:uint in [1, width - 1, width + 1])
+                {
+                    bytes[5] = length;
+                    bytes.position = 5;
+                    Unpack.begin(context, bytes, 1 + length);
+                    var failed:Boolean = false;
+                    try
+                    {
+                        if (variant == 0) Unpack.readFixed32sVector(context, actualInts);
+                        else if (variant == 1) Unpack.readFloatVector(context, actual);
+                        else Unpack.readDoubleVector(context, actual);
+                    }
+                    catch (error:IOError) { failed = true; }
+                    finally { Unpack.end(context); }
+                    check(failed && context.position == 6 + length - length % width,
+                        "fixed width vector rejects partial elements");
+                }
+            }
+            check(ApplicationDomain.currentDomain.domainMemory === previous, "fixed width vectors restore binding");
         }
 
         private static function fixedVectors(previous:ByteArray):void

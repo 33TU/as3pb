@@ -845,18 +845,24 @@ package as3pb.proto
             out.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                out[i] = readSfixed32(src);
-                out[i + 1] = readSfixed32(src);
-                out[i + 2] = readSfixed32(src);
-                out[i + 3] = readSfixed32(src);
+                out[i] = li32(position);
+                out[i + 1] = li32(position + 4);
+                out[i + 2] = li32(position + 8);
+                out[i + 3] = li32(position + 12);
+                position += 16;
             }
 
             for (; i < outEnd; i++)
-                out[i] = readSfixed32(src);
+            {
+                out[i] = li32(position);
+                position += 4;
+            }
 
+            src.position = position;
             if ((n << 2) != length)
                 throw new IOError("Fixed32 vector length mismatch");
         }
@@ -965,18 +971,24 @@ package as3pb.proto
             out.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                out[i] = readFloat(src);
-                out[i + 1] = readFloat(src);
-                out[i + 2] = readFloat(src);
-                out[i + 3] = readFloat(src);
+                out[i] = lf32(position);
+                out[i + 1] = lf32(position + 4);
+                out[i + 2] = lf32(position + 8);
+                out[i + 3] = lf32(position + 12);
+                position += 16;
             }
 
             for (; i < outEnd; i++)
-                out[i] = readFloat(src);
+            {
+                out[i] = lf32(position);
+                position += 4;
+            }
 
+            src.position = position;
             if ((n << 2) != length)
                 throw new IOError("Float vector length mismatch");
         }
@@ -1017,18 +1029,24 @@ package as3pb.proto
             out.length = start + n;
 
             const outEnd:uint = start + n;
+            var position:uint = src.position;
             var i:uint = start;
             for (; i + 3 < outEnd; i += 4)
             {
-                out[i] = readDouble(src);
-                out[i + 1] = readDouble(src);
-                out[i + 2] = readDouble(src);
-                out[i + 3] = readDouble(src);
+                out[i] = lf64(position);
+                out[i + 1] = lf64(position + 8);
+                out[i + 2] = lf64(position + 16);
+                out[i + 3] = lf64(position + 24);
+                position += 32;
             }
 
             for (; i < outEnd; i++)
-                out[i] = readDouble(src);
+            {
+                out[i] = lf64(position);
+                position += 8;
+            }
 
+            src.position = position;
             if ((n << 3) != length)
                 throw new IOError("Double vector length mismatch");
         }
