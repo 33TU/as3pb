@@ -1,0 +1,26 @@
+syntax = "proto3";
+package bench;
+option go_package = "example.com/as3pb/bench";
+message NegativeInts {
+  uint32 sequence = 1;
+  int32 a = 2; int32 b = 3; int32 c = 4; int32 d = 5;
+  int32 e = 6; int32 f = 7; int32 g = 8; int32 h = 9;
+}
+message WideInts {
+  uint32 sequence = 1;
+  uint64 a = 2; uint64 b = 3; uint64 c = 4;
+  int64 d = 5; int64 e = 6; int64 f = 7;
+  sint64 g = 8; sint64 h = 9;
+}
+message PackedBools {
+  uint32 sequence = 1;
+  repeated bool values = 2;
+}
+message PackedInts {
+  uint32 sequence = 1;
+  repeated uint64 unsigned_values = 2;
+  repeated int64 signed_values = 3;
+  repeated sint64 zigzag_values = 4;
+}
+message Point { float x = 1; float y = 2; float z = 3; }
+message Tables { uint32 sequence = 1; repeated Point points = 2; }

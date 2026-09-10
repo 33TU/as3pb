@@ -2,7 +2,7 @@
 
 AS3PB is a Protocol Buffers code generator and runtime for ActionScript 3, designed for compact wire payloads and low-allocation game/runtime use.
 
-![AS3PB Flash benchmark summary](assets/benchmark-summary.svg)
+![AS3PB, AMF3 and JSON benchmark summary](assets/benchmark-summary.svg)
 
 The repository contains:
 
@@ -288,7 +288,10 @@ Build the benchmark SWF:
 just build-runtime-bench
 ```
 
-Example Flash Player result for the included benchmark fixture:
+For a current comparison with reused output buffers and separate fresh/reused decoding,
+see [the AMF3/JSON benchmark](runtime/bench/README.md#amf3-and-json-comparison).
+
+Historical Flash Player result for the included benchmark fixture:
 
 ![AS3PB benchmark running in Flash Player](assets/benchmark.png)
 
