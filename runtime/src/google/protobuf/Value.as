@@ -158,8 +158,6 @@ package google.protobuf
             else if (length > src.bytesAvailable)
                 throw new Error("Invalid protobuf message length");
 
-            var messageLength:uint = 0;
-
             const end:uint = src.position + length;
 
             while (src.position < end)
@@ -193,15 +191,13 @@ package google.protobuf
                     }
                     case 42:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, messageLength, dst.kindCase != FIELD_STRUCT_VALUE);
+                        dst.structValue = google.protobuf.Struct.deserializeBytes(src, dst.structValue, Deserialize.readVarint32(src), dst.kindCase != FIELD_STRUCT_VALUE);
                         dst.kindCase = FIELD_STRUCT_VALUE;
                         break;
                     }
                     case 50:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, messageLength, dst.kindCase != FIELD_LIST_VALUE);
+                        dst.listValue = google.protobuf.ListValue.deserializeBytes(src, dst.listValue, Deserialize.readVarint32(src), dst.kindCase != FIELD_LIST_VALUE);
                         dst.kindCase = FIELD_LIST_VALUE;
                         break;
                     }

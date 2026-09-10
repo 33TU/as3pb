@@ -169,7 +169,7 @@ func TestGenerateFileMessageFieldsAndReset(t *testing.T) {
 		"dst.actionCase = FIELD_MOVE;",
 		"case 32:",
 		"dst.scores.push(Deserialize.readInt32(src));",
-		"dst.move = test.v1.Player.deserializeBytes(src, dst.move, messageLength, dst.actionCase != FIELD_MOVE);",
+		"dst.move = test.v1.Player.deserializeBytes(src, dst.move, Deserialize.readVarint32(src), dst.actionCase != FIELD_MOVE);",
 		"Deserialize.readInt32Vector(src, dst.scores);",
 		"public static function serializeBytes(src:test.v1.Player, dst:ByteArray):void",
 		"if (!src)",
@@ -300,7 +300,7 @@ func TestGenerateFileMapsProtobufAnyToRuntimeType(t *testing.T) {
 	wantParts := []string{
 		"import google.protobuf.Any;",
 		"public var payload:google.protobuf.Any = null;",
-		"dst.payload = google.protobuf.Any.deserializeBytes(src, dst.payload, messageLength, false);",
+		"dst.payload = google.protobuf.Any.deserializeBytes(src, dst.payload, Deserialize.readVarint32(src), false);",
 		"google.protobuf.Any.serializeBytes(localPayload, messageReuseBuffer);",
 	}
 	for _, want := range wantParts {

@@ -81,8 +81,6 @@ package google.protobuf
             else if (length > src.bytesAvailable)
                 throw new Error("Invalid protobuf message length");
 
-            var messageLength:uint = 0;
-
             const end:uint = src.position + length;
 
             while (src.position < end)
@@ -92,10 +90,7 @@ package google.protobuf
                 {
                     case 10:
                     {
-                        const msgValues:google.protobuf.Value = new google.protobuf.Value();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.Value.deserializeBytes(src, msgValues, messageLength);
-                        dst.values.push(msgValues);
+                        dst.values.push(google.protobuf.Value.deserializeBytes(src, null, Deserialize.readVarint32(src)));
                         break;
                     }
                     default:

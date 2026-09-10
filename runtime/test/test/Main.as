@@ -521,14 +521,19 @@ package test
 
             const parent:RuntimeSample = new RuntimeSample();
             parent.nested = new RuntimeNested();
-            parent.children.push(message);
+            parent.children.push(new RuntimeNested(), message, new RuntimeNested());
             reset(buffer);
             RuntimeSample.serializeBytes(parent, buffer);
             buffer.position = 0;
             const result:RuntimeSample = RuntimeSample.deserializeBytes(buffer, null, buffer.bytesAvailable);
             assertTrue("empty nested message is present", result.nested != null);
             assertEq("empty nested message stays empty", result.nested.label_, "");
-            assertEq("field following empty nested message", result.children[0].label_, "frame");
+            assertUintEq("repeated empty messages retained", result.children.length, 3);
+            assertEq("first repeated empty message", result.children[0].label_, "");
+            assertEq("field following empty repeated message", result.children[1].label_, "frame");
+            assertEq("last repeated empty message", result.children[2].label_, "");
+            assertTrue("empty repeated entries allocated separately", result.children[0] !== result.children[2]);
+            assertUintEq("repeated message cursor", buffer.position, buffer.length);
         }
 
         private static function testTruncatedLengthDelimitedFields():void

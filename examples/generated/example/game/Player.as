@@ -115,8 +115,6 @@ package example.game
             else if (length > src.bytesAvailable)
                 throw new Error("Invalid protobuf message length");
 
-            var messageLength:uint = 0;
-
             const end:uint = src.position + length;
 
             while (src.position < end)
@@ -156,21 +154,18 @@ package example.game
                     }
                     case 50:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.position = example.game.Point.deserializeBytes(src, dst.position, messageLength, false);
+                        dst.position = example.game.Point.deserializeBytes(src, dst.position, Deserialize.readVarint32(src), false);
                         break;
                     }
                     case 58:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.move = example.game.Move.deserializeBytes(src, dst.move, messageLength, dst.actionCase != FIELD_MOVE);
+                        dst.move = example.game.Move.deserializeBytes(src, dst.move, Deserialize.readVarint32(src), dst.actionCase != FIELD_MOVE);
                         dst.actionCase = FIELD_MOVE;
                         break;
                     }
                     case 66:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.chat = example.game.Chat.deserializeBytes(src, dst.chat, messageLength, dst.actionCase != FIELD_CHAT);
+                        dst.chat = example.game.Chat.deserializeBytes(src, dst.chat, Deserialize.readVarint32(src), dst.actionCase != FIELD_CHAT);
                         dst.actionCase = FIELD_CHAT;
                         break;
                     }

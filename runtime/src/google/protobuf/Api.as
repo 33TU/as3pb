@@ -157,8 +157,6 @@ package google.protobuf
             else if (length > src.bytesAvailable)
                 throw new Error("Invalid protobuf message length");
 
-            var messageLength:uint = 0;
-
             const end:uint = src.position + length;
 
             while (src.position < end)
@@ -173,18 +171,12 @@ package google.protobuf
                     }
                     case 18:
                     {
-                        const msgMethods:google.protobuf.Method = new google.protobuf.Method();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.Method.deserializeBytes(src, msgMethods, messageLength);
-                        dst.methods.push(msgMethods);
+                        dst.methods.push(google.protobuf.Method.deserializeBytes(src, null, Deserialize.readVarint32(src)));
                         break;
                     }
                     case 26:
                     {
-                        const msgOptions:google.protobuf.Option = new google.protobuf.Option();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.Option.deserializeBytes(src, msgOptions, messageLength);
-                        dst.options.push(msgOptions);
+                        dst.options.push(google.protobuf.Option.deserializeBytes(src, null, Deserialize.readVarint32(src)));
                         break;
                     }
                     case 34:
@@ -194,16 +186,12 @@ package google.protobuf
                     }
                     case 42:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.sourceContext = google.protobuf.SourceContext.deserializeBytes(src, dst.sourceContext, messageLength, false);
+                        dst.sourceContext = google.protobuf.SourceContext.deserializeBytes(src, dst.sourceContext, Deserialize.readVarint32(src), false);
                         break;
                     }
                     case 50:
                     {
-                        const msgMixins:google.protobuf.Mixin = new google.protobuf.Mixin();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            google.protobuf.Mixin.deserializeBytes(src, msgMixins, messageLength);
-                        dst.mixins.push(msgMixins);
+                        dst.mixins.push(google.protobuf.Mixin.deserializeBytes(src, null, Deserialize.readVarint32(src)));
                         break;
                     }
                     case 56:

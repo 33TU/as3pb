@@ -195,8 +195,6 @@ package test
             else if (length > src.bytesAvailable)
                 throw new Error("Invalid protobuf message length");
 
-            var messageLength:uint = 0;
-
             const end:uint = src.position + length;
 
             while (src.position < end)
@@ -236,16 +234,12 @@ package test
                     }
                     case 50:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, messageLength, false);
+                        dst.nested = test.RuntimeNested.deserializeBytes(src, dst.nested, Deserialize.readVarint32(src), false);
                         break;
                     }
                     case 58:
                     {
-                        const msgChildren:test.RuntimeNested = new test.RuntimeNested();
-                        if ((messageLength = Deserialize.readVarint32(src)) !== 0)
-                            test.RuntimeNested.deserializeBytes(src, msgChildren, messageLength);
-                        dst.children.push(msgChildren);
+                        dst.children.push(test.RuntimeNested.deserializeBytes(src, null, Deserialize.readVarint32(src)));
                         break;
                     }
                     case 65:
@@ -303,8 +297,7 @@ package test
                     }
                     case 146:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, messageLength, false);
+                        dst.optionalNested = test.RuntimeNested.deserializeBytes(src, dst.optionalNested, Deserialize.readVarint32(src), false);
                         break;
                     }
                     case 152:
@@ -364,8 +357,7 @@ package test
                     }
                     case 82:
                     {
-                        messageLength = Deserialize.readVarint32(src);
-                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, messageLength, dst.choiceCase != FIELD_SELECTED);
+                        dst.selected = test.RuntimeNested.deserializeBytes(src, dst.selected, Deserialize.readVarint32(src), dst.choiceCase != FIELD_SELECTED);
                         dst.choiceCase = FIELD_SELECTED;
                         break;
                     }

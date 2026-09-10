@@ -47,11 +47,6 @@ func (g *Generator) generateDeserializeMethod(message *protogen.Message, names *
 	g.w.Dedent()
 	g.w.BlankLine()
 
-	if hasMessageFields(message) {
-		g.w.Line("var messageLength:uint = 0;")
-		g.w.BlankLine()
-	}
-
 	g.w.Line("const end:uint = src.position + length;")
 	g.w.BlankLine()
 	g.w.Line("while (src.position < end)")
@@ -217,9 +212,8 @@ func (g *Generator) generateFieldDeserializerForType(
 		g.w.Line("Deserialize.readBytesInto(src, %s);", fieldName)
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
-		g.w.Line("messageLength = Deserialize.readVarint32(src);")
 		g.w.Line(
-			"%s = %s.deserializeBytes(src, %s, messageLength, %s);",
+			"%s = %s.deserializeBytes(src, %s, Deserialize.readVarint32(src), %s);",
 			fieldName,
 			messageType,
 			fieldName,
@@ -267,13 +261,7 @@ func (g *Generator) generateFieldDeserializerForRepeatedUnpackedType(field *prot
 		g.w.Line("%s.push(tmp);", fieldName)
 	case protoreflect.MessageKind:
 		messageType := as3ElementType(field, currentPackage)
-		messageName := "msg" + FieldNamePascal(field)
-		g.w.Line("const %s:%s = new %s();", messageName, messageType, messageType)
-		g.w.Line("if ((messageLength = Deserialize.readVarint32(src)) !== 0)")
-		g.w.Indent()
-		g.w.Line("%s.deserializeBytes(src, %s, messageLength);", messageType, messageName)
-		g.w.Dedent()
-		g.w.Line("%s.push(%s);", fieldName, messageName)
+		g.w.Line("%s.push(%s.deserializeBytes(src, null, Deserialize.readVarint32(src)));", fieldName, messageType)
 	}
 }
 
