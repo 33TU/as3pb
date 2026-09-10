@@ -841,10 +841,11 @@ package as3pb.proto
             var i:uint = 0;
             for (; i + 3 < n; i += 4)
             {
-                dst.writeByte(vec[i] ? 1 : 0);
-                dst.writeByte(vec[i + 1] ? 1 : 0);
-                dst.writeByte(vec[i + 2] ? 1 : 0);
-                dst.writeByte(vec[i + 3] ? 1 : 0);
+                dst.writeUnsignedInt(
+                    (vec[i] ? 1 : 0) |
+                    (vec[i + 1] ? 0x100 : 0) |
+                    (vec[i + 2] ? 0x10000 : 0) |
+                    (vec[i + 3] ? 0x1000000 : 0));
             }
 
             // tail loop

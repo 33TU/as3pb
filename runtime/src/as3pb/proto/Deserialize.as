@@ -341,10 +341,14 @@ package as3pb.proto
             const end:uint = src.position + length;
             const tmp:UInt64 = TMP_UINT64;
 
+            const lowVec:Vector.<uint> = out.low;
+            const highVec:Vector.<uint> = out.high;
+
             while (src.position < end)
             {
                 readVarint64(src, tmp);
-                out.push(tmp.low, tmp.high);
+                lowVec.push(tmp.low);
+                highVec.push(tmp.high);
             }
 
             if (src.position != end)
@@ -478,10 +482,14 @@ package as3pb.proto
             const end:uint = src.position + length;
             const tmp:Int64 = TMP_INT64;
 
+            const lowVec:Vector.<uint> = out.low;
+            const highVec:Vector.<int> = out.high;
+
             while (src.position < end)
             {
                 readVarint64s(src, tmp);
-                out.push(tmp.low, tmp.high);
+                lowVec.push(tmp.low);
+                highVec.push(tmp.high);
             }
 
             if (src.position != end)
