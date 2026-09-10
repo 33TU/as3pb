@@ -1034,6 +1034,22 @@ package as3pb.proto
             if (end > src.limit)
                 throw new EOFError("Truncated protobuf input");
 
+            // Read four single-byte values together; retain the full varint reader for others.
+            while (src.position + 4 <= end)
+            {
+                const word:uint = uint(li32(src.position));
+                if ((word & 0x80808080) == 0)
+                {
+                    out.push((word & 0xff) != 0, (word & 0xff00) != 0,
+                        (word & 0xff0000) != 0, (word & 0xff000000) != 0);
+                    src.position += 4;
+                }
+                else
+                {
+                    out.push(readBool(src));
+                }
+            }
+
             while (src.position < end)
                 out.push(readBool(src));
 

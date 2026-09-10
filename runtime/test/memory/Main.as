@@ -32,6 +32,7 @@ package memory
                 failureRestoration(sentinel);
                 capacityAndBinding(sentinel);
                 fixedVectors(sentinel);
+                boolVectors(sentinel);
                 trace("MEMORY BACKEND TESTS PASSED");
             }
             finally
@@ -289,6 +290,67 @@ package memory
             check(failed && input.position == 1, "logical varint boundary");
             check(ApplicationDomain.currentDomain.domainMemory === previous, "failed varint restored binding");
         }
+        private static function boolVectors(previous:ByteArray):void
+        {
+            const bytes:ByteArray = new ByteArray();
+            const context:UnpackContext = new UnpackContext();
+            const out:Vector.<Boolean> = new Vector.<Boolean>();
+            const fixtures:Array = [
+                {data: [], expected: []},
+                {data: [0], expected: [false]},
+                {data: [0, 1, 2], expected: [false, true, true]},
+                {data: [0, 1, 2, 127], expected: [false, true, true, true]},
+                {data: [0, 1, 2, 127, 0, 1, 0, 1, 1],
+                    expected: [false, true, true, true, false, true, false, true, true]},
+                {data: [0, 1, 0, 1, 128, 0, 128, 1, 0, 2, 0, 127, 1],
+                    expected: [false, true, false, true, false, true, false, true, false, true, true]},
+                {data: [128, 128, 128, 128, 128, 128, 128, 128, 128, 1, 0, 1, 0, 1],
+                    expected: [true, false, true, false, true]},
+                {data: [0, 128, 0, 1, 1], expected: [false, false, true, true]},
+                {data: [0, 1, 128, 0, 1], expected: [false, true, false, true]},
+                {data: [0, 1, 0, 128, 0], expected: [false, true, false, false]}
+            ];
+            for each (var fixture:Object in fixtures)
+            {
+                bytes.position = 3;
+                bytes.writeByte(fixture.data.length);
+                for each (var value:uint in fixture.data) bytes.writeByte(value);
+                bytes.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+                bytes.position = 3;
+                out.length = 0;
+                out.push(true);
+                Unpack.begin(context, bytes, 1 + fixture.data.length);
+                try
+                {
+                    Unpack.readBoolVector(context, out);
+                    check(context.position == 4 + fixture.data.length, "packed bool cursor");
+                    check(out.length == fixture.expected.length + 1 && out[0], "packed bool append");
+                    for (var i:uint = 0; i < fixture.expected.length; i++)
+                        check(out[i + 1] == fixture.expected[i], "packed bool value");
+                }
+                finally { Unpack.end(context); }
+            }
+            for each (var malformed:Boolean in [false, true])
+            {
+                bytes.position = 3;
+                const length:uint = malformed ? 14 : 5;
+                bytes.writeByte(length);
+                bytes.writeUnsignedInt(0);
+                for (i = 4; i < length; i++) bytes.writeByte(0x80);
+                bytes.position = 3;
+                Unpack.begin(context, bytes, 1 + length);
+                var failed:Boolean = false;
+                try { Unpack.readBoolVector(context, out); }
+                catch (error:Error)
+                {
+                    failed = malformed ? error is IOError : error is EOFError;
+                }
+                finally { Unpack.end(context); }
+                check(failed, "packed bool validates fallback after fast block");
+            }
+            check(ApplicationDomain.currentDomain.domainMemory === previous, "packed bool restores binding");
+        }
+
         private static function fixedVectors(previous:ByteArray):void
         {
             const bytes:ByteArray = new ByteArray();
