@@ -53,6 +53,33 @@ package as3pb.proto
             context.bytes = null;
         }
 
+        /** Use the current binding with an explicit logical range. Caller must own the binding and context. */
+        [Inline]
+        public static function attach(context:UnpackContext, position:uint, length:uint):void
+        {
+            const bytes:ByteArray = DOMAIN.domainMemory;
+            const end:Number = Number(position) + length;
+            if (end > bytes.length)
+                throw new Error("Invalid protobuf message length");
+            if (end + 10 > bytes.length)
+                throw new RangeError("Domain memory input needs ten spare bytes after the message limit");
+            context.previous = bytes;
+            context.bytes = bytes;
+            context.position = position;
+            context.limit = uint(end);
+        }
+
+        /** Publish the cursor and release an attached context without changing domain memory. */
+        [Inline]
+        public static function detach(context:UnpackContext):void
+        {
+            if (!context.bytes || context.previous !== context.bytes || DOMAIN.domainMemory !== context.bytes)
+                throw new Error("Detach requires an attached context and its original binding");
+            context.bytes.position = context.position;
+            context.previous = null;
+            context.bytes = null;
+        }
+
         /**
          * Reusable uint64 scratch value.
          */
@@ -204,7 +231,7 @@ package as3pb.proto
                 if ((word & 0x80808080) == 0)
                 {
                     out.push(word & 0x7f, (word >>> 8) & 0x7f,
-                        (word >>> 16) & 0x7f, word >>> 24);
+                            (word >>> 16) & 0x7f, word >>> 24);
                     src.position += 4;
                 }
                 else
@@ -239,7 +266,7 @@ package as3pb.proto
                 if ((word & 0x80808080) == 0)
                 {
                     out.push(word & 0x7f, (word >>> 8) & 0x7f,
-                        (word >>> 16) & 0x7f, word >>> 24);
+                            (word >>> 16) & 0x7f, word >>> 24);
                     src.position += 4;
                 }
                 else
@@ -343,7 +370,7 @@ package as3pb.proto
                 if ((word & 0x80808080) == 0)
                 {
                     out.push(word & 0x7f, (word >>> 8) & 0x7f,
-                        (word >>> 16) & 0x7f, word >>> 24);
+                            (word >>> 16) & 0x7f, word >>> 24);
                     src.position += 4;
                 }
                 else
@@ -600,7 +627,7 @@ package as3pb.proto
                 if ((word & 0x80808080) == 0)
                 {
                     out.push(int(((word >>> 1) & 0x3f) ^ (-((word >>> 0) & 1))), int(((word >>> 9) & 0x3f) ^ (-((word >>> 8) & 1))),
-                        int(((word >>> 17) & 0x3f) ^ (-((word >>> 16) & 1))), int(((word >>> 25) & 0x3f) ^ (-((word >>> 24) & 1))));
+                            int(((word >>> 17) & 0x3f) ^ (-((word >>> 16) & 1))), int(((word >>> 25) & 0x3f) ^ (-((word >>> 24) & 1))));
                     src.position += 4;
                 }
                 else
@@ -1119,7 +1146,7 @@ package as3pb.proto
                 if ((word & 0x80808080) == 0)
                 {
                     out.push((word & 0xff) != 0, (word & 0xff00) != 0,
-                        (word & 0xff0000) != 0, (word & 0xff000000) != 0);
+                            (word & 0xff0000) != 0, (word & 0xff000000) != 0);
                     src.position += 4;
                 }
                 else

@@ -26,6 +26,7 @@ package memory
             domain.domainMemory = sentinel;
             try
             {
+                attachedContexts(sentinel);
                 roundTripAndBatch(sentinel);
                 shippedTypes(sentinel);
                 nestedContexts(sentinel);
@@ -54,6 +55,99 @@ package memory
             check(a.length == b.length, "wire length");
             for (var i:uint = 0; i < a.length; i++)
                 check(a[i] == b[i], "wire byte " + i);
+        }
+
+        private static function attachedContexts(previous:ByteArray):void
+        {
+            const domain:ApplicationDomain = ApplicationDomain.currentDomain;
+            const encoder:PackContext = new PackContext();
+            const decoder:UnpackContext = new UnpackContext();
+            const nested:PackContext = new PackContext();
+            const other:ByteArray = new ByteArray();
+            other.length = ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;
+            const message:RuntimeSample = new RuntimeSample();
+            message.id = "attached \u20ac";
+            message.payload.length = 4096;
+            message.payload[4095] = 123;
+            message.scores.push(-1, 0, 127, 128);
+            const expected:ByteArray = Buffers.newByteArray();
+            RuntimeSample.serializeBytes(message, expected);
+            previous.position = 11;
+            Pack.attach(encoder, 7);
+            try
+            {
+                check(previous.position == 11 && domain.domainMemory === previous, "pack attach preserves binding and cursor");
+                var failed:Boolean = false;
+                Pack.attach(encoder, 0);
+                check(encoder.position == 0, "pack reattach resets cursor");
+                Pack.attach(encoder, 7);
+                RuntimeSample.serializeMemory(message, encoder);
+                Pack.begin(nested, other);
+                try { Pack.writeVarint32(nested, 123); }
+                finally { Pack.end(nested); }
+                check(domain.domainMemory === previous, "nested begin restores attached binding");
+            }
+            finally { Pack.detach(encoder); }
+            const length:uint = encoder.position - 7;
+            check(length == expected.length && previous.position == encoder.position, "attached output cursor");
+            check(previous.length > 4096 && previous.endian == Endian.BIG_ENDIAN, "attached output grows without changing endian");
+            for (var i:uint = 0; i < length; i++)
+                check(previous[7 + i] == expected[i], "attached output wire bytes");
+            // Decode requires spare capacity even if packing ended exactly at capacity.
+            if (previous.length < 7 + length + 10) previous.length = 7 + length + 10;
+            previous.position = 11;
+            Unpack.attach(decoder, 7, length);
+            try
+            {
+                check(previous.position == 11 && domain.domainMemory === previous, "unpack attach preserves binding and cursor");
+                Unpack.attach(decoder, 7, 0);
+                check(decoder.limit == 7, "unpack reattach resets limit");
+                Unpack.attach(decoder, 7, length);
+                check(decoder.position == 7 && decoder.limit == 7 + length, "unpack reattach resets range");
+                const decoded:RuntimeSample = RuntimeSample.deserializeMemory(decoder, null, length);
+                check(decoded.id == message.id && decoded.scores.join() == message.scores.join(), "attached values");
+                same(decoded.payload, message.payload);
+            }
+            finally { Unpack.detach(decoder); }
+            check(previous.position == 7 + length && domain.domainMemory === previous, "unpack detach preserves binding");
+            Unpack.attach(decoder, 7, 0);
+            try { check(RuntimeSample.deserializeMemory(decoder, null, 0) != null, "attached empty range"); }
+            finally { Unpack.detach(decoder); }
+            for each (var position:uint in [previous.length - 9, 0xffffffff])
+            {
+                failed = false;
+                try { Unpack.attach(decoder, position, 1); }
+                catch (error:Error) { failed = true; }
+                check(failed && domain.domainMemory === previous, "invalid attached decode range");
+            }
+            const writePosition:uint = previous.length + 1;
+            Pack.attach(encoder, writePosition);
+            try
+            {
+                Pack.writeVarint32(encoder, 42);
+                check(previous[writePosition] == 42 && encoder.position == writePosition + 1,
+                    "attached writer grows beyond existing capacity");
+            }
+            finally { Pack.detach(encoder); }
+            Pack.attach(encoder, 0);
+            check(encoder.position == 0, "pack attach uses explicit zero");
+            domain.domainMemory = other;
+            failed = false;
+            try { Pack.detach(encoder); }
+            catch (error:Error) { failed = true; }
+            check(failed && domain.domainMemory === other, "detach rejects replaced binding");
+            domain.domainMemory = previous;
+            Pack.detach(encoder);
+            Pack.begin(nested, other);
+            try
+            {
+                failed = false;
+                try { Pack.detach(nested); }
+                catch (error:Error) { failed = true; }
+                check(failed, "detach cannot discard a different previous binding");
+            }
+            finally { Pack.end(nested); }
+
         }
 
         private static function roundTripAndBatch(previous:ByteArray):void

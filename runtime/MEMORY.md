@@ -142,3 +142,61 @@ builds use `runtime/bin/memory-test`, leaving checked-in generated files intact.
 They check independent generation combinations, byte-for-byte encoding, context
 reuse and batching, malformed input, and the existing runtime suite routed through
 memory methods.
+
+## Using an existing domain-memory binding
+
+If your application already owns the current domain-memory buffer, attach a context
+without switching that binding:
+
+```actionscript
+// The application has already assigned ApplicationDomain.currentDomain.domainMemory.
+Pack.attach(encoder, writePosition); // Position is required.
+try
+{
+    Message.serializeMemory(message, encoder);
+}
+finally
+{
+    Pack.detach(encoder);
+}
+
+Unpack.attach(decoder, readPosition, frameLength);
+try
+{
+    message = Message.deserializeMemory(decoder, message, frameLength);
+}
+finally
+{
+    Unpack.detach(decoder);
+}
+```
+
+`attach` reads the current binding and initializes or reinitializes the context. It
+does not copy, resize, change endian, or move the ByteArray cursor. Packing can start
+beyond existing capacity; writers grow the buffer as needed, subject to the packing
+size limit. Decode positions are absolute; length is required, and the range still
+needs ten spare bytes after its logical end.
+
+The caller must supply an existing non-null domain-memory binding and own the context.
+These preconditions are not checked. Reattachment is allowed without detaching first.
+Do not overwrite a context with an outstanding `begin`/`end` operation, because that
+would discard its saved binding. Finish any operation before reattaching its context.
+
+`detach` publishes the final cursor and clears the context's buffer references without
+assigning domain memory. Keep the same binding while using the context. You can process
+multiple messages between attach and detach; use explicit frame lengths when decoding.
+Unlike `end` after `begin`, `detach` is optional for a context kept attached to the
+same buffer. Read and update `context.position` directly between operations; for
+decoding, keep `context.limit` within the received range and available spare capacity.
+No per-message detach/attach pair is needed. Detach when you want to publish the
+ByteArray cursor or release the buffer references. Detach before switching the context
+back to `begin`/`end`. The application remains responsible for its domain-memory binding.
+
+The context fields `bytes`, `position`, and the decode `limit` are public for direct
+management. `bytes` must match the current domain-memory binding; positions and limits
+are absolute offsets. Keep the packing capacity at or below `0x7fffffff`, and provide
+ten spare bytes beyond the decode limit. Assigning these fields does not initialize
+the internal restoration state. Use `end` only after `begin`, and `detach` only for an
+attached context. For a manually initialized context, read its final position directly
+and clear `bytes` yourself when releasing it. Do not change its buffer during an active
+codec operation or an outstanding `begin`/`end` pair.

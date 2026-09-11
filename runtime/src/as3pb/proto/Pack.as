@@ -44,6 +44,29 @@ package as3pb.proto
             context.bytes = null;
         }
 
+        /** Use the current domain-memory binding without replacing it. Caller must own the binding and context. */
+        [Inline]
+        public static function attach(context:PackContext, position:uint):void
+        {
+            const bytes:ByteArray = DOMAIN.domainMemory;
+            if (bytes.length > 0x7fffffff)
+                throw new RangeError("Domain memory output is too large");
+            context.previous = bytes;
+            context.bytes = bytes;
+            context.position = position;
+        }
+
+        /** Publish the cursor and release an attached context without changing domain memory. */
+        [Inline]
+        public static function detach(context:PackContext):void
+        {
+            if (!context.bytes || context.previous !== context.bytes || DOMAIN.domainMemory !== context.bytes)
+                throw new Error("Detach requires an attached context and its original binding");
+            context.bytes.position = context.position;
+            context.previous = null;
+            context.bytes = null;
+        }
+
         /** Reserve capacity before intrinsic writes. The context must already be bound. */
         [Inline]
         public static function ensure(context:PackContext, count:Number):void
@@ -744,7 +767,7 @@ package as3pb.proto
             const high:Vector.<int> = vec.high;
             for (var i:uint = 0; i < n; i++)
                 writeVarint64Unchecked(dst, uint((low[i] << 1) ^ (high[i] >> 31)),
-                    uint(((high[i] << 1) | (low[i] >>> 31)) ^ (high[i] >> 31)));
+                        uint(((high[i] << 1) | (low[i] >>> 31)) ^ (high[i] >> 31)));
             endMessage(dst, start);
         }
 
