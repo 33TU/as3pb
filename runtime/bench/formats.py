@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare current AS3PB with lossless plain-object AMF3 and JSON."""
+"""Compare AS3PB ByteArray/AVM2 with lossless plain-object AMF3 and JSON."""
 import argparse
 import json
 import os
@@ -7,7 +7,90 @@ from pathlib import Path
 import re
 import shlex
 import shutil
+import subprocess
 import bytearray as bench
+
+
+
+def memory_workload(source, cls):
+    """Add per-message attach/detach with domain binding outside each timed sample."""
+    source = source.replace('import flash.utils.ByteArray;',
+                            'import flash.utils.ByteArray;\nimport flash.system.ApplicationDomain;\nimport as3pb.proto.*;')
+    source = source.replace('private const output:', '''private const memoryOutput:ByteArray=new ByteArray();
+private const memoryInput:ByteArray=new ByteArray();
+private const offsets:Vector.<uint>=new Vector.<uint>();
+private const lengths:Vector.<uint>=new Vector.<uint>();
+private const encoder:PackContext=new PackContext();
+private const decoder:UnpackContext=new UnpackContext();
+private var previousMemory:ByteArray;
+private const output:''')
+    source = source.replace('output.endian=Endian.LITTLE_ENDIAN;',
+                            'output.endian=Endian.LITTLE_ENDIAN;memoryOutput.length=ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH;')
+    marker = 'if(bytes.position!=bytes.length)throw new Error("cursor");'
+    assert source.count(marker) == 1
+    source = source.replace(marker, marker + '''
+offsets.push(memoryInput.length);lengths.push(bytes.length);
+memoryInput.position=memoryInput.length;
+if(bytes.length)memoryInput.writeBytes(bytes);
+''')
+    marker = '\n}\n}\nprivate function check'
+    assert source.count(marker) == 1
+    source = source.replace(marker, '''
+}
+memoryInput.length=Math.max(ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH,memoryInput.length+10);
+verifyMemory();
+}
+private function check''')
+    methods = '''public function enterMemory(mode:String):void {
+previousMemory=ApplicationDomain.currentDomain.domainMemory;
+ApplicationDomain.currentDomain.domainMemory=mode=="pack"?memoryOutput:memoryInput;
+}
+public function leaveMemory():void {
+ApplicationDomain.currentDomain.domainMemory=previousMemory;
+previousMemory=null;
+}
+private function verifyMemory():void {
+enterMemory("pack");
+try {
+for(var i:uint=0;i<64;i++) {
+Pack.attach(encoder,0);
+try { CLASS.serializeMemory(values[i],encoder); }
+finally { Pack.detach(encoder); }
+if(encoder.position!=lengths[i])throw new Error("memory encode length");
+for(var j:uint=0;j<lengths[i];j++)if(memoryOutput[j]!=encoded[i][j])throw new Error("memory encode bytes");
+}
+} finally { leaveMemory(); }
+enterMemory("decode");
+try {
+for(i=0;i<64;i++)for(var fresh:uint=0;fresh<2;fresh++) {
+Unpack.attach(decoder,offsets[i],lengths[i]);
+try { check(CLASS.deserializeMemory(decoder,fresh?null:reused,lengths[i]),values[i]); }
+finally { Unpack.detach(decoder); }
+if(decoder.position!=offsets[i]+lengths[i])throw new Error("memory decode cursor");
+}
+} finally { leaveMemory(); }
+}
+'''.replace('CLASS', cls)
+    source = source.replace('public function run(', methods + 'public function run(')
+    cases = '''case "memory-pack":
+for(r=0;r<rounds;r++)for(i=0;i<64;i++) {
+Pack.attach(encoder,0);
+try { CLASS.serializeMemory(values[i],encoder); }
+finally { Pack.detach(encoder); }
+checksum+=encoder.position;
+}
+break;
+'''.replace('CLASS', cls)
+    for mode, destination in [('fresh', 'null'), ('reuse', 'reused')]:
+        cases += f'''case "memory-{mode}":
+for(r=0;r<rounds;r++)for(i=0;i<64;i++) {{
+Unpack.attach(decoder,offsets[i],lengths[i]);
+try {{ checksum+={cls}.deserializeMemory(decoder,{destination},lengths[i]).sequence; }}
+finally {{ Unpack.detach(decoder); }}
+}}
+break;
+'''
+    return source.replace('case "pack":', cases + 'case "pack":')
 
 
 def main():
@@ -26,9 +109,11 @@ def main():
     bench.run(['go', 'build', '-o', plugin, './cmd/protoc-gen-as3'], cwd=bench.ROOT)
     protoc = os.environ.get('PROTOC') or shutil.which('protoc') or str(bench.ROOT.parent / 'tools/protobuf-build/protoc')
     bench.run([*shlex.split(protoc), '--plugin=protoc-gen-as3=' + str(plugin), '--as3_out=' + str(generated),
+               '--as3_opt=generate_serialize_memory=true,generate_deserialize_memory=true',
                '-I' + str(bench.HERE), bench.HERE / 'bytearray.proto'])
     # Reuse the exact README fixture schema, supplying its Go package externally.
     bench.run([*shlex.split(protoc), '--plugin=protoc-gen-as3=' + str(plugin), '--as3_out=' + str(generated),
+               '--as3_opt=generate_serialize_memory=true,generate_deserialize_memory=true',
                '--as3_opt=Mbench.proto=example.com/as3pb/bench', '-I' + str(bench.ROOT / 'runtime/test/data'),
                bench.ROOT / 'runtime/test/data/bench.proto'])
     dest = root / 'src/test/bench'
@@ -61,6 +146,9 @@ var tick:as3pb.types.Int64=as3pb.types.Int64.fromNumber(-1000000000-j*1000-i);ms
     (root / 'src/test/BenchMessageWork.as').write_text(mixed)
     (root / 'src/formats').mkdir(exist_ok=True)
     shutil.copy2(bench.HERE / 'FormatBaseline.as', root / 'src/formats/FormatBaseline.as')
+    for cls in kinds.values():
+        path = root / 'src/test' / (cls + 'Work.as')
+        path.write_text(memory_workload(path.read_text(), cls))
     imports = '\n'.join('import test.' + cls + 'Work;' for cls in kinds.values())
     cases = ','.join('{name:"' + kind + '",pb:new test.' + cls + 'Work()}' for kind, cls in kinds.items())
     source = r'''package {
@@ -81,14 +169,15 @@ for each(var workload:Object in cases){
 var pb:Object=workload.pb;var other:FormatBaseline=new FormatBaseline(pb.values);
 var ops:Array=[];
 for each(var mode:String in ["pack","fresh","reuse"])ops.push({format:"as3pb",mode:mode,target:pb,key:mode,buffers:pb.encoded});
+for each(mode in ["pack","fresh","reuse"])ops.push({format:"avm2",mode:mode,target:pb,key:"memory-"+mode,buffers:pb.encoded});
 for each(var format:String in ["amf3","json"])for each(mode in ["pack","fresh"])ops.push({format:format,mode:mode,target:other,key:format+"/"+mode,buffers:format=="json"?other.json:other.amf});
 for each(var op:Object in ops){
 var rounds:uint=1;var elapsed:int;var start:int;
-do{start=getTimer();sink+=op.target.run(op.key,rounds);elapsed=getTimer()-start;if(elapsed<40)rounds*=2;}while(elapsed<40);
+do{if(op.format=="avm2")pb.enterMemory(op.mode);start=getTimer();sink+=op.target.run(op.key,rounds);elapsed=getTimer()-start;if(op.format=="avm2")pb.leaveMemory();if(elapsed<40)rounds*=2;}while(elapsed<40);
 op.rounds=Math.max(1,Math.round(rounds*TARGET/elapsed));op.times=[];
 }
 for(var sample:uint=0;sample<SAMPLES;sample++)for(var i:uint=0;i<ops.length;i++){
-op=ops[(sample+i)%ops.length];start=getTimer();sink+=op.target.run(op.key,op.rounds);op.times.push(getTimer()-start);
+op=ops[(sample+i)%ops.length];if(op.format=="avm2")pb.enterMemory(op.mode);start=getTimer();sink+=op.target.run(op.key,op.rounds);op.times.push(getTimer()-start);if(op.format=="avm2")pb.leaveMemory();
 }
 for each(op in ops){
 var sorted:Array=op.times.concat().sort(Array.NUMERIC);var total:uint=0;
@@ -116,14 +205,17 @@ private function save(name:String,text:String):void{var fs:FileStream=new FileSt
         bench.run([*shlex.split(os.environ.get('ADL', 'adl')), '-nodebug', 'application.xml'], cwd=root, stdout=log, stderr=subprocess.STDOUT)
     results = json.loads((root / 'result.json').read_text())
     (root / 'metadata.json').write_text(json.dumps({'commit': bench.git('rev-parse', 'HEAD'), 'samples': args.samples,
-        'targetMs': args.target_ms, 'fixtures': 64, 'inline': True, 'debug': False}, indent=2))
+        'targetMs': args.target_ms, 'fixtures': 64, 'inline': True, 'debug': False,
+        'memoryLifecycle': 'attach/detach per message', 'memoryBinding': 'outside timing',
+        'memoryInputCopy': False, 'memoryBuffers': 'reused, prepared before timing'}, indent=2))
     report = ['| Workload | Format | Average bytes | Encode msg/s | Fresh decode msg/s | Reused decode msg/s |',
               '|---|---|---:|---:|---:|---:|']
+    labels = {'avm2': 'AS3PB AVM2', 'as3pb': 'AS3PB ByteArray', 'amf3': 'AMF3', 'json': 'JSON'}
     for kind in kinds:
-        for format in ['as3pb', 'amf3', 'json']:
+        for format in ['avm2', 'as3pb', 'amf3', 'json']:
             group = {x['mode']: x for x in results if x['workload'] == kind and x['format'] == format}
             reuse = f"{group['reuse']['ops']:,.0f}" if 'reuse' in group else '—'
-            report.append(f"| {kind} | {format} | {group['pack']['bytes']:.1f} | {group['pack']['ops']:,.0f} | {group['fresh']['ops']:,.0f} | {reuse} |")
+            report.append(f"| {kind} | {labels[format]} | {group['pack']['bytes']:.1f} | {group['pack']['ops']:,.0f} | {group['fresh']['ops']:,.0f} | {reuse} |")
     text = '\n'.join(report) + '\n'
     (root / 'comparison.md').write_text(text)
     print(text)

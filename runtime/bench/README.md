@@ -36,11 +36,13 @@ See [RESULTS.md](RESULTS.md) for the mains-powered comparison and controls.
 python3 runtime/bench/formats.py
 ~~~
 
-This uses the current checkout, the README's mixed-message schema and fixture pattern (64 messages), plus the expanded integer, bool, and table workloads. All encoders reuse their output ByteArray. JSON includes UTF-8 conversion in both directions. AMF3 and JSON decode fresh plain objects; as3pb fresh and reused typed-message decoding are reported separately.
+This uses the current checkout, the README's mixed-message schema and fixture pattern (64 messages), plus the expanded integer, bool, and table workloads. All encoders reuse their output ByteArray. JSON includes UTF-8 conversion in both directions. AMF3 and JSON decode fresh plain objects; AS3PB ByteArray and AVM2 each report fresh and reused typed-message decoding separately.
+
+AVM2 uses `Pack.attach`/`Pack.detach` or `Unpack.attach`/`Unpack.detach` for every message, inside timing. The domain-memory binding is installed before each sample and restored afterward, outside timing. Decode inputs are copied into a contiguous buffer with spare capacity before timing; no input copy is measured. Output buffers and contexts are reused. Payload sizes report logical message lengths, not allocated capacity. This measures callers that already manage domain memory; small messages can still favor ByteArray.
 
 The plain-object projection happens before timing and preserves all logical fields: 64-bit values are represented as low/high word pairs, vectors as arrays, and bytes as arrays of unsigned byte values. Unknown-field storage is excluded. This is a plain-object AMF3 comparison, not the class-alias AMF3 representation used by the historical README screenshot. Results are not directly comparable to that older benchmark, which allocated new output buffers for AMF3/JSON and measured only reused protobuf decoding.
 
-All decoded fields are validated before timing. Output artifacts, including average payload sizes and raw samples, go to runtime/bin/formats-bench/. Set --output, --samples, and --target-ms as in the revision comparison. See [FORMATS.md](FORMATS.md) for recorded results.
+All decoded fields are validated before timing. Output artifacts, including average payload sizes and raw samples, go to runtime/bin/formats-bench/. Set --output, --samples, and --target-ms as in the revision comparison. See [FORMATS.md](FORMATS.md) for recorded results and the saved samples used by the README SVG.
 
 Regenerate the README SVG from a format comparison result (requires matplotlib):
 
