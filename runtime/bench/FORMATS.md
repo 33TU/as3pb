@@ -71,3 +71,15 @@ These timings were supplied from the existing interactive benchmark. They use it
 | Electron / PepperFlash | 130 ms | 3,031 ms | 372 ms | 60 ms | 523 ms | 657 ms |
 
 Within the PepperFlash run, protobuf encoding throughput was 23.32× JSON and 2.86× AMF3; reused protobuf decoding throughput was 8.72× JSON and 10.95× AMF3. These runs are not controlled comparisons between runtimes.
+
+## Earlier README snapshot
+
+This older Flash Player run used 100 messages and 300 iterations. Runtime version and hardware were not recorded; it is separate from the controlled results above.
+
+![Earlier Flash Player benchmark](../../assets/benchmark.png)
+
+| Format | Average bytes | Encode | Decode | Total |
+|---|---:|---:|---:|---:|
+| AS3PB ByteArray | 285 | 85 ms | 35 ms | 120 ms |
+| JSON | 718 | 1,608 ms | 283 ms | 1,891 ms |
+| AMF3 | 593 | 197 ms | 374 ms | 571 ms |

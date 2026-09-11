@@ -9,23 +9,11 @@ as3-protoc -I proto --as3_out=generated \
   proto/game.proto
 ```
 
-The equivalent environment variables are `AS3PB_GENERATE_SERIALIZE_MEMORY` and
-`AS3PB_GENERATE_DESERIALIZE_MEMORY`, both false by default. Explicit protoc options
-override environment values. The existing `generate_serialize` and
-`generate_deserialize` options independently control ByteArray methods.
+ByteArray methods remain independent and enabled by default. The equivalent environment variables are `AS3PB_GENERATE_SERIALIZE_MEMORY` and `AS3PB_GENERATE_DESERIALIZE_MEMORY`; explicit options take precedence.
 
-All referenced message classes must have the corresponding memory method.
-The shipped Google protobuf types include both ByteArray and memory methods;
-they do not need regeneration. Imported bundled types are skipped even with
-`generate_always=true`; list their proto files explicitly to regenerate them.
-For other imported messages, generate their files with matching backend options
-or use `generate_always=true` to include those dependencies. RPC clients and
-`AnyRegistry` still use ByteArray methods; keep both ByteArray options enabled for
-those APIs. Services reject generation with either ByteArray option disabled.
+Generate matching memory methods for every referenced message, using `generate_always=true` to include imports if needed. Bundled Google types already include both codecs and are skipped unless their proto files are explicitly listed. RPC and `AnyRegistry` require ByteArray methods; service generation rejects disabling them.
 
-Compile with an AVM2 compiler supporting `avm2.intrinsics.memory`, such as AIR's
-ASC2 compiler. Compile runtime sources with `-compiler.inline=true` to enable
-inlining. These backends do not target Royale JavaScript.
+Compile runtime sources with an AVM2 compiler such as AIR's ASC2 and `-compiler.inline=true`. The memory backend does not target Royale JavaScript.
 
 ## Encoding directly into caller-owned memory
 
@@ -54,20 +42,9 @@ const length:uint = encoder.position - start;
 // Send/use the range [start, start + length), not output.length.
 ```
 
-`begin` binds the supplied buffer directly and starts at `output.position`.
-The buffer must already have at least `MIN_DOMAIN_MEMORY_LENGTH` capacity.
-Encoding grows it when necessary. `end` restores the previous domain-memory binding
-and publishes the final absolute position to both the buffer and context. It does
-not copy or truncate the buffer. Endian is unchanged; intrinsic stores always write
-little-endian values. A null source writes an empty payload.
+`begin` binds the buffer and starts at its current position. Allocate at least `MIN_DOMAIN_MEMORY_LENGTH` before binding; writers grow capacity as needed. `end` restores the previous binding and publishes the final absolute position without copying or truncating. Intrinsic stores use little-endian order without changing the buffer's endian setting. A null source writes an empty payload.
 
-`ByteArray.length` is storage capacity here, not encoded message length. Reset
-`position` to overwrite a previous message while retaining capacity. Use an explicit
-length when sending the result. Truncate only after unbinding if you need a compact
-ByteArray, and restore its minimum capacity before binding it again.
-
-Writers handle capacity internally. Packed vectors reserve their maximum encoded
-size once before writing elements.
+Treat `ByteArray.length` as capacity, not payload length. Reset `position` to reuse the buffer and send only the encoded range. If you truncate after unbinding, restore minimum capacity before binding again.
 
 ## Decoding directly from caller-owned memory
 
@@ -97,51 +74,9 @@ finally
 }
 ```
 
-`begin` binds the supplied buffer without copying or resizing it. The input must
-have the domain-memory minimum capacity and ten spare bytes after the logical
-message limit. These bytes accommodate speculative bounds checks in AIR's unrolled
-intrinsic readers; readers still check the logical limit. Spare bytes need not be
-zero. For a reusable receive buffer, allocate capacity up front and track how many
-bytes were actually received separately.
+`begin` does not copy or resize input. Provide minimum domain-memory capacity and **ten spare bytes after the logical message end** for AIR's speculative bounds checks. Readers still enforce the logical limit; spare bytes need not be zero. With a reusable receive buffer, track received length separately from capacity.
 
-`end` restores the previous binding and publishes the consumed absolute position
-to the input. The context retains its final position and logical limit for inspection.
-Input capacity and endian remain unchanged. Pass a reusable destination or null
-to allocate. Length is required and zero means an empty message. The optional fourth
-argument, `reset`, defaults to true.
-
-## Batching and ownership
-
-Multiple generated calls can share one begin/end pair. Positions and limits are
-absolute offsets in the caller's buffer; use position differences or external
-framing to track individual message lengths. Nested protobuf messages automatically
-share their parent's context.
-
-Callers own the buffers; contexts only retain references while bound. `Pack` shares
-a static scratch ByteArray for synchronous UTF-8 encoding. Separate contexts can be
-nested, but only operate on the currently bound context and end them in reverse
-order. Do not rebind an active context or switch domain memory behind it. Keep
-operations synchronous and always call `end` in `finally` after a successful `begin`.
-
-These APIs remove mandatory whole-message copies. Strings and bytes fields still
-perform their necessary encoding/copy operations, and nested encoding may move
-payloads to finalize length prefixes. Binding and capacity management also cost
-time, so benchmark your actual buffer lifecycle and batching pattern.
-
-## Tests
-
-With Go, protoc 27+, Python 3, and AIR's `amxmlc`, `compc`, and `adl` on PATH:
-
-```sh
-just test-memory
-```
-
-`PROTOC`, `GOOGLE_PROTOBUF_PATH`, `AMXMLC`, `COMPC`, `ADL`, and `AIR_VERSION`
-(default `51.3`) can override tool locations and the descriptor version. The test
-builds use `runtime/bin/memory-test`, leaving checked-in generated files intact.
-They check independent generation combinations, byte-for-byte encoding, context
-reuse and batching, malformed input, and the existing runtime suite routed through
-memory methods.
+`end` restores the previous binding and publishes the consumed position. Capacity and endian are unchanged; the context retains its final position and limit. Pass a destination to reuse it or `null` to allocate. Length is required; zero means an empty message. The fourth argument, `reset`, defaults to true.
 
 ## Using an existing domain-memory binding
 
@@ -171,32 +106,29 @@ finally
 }
 ```
 
-`attach` reads the current binding and initializes or reinitializes the context. It
-does not copy, resize, change endian, or move the ByteArray cursor. Packing can start
-beyond existing capacity; writers grow the buffer as needed, subject to the packing
-size limit. Decode positions are absolute; length is required, and the range still
-needs ten spare bytes after its logical end.
+`attach` uses the current binding without copying, resizing, or moving the ByteArray cursor. Positions are absolute. Pack writers can grow capacity; decoding still requires ten spare bytes beyond its logical limit.
 
-The caller must supply an existing non-null domain-memory binding and own the context.
-These preconditions are not checked. Reattachment is allowed without detaching first.
-Do not overwrite a context with an outstanding `begin`/`end` operation, because that
-would discard its saved binding. Finish any operation before reattaching its context.
+The caller must own a non-null binding and an available context. Reattachment is allowed, but never overwrite a context with an outstanding `begin`/`end` pair. Keep the binding unchanged during codec operations.
 
-`detach` publishes the final cursor and clears the context's buffer references without
-assigning domain memory. Keep the same binding while using the context. You can process
-multiple messages between attach and detach; use explicit frame lengths when decoding.
-Unlike `end` after `begin`, `detach` is optional for a context kept attached to the
-same buffer. Read and update `context.position` directly between operations; for
-decoding, keep `context.limit` within the received range and available spare capacity.
-No per-message detach/attach pair is needed. Detach when you want to publish the
-ByteArray cursor or release the buffer references. Detach before switching the context
-back to `begin`/`end`. The application remains responsible for its domain-memory binding.
+`detach` publishes the cursor and clears context references without changing domain memory. It is optional while keeping a context attached to the same buffer: update `context.position` between messages, and keep decode `context.limit` within the received range and spare capacity. Detach before returning to `begin`/`end` use.
 
-The context fields `bytes`, `position`, and the decode `limit` are public for direct
-management. `bytes` must match the current domain-memory binding; positions and limits
-are absolute offsets. Keep the packing capacity at or below `0x7fffffff`, and provide
-ten spare bytes beyond the decode limit. Assigning these fields does not initialize
-the internal restoration state. Use `end` only after `begin`, and `detach` only for an
-attached context. For a manually initialized context, read its final position directly
-and clear `bytes` yourself when releasing it. Do not change its buffer during an active
-codec operation or an outstanding `begin`/`end` pair.
+## Batching and ownership
+
+- Multiple messages can share one begin/end or attach/detach pair. Track each message's length with framing or position differences. Nested messages share the parent context.
+- Buffers belong to the caller. Keep operations synchronous. Separate contexts may nest, but operate only on the currently bound context and end in reverse order. `Pack` uses shared UTF-8 scratch storage.
+- Always pair a successful `begin` with `end` in `finally`. Do not replace its binding or reinitialize its context before ending.
+- Whole-message copies are avoided; strings, bytes, and nested length-prefix finalization can still require copies or moves. Measure your actual buffer lifecycle.
+
+For manual context management, `bytes`, `position`, and decode `limit` are public. `bytes` must match the current binding; pack capacity must not exceed `0x7fffffff`, and decode limits need ten spare bytes. Assigning fields does not initialize restoration state: use `end` only after `begin`, `detach` only after `attach`. Manually initialized contexts must publish their position and clear `bytes` themselves.
+
+## Tests
+
+With Go, protoc 27+, Python 3, and AIR's `amxmlc`, `compc`, and `adl` on `PATH`:
+
+```sh
+just test-memory
+```
+
+Tests cover backend combinations, wire bytes, reuse, batching, malformed input, and the runtime suite through memory methods. Artifacts go to `runtime/bin/memory-test`.
+
+Override tools with `PROTOC`, `GOOGLE_PROTOBUF_PATH`, `AMXMLC`, `COMPC`, or `ADL`. `AIR_VERSION` selects the descriptor version (default `51.3`).

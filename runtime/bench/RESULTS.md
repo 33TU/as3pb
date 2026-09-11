@@ -1,7 +1,7 @@
 # ByteArray benchmark results
 
 Baseline: f7617c4 (main). Candidate: f5e2cac (bytearray-optimizations).
-All results below were rerun with mains power confirmed online. Earlier measurements made around a disconnected charger are superseded.
+Results were measured on mains power.
 
 ## Expanded full-message workloads
 
@@ -47,4 +47,19 @@ The earlier FlatBuffers comparison fixtures were also rerun against main using t
 | vectors-structs | -0.1% | +0.3% | -0.8% |
 | vectors-tables | +0.1% | +0.9% | -0.3% |
 
-The earlier roughly 4% fresh table-vector slowdown did not reproduce on mains. The focused controls and original-workload rerun do not establish a consistent regression; small timing differences should not be treated as exact performance changes.
+The controls do not establish a consistent table-vector regression; small differences may be timing noise.
+
+## Generator timing
+
+One run over a 109-file production schema (~950 generated classes),
+protoc 35.1, warm cache, plugin startup included:
+
+| Generator                  | Time   | Files |
+| -------------------------- | ------ | ----- |
+| python (in-process)        | 0.11 s | 107   |
+| **as3-protoc**             | 0.24 s | 925   |
+| java (in-process)          | 0.80 s | 107   |
+| C++ (in-process)           | 1.30 s | 214   |
+| protobuf-ts 2.11 (plugin)  | 1.63 s | 113   |
+
+File counts reflect language layout: AS3 emits one public class per file. Built-in generators run inside protoc; plugin timings include descriptor transfer and subprocess startup.

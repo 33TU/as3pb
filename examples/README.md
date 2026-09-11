@@ -1,11 +1,12 @@
 # Examples
 
-This directory contains a small proto schema and generated ActionScript output.
+[game.proto](proto/game.proto) and its [generated ActionScript](generated) show the default ByteArray API.
 
-Regenerate the AS3 files with:
+Run from the AS3PB root:
 
 ```sh
-just generate-examples
+just generate-examples  # Regenerate examples/generated
+just build-examples    # Regenerate and compile examples/generated/examples.swc
 ```
 
-Generated files are written to `examples/generated`.
+For optional AVM2 codecs, see the [memory guide](../runtime/MEMORY.md).
