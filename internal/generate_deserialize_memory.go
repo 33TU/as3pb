@@ -14,7 +14,7 @@ func (g *Generator) generateDeserializeMemoryMethod(message *protogen.Message, n
 
 	g.generateLeadingComment(protogen.Comments(
 		"Deserializes the message from protobuf wire format.\n"+
-			"@param src The active UnpackContext; bind with Unpack.begin first.\n"+
+			"@param src Decode context initialized with Unpack.begin, Unpack.attach, or manually for the current domain-memory binding.\n"+
 			"@param dst Reusable destination message, or null to allocate.\n"+
 			"@param length Number of bytes to decode from the current position; zero means an empty message.\n"+
 			"@param reset Whether to reset a reusable destination before decoding.",
@@ -50,10 +50,10 @@ func (g *Generator) generateDeserializeMemoryMethod(message *protogen.Message, n
 	g.w.Line("const end:uint = src.position + length;")
 	g.w.Line("const previousLimit:uint = src.limit;")
 	g.w.Line("src.limit = end;")
+	g.w.BlankLine()
 	g.w.Line("try")
 	g.w.Line("{")
 	g.w.Indent()
-	g.w.BlankLine()
 	g.w.Line("while (src.position < end)")
 	g.w.Line("{")
 	g.w.Indent()
@@ -106,7 +106,6 @@ func (g *Generator) generateDeserializeMemoryMethod(message *protogen.Message, n
 	g.w.Indent()
 	g.w.Line(`throw new Error("Truncated protobuf message");`)
 	g.w.Dedent()
-	g.w.BlankLine()
 
 	g.w.Dedent()
 	g.w.Line("}")

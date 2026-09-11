@@ -31,7 +31,7 @@ func (g *Generator) generateSerializeMemoryMethod(message *protogen.Message, nam
 	g.generateLeadingComment(protogen.Comments(
 		"Serializes the message to protobuf wire format.\n"+
 			"@param src The message to serialize; null writes an empty payload.\n"+
-			"@param dst The active PackContext; bind with Pack.begin first.",
+			"@param dst Encode context initialized with Pack.begin, Pack.attach, or manually for the current domain-memory binding.",
 	), false)
 	g.w.Line("public static function serializeMemory(src:%s, dst:PackContext):void", messageName)
 	g.w.Line("{")

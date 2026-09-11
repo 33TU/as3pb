@@ -242,7 +242,7 @@ package google.protobuf
 
         /**
          * Deserializes the message from protobuf wire format.
-         * @param src The active UnpackContext; bind with Unpack.begin first.
+         * @param src Decode context initialized with Unpack.begin, Unpack.attach, or manually for the current domain-memory binding.
          * @param dst Reusable destination message, or null to allocate.
          * @param length Number of bytes to decode from the current position; zero means an empty message.
          * @param reset Whether to reset a reusable destination before decoding.
@@ -262,9 +262,9 @@ package google.protobuf
             const end:uint = src.position + length;
             const previousLimit:uint = src.limit;
             src.limit = end;
+
             try
             {
-
                 while (src.position < end)
                 {
                     const tag:uint = Unpack.readTag(src);
@@ -311,7 +311,6 @@ package google.protobuf
 
                 if (src.position > end)
                     throw new Error("Truncated protobuf message");
-
             }
             finally
             {
@@ -323,7 +322,7 @@ package google.protobuf
         /**
          * Serializes the message to protobuf wire format.
          * @param src The message to serialize; null writes an empty payload.
-         * @param dst The active PackContext; bind with Pack.begin first.
+         * @param dst Encode context initialized with Pack.begin, Pack.attach, or manually for the current domain-memory binding.
          */
         public static function serializeMemory(src:google.protobuf.Enum, dst:PackContext):void
         {
