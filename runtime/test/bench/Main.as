@@ -4,12 +4,17 @@ package bench
     import flash.events.MouseEvent;
     import flash.net.ObjectEncoding;
     import flash.net.registerClassAlias;
+    import flash.system.ApplicationDomain;
     import flash.text.TextField;
     import flash.text.TextFormat;
     import flash.utils.ByteArray;
 
     import bench.BenchMessage;
     import as3pb.proto.Buffers;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.types.Int64;
     import as3pb.types.Int64Vector;
     import as3pb.types.UInt64;
@@ -115,10 +120,11 @@ package bench
 
             const testData:Vector.<BenchMessage> = createTestData(TEST_DATA_SIZE);
             const protoResults:Object = benchmarkProtocolBuffers(testData, ITERATIONS);
+            const memoryResults:Object = benchmarkMemory(testData, ITERATIONS);
             const jsonResults:Object = benchmarkJSON(testData, ITERATIONS);
             const amf3Results:Object = benchmarkAMF3(testData, ITERATIONS);
 
-            displayBenchmarkResults(protoResults, jsonResults, amf3Results);
+            displayBenchmarkResults(protoResults, memoryResults, jsonResults, amf3Results);
         }
 
         private function createTestData(count:int):Vector.<BenchMessage>
@@ -198,6 +204,141 @@ package bench
                 }
             }
             const deserializationTime:Number = new Date().time - startTime;
+
+            return {
+                    serializationTime: serializationTime,
+                    deserializationTime: deserializationTime,
+                    totalTime: serializationTime + deserializationTime,
+                    serializedSize: totalSerializedSize,
+                    averageSize: Math.round(totalSerializedSize / testData.length)
+                };
+        }
+
+        private function benchmarkMemory(testData:Vector.<BenchMessage>, iterations:int):Object
+        {
+            const output:ByteArray = Buffers.newByteArray();
+            const input:ByteArray = Buffers.newByteArray();
+            const reference:ByteArray = Buffers.newByteArray();
+            const offsets:Vector.<uint> = new Vector.<uint>();
+            const lengths:Vector.<uint> = new Vector.<uint>();
+            const encoder:PackContext = new PackContext();
+            const decoder:UnpackContext = new UnpackContext();
+            const decoded:BenchMessage = new BenchMessage();
+            var maximumLength:uint = 0;
+
+            // Prepare input and output capacity outside timing.
+            for each (var msg:BenchMessage in testData)
+            {
+                reference.length = 0;
+                reference.position = 0;
+                BenchMessage.serializeBytes(msg, reference);
+                offsets.push(input.length);
+                lengths.push(reference.length);
+                input.position = input.length;
+                if (reference.length)
+                    input.writeBytes(reference);
+                maximumLength = Math.max(maximumLength, reference.length);
+            }
+            const totalSerializedSize:uint = input.length;
+            input.length = Math.max(ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH, input.length + 10);
+            output.length = Math.max(ApplicationDomain.MIN_DOMAIN_MEMORY_LENGTH, maximumLength);
+
+            const domain:ApplicationDomain = ApplicationDomain.currentDomain;
+            const previous:ByteArray = domain.domainMemory;
+            var serializationTime:Number;
+            var deserializationTime:Number;
+            try
+            {
+                domain.domainMemory = output;
+                // Validate identical wire bytes before timing.
+                for (var i:uint = 0; i < testData.length; i++)
+                {
+                    Pack.attach(encoder, 0);
+                    try
+                    {
+                        BenchMessage.serializeMemory(testData[i], encoder);
+                    }
+                    finally
+                    {
+                        Pack.detach(encoder);
+                    }
+                    if (encoder.position != lengths[i])
+                        throw new Error("Memory encode length mismatch");
+                    for (var j:uint = 0; j < lengths[i]; j++)
+                    {
+                        if (output[j] != input[offsets[i] + j])
+                            throw new Error("Memory encode bytes mismatch");
+                    }
+                }
+
+                domain.domainMemory = input;
+                for (i = 0; i < testData.length; i++)
+                {
+                    Unpack.attach(decoder, offsets[i], lengths[i]);
+                    try
+                    {
+                        BenchMessage.deserializeMemory(decoder, decoded, lengths[i]);
+                    }
+                    finally
+                    {
+                        Unpack.detach(decoder);
+                    }
+                    if (decoder.position != offsets[i] + lengths[i])
+                        throw new Error("Memory decode cursor mismatch");
+                    reference.length = 0;
+                    reference.position = 0;
+                    BenchMessage.serializeBytes(decoded, reference);
+                    if (reference.length != lengths[i])
+                        throw new Error("Memory round-trip length mismatch");
+                    for (j = 0; j < lengths[i]; j++)
+                    {
+                        if (reference[j] != input[offsets[i] + j])
+                            throw new Error("Memory round-trip bytes mismatch");
+                    }
+                }
+
+                domain.domainMemory = output;
+                var startTime:Number = new Date().time;
+                for (var iter:int = 0; iter < iterations; iter++)
+                {
+                    for each (msg in testData)
+                    {
+                        Pack.attach(encoder, 0);
+                        try
+                        {
+                            BenchMessage.serializeMemory(msg, encoder);
+                        }
+                        finally
+                        {
+                            Pack.detach(encoder);
+                        }
+                    }
+                }
+                serializationTime = new Date().time - startTime;
+
+                domain.domainMemory = input;
+                startTime = new Date().time;
+                for (iter = 0; iter < iterations; iter++)
+                {
+                    for (i = 0; i < testData.length; i++)
+                    {
+                        Unpack.attach(decoder, offsets[i], lengths[i]);
+                        try
+                        {
+                            BenchMessage.deserializeMemory(decoder, decoded, lengths[i]);
+                        }
+                        finally
+                        {
+                            Unpack.detach(decoder);
+                        }
+                    }
+                }
+                deserializationTime = new Date().time - startTime;
+            }
+            finally
+            {
+                domain.domainMemory = previous;
+            }
 
             return {
                     serializationTime: serializationTime,
@@ -304,43 +445,38 @@ package bench
                 };
         }
 
-        private function displayBenchmarkResults(protoResults:Object, jsonResults:Object, amf3Results:Object):void
+        private function displayBenchmarkResults(protoResults:Object, memoryResults:Object, jsonResults:Object, amf3Results:Object):void
         {
-            const sizeRatio:Number = ratio(jsonResults.serializedSize, protoResults.serializedSize);
-            const serializeRatio:Number = ratio(jsonResults.serializationTime, protoResults.serializationTime);
-            const deserializeRatio:Number = ratio(jsonResults.deserializationTime, protoResults.deserializationTime);
-            const totalRatio:Number = ratio(jsonResults.totalTime, protoResults.totalTime);
-            const amf3SizeRatio:Number = ratio(amf3Results.serializedSize, protoResults.serializedSize);
-            const amf3SerializeRatio:Number = ratio(amf3Results.serializationTime, protoResults.serializationTime);
-            const amf3DeserializeRatio:Number = ratio(amf3Results.deserializationTime, protoResults.deserializationTime);
-            const amf3TotalRatio:Number = ratio(amf3Results.totalTime, protoResults.totalTime);
-
-            log("--- Data Size ---");
-            log("Protocol Buffers total: " + protoResults.serializedSize + " bytes");
-            log("JSON total: " + jsonResults.serializedSize + " bytes");
-            log("AMF3 total: " + amf3Results.serializedSize + " bytes");
-            log("Protocol Buffers avg: " + protoResults.averageSize + " bytes/message");
-            log("JSON avg: " + jsonResults.averageSize + " bytes/message");
-            log("AMF3 avg: " + amf3Results.averageSize + " bytes/message");
-            log("JSON/Proto size ratio: " + sizeRatio + "x");
-            log("AMF3/Proto size ratio: " + amf3SizeRatio + "x");
+            const names:Array = ["AS3PB bytes", "AS3PB memory", "AMF3", "JSON"];
+            const results:Array = [protoResults, memoryResults, amf3Results, jsonResults];
+            log("AS3PB decode reuses messages; AMF3/JSON allocate objects.");
+            log("Memory: attach/detach per message; binding and input copy excluded.");
+            log("AS3PB output buffers reused; AMF3/JSON allocate buffers.");
+            log("JSON retains this harness's partial field mapping.");
             log("");
-            log("--- Timing ---");
-            log("Protocol Buffers serialize: " + protoResults.serializationTime + "ms");
-            log("JSON serialize: " + jsonResults.serializationTime + "ms");
-            log("AMF3 serialize: " + amf3Results.serializationTime + "ms");
-            log("JSON/Proto serialize ratio: " + serializeRatio + "x");
-            log("AMF3/Proto serialize ratio: " + amf3SerializeRatio + "x");
-            log("Protocol Buffers deserialize: " + protoResults.deserializationTime + "ms");
-            log("JSON deserialize: " + jsonResults.deserializationTime + "ms");
-            log("AMF3 deserialize: " + amf3Results.deserializationTime + "ms");
-            log("JSON/Proto deserialize ratio: " + deserializeRatio + "x");
-            log("AMF3/Proto deserialize ratio: " + amf3DeserializeRatio + "x");
-            log("Protocol Buffers total: " + protoResults.totalTime + "ms");
-            log("JSON total: " + jsonResults.totalTime + "ms");
-            log("AMF3 total: " + amf3Results.totalTime + "ms");
-            log("JSON/Proto total ratio: " + totalRatio + "x");
-            log("AMF3/Proto total ratio: " + amf3TotalRatio + "x");
+            log("--- Data Size ---");
+            for (var i:uint = 0; i < names.length; i++)
+                log(names[i] + ": " + results[i].serializedSize + " bytes, " + results[i].averageSize + " bytes/message");
+            log("");
+            log("--- Serialize ---");
+            for (i = 0; i < names.length; i++)
+                log(names[i] + ": " + results[i].serializationTime + "ms");
+            log("");
+            log("--- Deserialize ---");
+            for (i = 0; i < names.length; i++)
+                log(names[i] + ": " + results[i].deserializationTime + "ms");
+            log("");
+            log("--- Total ---");
+            for (i = 0; i < names.length; i++)
+                log(names[i] + ": " + results[i].totalTime + "ms");
+            log("");
+            log("--- Time / AS3PB memory (higher = slower) ---");
+            for (i = 0; i < names.length; i++)
+            {
+                log(names[i] + ": encode " + ratio(results[i].serializationTime, memoryResults.serializationTime) +
+                    "x, decode " + ratio(results[i].deserializationTime, memoryResults.deserializationTime) +
+                    "x, total " + ratio(results[i].totalTime, memoryResults.totalTime) + "x");
+            }
             log("");
             log("Done.");
         }
