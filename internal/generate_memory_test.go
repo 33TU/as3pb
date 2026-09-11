@@ -38,7 +38,11 @@ func TestMemoryBackendOptions(t *testing.T) {
 					{"public static function deserializeMemory(", unpack},
 					{"import as3pb.proto.PackContext;", pack},
 					{"import as3pb.proto.UnpackContext;", unpack},
-					{"AnyRegistry.register(", serialize && deserialize},
+					{"AnyRegistry.register(", serialize || deserialize},
+					{"import as3pb.wkt.AnyRegistry;", serialize || deserialize},
+					{"AnyRegistry.register(TYPE_URL, null, serializeBytes);", serialize && !deserialize},
+					{"AnyRegistry.register(TYPE_URL, deserializeBytes, null);", deserialize && !serialize},
+					{"AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);", deserialize && serialize},
 				} {
 					if strings.Contains(body, check.text) != check.present {
 						t.Errorf("%s: presence of %q: want %v", file.GetName(), check.text, check.present)

@@ -12,28 +12,39 @@ package as3pb.wkt
         private static const SERIALIZERS:Object = {};
 
         /**
-         * Registers generated codec functions for a protobuf type URL.
+         * Registers either or both generated codecs, preserving codecs omitted from this call.
          * @param typeUrl The canonical protobuf type URL.
-         * @param deserializer The generated deserializeBytes function.
-         * @param serializer The generated serializeBytes function.
+         * @param deserializer The generated deserializeBytes function, or null.
+         * @param serializer The generated serializeBytes function, or null.
          */
         public static function register(typeUrl:String, deserializer:Function, serializer:Function):void
         {
-            if (typeUrl && deserializer && serializer)
-            {
+            if (!typeUrl)
+                return;
+            if (deserializer)
                 DESERIALIZERS[typeUrl] = deserializer;
+            if (serializer)
                 SERIALIZERS[typeUrl] = serializer;
-            }
         }
 
         /**
-         * Returns whether a type URL has registered codec functions.
+         * Returns whether a type URL has a serializer for packing Any values.
          * @param typeUrl The protobuf type URL to find.
-         * @return True when both codec functions are registered.
+         * @return True when a serializer is registered.
          */
-        public static function isRegistered(typeUrl:String):Boolean
+        public static function hasSerializer(typeUrl:String):Boolean
         {
-            return DESERIALIZERS[typeUrl] && SERIALIZERS[typeUrl];
+            return !!SERIALIZERS[typeUrl];
+        }
+
+        /**
+         * Returns whether a type URL has a deserializer for unpacking Any values.
+         * @param typeUrl The protobuf type URL to find.
+         * @return True when a deserializer is registered.
+         */
+        public static function hasDeserializer(typeUrl:String):Boolean
+        {
+            return !!DESERIALIZERS[typeUrl];
         }
 
         /**
@@ -46,8 +57,8 @@ package as3pb.wkt
         public static function pack(typeUrl:String, message:Object, dst:Any = null):Any
         {
             const serializer:Function = SERIALIZERS[typeUrl];
-            if (serializer == null)
-                throw new ArgumentError("Unregistered protobuf type URL: " + typeUrl);
+            if (!serializer)
+                throw new ArgumentError("No serializer registered for protobuf type URL: " + typeUrl);
 
             if (!dst)
                 dst = new Any();
@@ -69,8 +80,8 @@ package as3pb.wkt
         public static function unpack(src:Any, dst:Object = null):Object
         {
             const deserializer:Function = DESERIALIZERS[src.typeUrl];
-            if (deserializer == null)
-                throw new ArgumentError("Unregistered protobuf type URL: " + src.typeUrl);
+            if (!deserializer)
+                throw new ArgumentError("No deserializer registered for protobuf type URL: " + src.typeUrl);
 
             const value:ByteArray = src.value;
             value.position = 0;

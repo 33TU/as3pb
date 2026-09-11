@@ -82,7 +82,7 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 		g.generateSerializeMemoryMethod(message, names)
 	}
 
-	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
+	if g.opts.generateAny() && (g.opts.generateDeserialize() || g.opts.generateSerialize()) {
 		g.w.BlankLine()
 		g.generateAnyRegistration()
 	}
@@ -146,7 +146,7 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 	for _, name := range messageForeignImports(message) {
 		g.w.Line("import %s;", name)
 	}
-	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
+	if g.opts.generateAny() && (g.opts.generateDeserialize() || g.opts.generateSerialize()) {
 		g.w.Line("import as3pb.wkt.AnyRegistry;")
 	}
 	g.w.BlankLine()
@@ -170,7 +170,14 @@ func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
 func (g *Generator) generateAnyRegistration() {
 	g.w.Line("{")
 	g.w.Indent()
-	g.w.Line("AnyRegistry.register(TYPE_URL, deserializeBytes, serializeBytes);")
+	deserializer, serializer := "null", "null"
+	if g.opts.generateDeserialize() {
+		deserializer = "deserializeBytes"
+	}
+	if g.opts.generateSerialize() {
+		serializer = "serializeBytes"
+	}
+	g.w.Line("AnyRegistry.register(TYPE_URL, %s, %s);", deserializer, serializer)
 	g.w.Dedent()
 	g.w.Line("}")
 }

@@ -11,7 +11,7 @@ as3-protoc -I proto --as3_out=generated \
 
 ByteArray methods remain independent and enabled by default. The equivalent environment variables are `AS3PB_GENERATE_SERIALIZE_MEMORY` and `AS3PB_GENERATE_DESERIALIZE_MEMORY`; explicit options take precedence.
 
-Generate matching memory methods for every referenced message, using `generate_always=true` to include imports if needed. Bundled Google types already include both codecs and are skipped unless their proto files are explicitly listed. RPC and `AnyRegistry` require ByteArray methods; service generation rejects disabling them.
+Generate matching memory methods for every referenced message, using `generate_always=true` to include imports if needed. Bundled Google types already include both codecs and are skipped unless their proto files are explicitly listed. RPC requires both ByteArray methods. `AnyRegistry` registers whichever ByteArray methods are enabled: `pack` needs a serializer and `unpack` needs a deserializer.
 
 Compile runtime sources with an AVM2 compiler such as AIR's ASC2 and `-compiler.inline=true`. The memory backend does not target Royale JavaScript.
 

@@ -164,14 +164,19 @@ def main():
     route_through_memory(ROOT / generated, ROOT / wrapped)
     air_test(wrapped, "test")
     shutil.copytree(ROOT / "runtime/src/google", ROOT / BUILD / "runtime/google")
-    for serialize, deserialize in ((True, False), (False, True), (True, True)):
-        options = ["generate_serialize=false", "generate_deserialize=false", "generate_always=true",
-                   f"generate_serialize_memory={str(serialize).lower()}",
-                   f"generate_deserialize_memory={str(deserialize).lower()}"]
-        output = BUILD / f"only-{int(serialize)}-{int(deserialize)}"
+    for backend, serialize, deserialize in (
+        ("memory", True, False), ("memory", False, True), ("memory", True, True),
+        ("bytes", True, False), ("bytes", False, True),
+    ):
+        options = ["generate_always=true",
+                   f"generate_serialize={str(backend == 'bytes' and serialize).lower()}",
+                   f"generate_deserialize={str(backend == 'bytes' and deserialize).lower()}",
+                   f"generate_serialize_memory={str(backend == 'memory' and serialize).lower()}",
+                   f"generate_deserialize_memory={str(backend == 'memory' and deserialize).lower()}"]
+        output = BUILD / f"{backend}-only-{int(serialize)}-{int(deserialize)}"
         generate(output, options, ["runtime/test/data/test.proto"])
         run(os.environ.get("COMPC", "compc"), "-source-path", output, "-source-path", BUILD / "runtime",
-            "-include-sources", output, "-output", BUILD / "memory-only.swc",
+            "-include-sources", output, "-output", BUILD / f"{backend}-only.swc",
             "-compiler.inline=true", "-optimize=true")
     print("All memory backend tests passed.")
 

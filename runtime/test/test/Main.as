@@ -25,6 +25,8 @@ package test
 
     public final class Main extends Sprite
     {
+        private static var anyRegistryRun:uint = 0;
+
         public function Main()
         {
             trace("as3pb runtime tests");
@@ -63,6 +65,7 @@ package test
             runTest("testOneofReferenceReplacement", testOneofReferenceReplacement);
             runTest("testRecursiveMessageRoundTrip", testRecursiveMessageRoundTrip);
             runTest("testAnyRegistry", testAnyRegistry);
+            runTest("testPartialAnyRegistry", testPartialAnyRegistry);
             runTest("testAnyRegistryFailure", testAnyRegistryFailure);
 
             trace("ok");
@@ -1503,11 +1506,59 @@ package test
             assertEq("any wire round trip", decodedMessage.label_, msg.label_);
         }
 
+        private static function testPartialAnyRegistry():void
+        {
+            const prefix:String = "type.googleapis.com/test.Partial" + anyRegistryRun++;
+            const encodeUrl:String = prefix + "Encode";
+            const decodeUrl:String = prefix + "Decode";
+            const msg:RuntimeNested = nested("partial", 42, 1.5);
+
+            AnyRegistry.register(encodeUrl, null, RuntimeNested.serializeBytes);
+            assertEq("serializer registered", AnyRegistry.hasSerializer(encodeUrl), true);
+            assertEq("serializer-only lacks deserializer", AnyRegistry.hasDeserializer(encodeUrl), false);
+            const packed:Any = AnyRegistry.pack(encodeUrl, msg);
+            assertThrows("serializer-only cannot unpack", function():void
+                {
+                    AnyRegistry.unpack(packed);
+                });
+
+            AnyRegistry.register(decodeUrl, RuntimeNested.deserializeBytes, null);
+            assertEq("deserializer registered", AnyRegistry.hasDeserializer(decodeUrl), true);
+            assertEq("deserializer-only lacks serializer", AnyRegistry.hasSerializer(decodeUrl), false);
+            packed.typeUrl = decodeUrl;
+            const destination:RuntimeNested = new RuntimeNested();
+            assertEq("partial unpack reuses destination", AnyRegistry.unpack(packed, destination), destination);
+            assertEq("partial unpack value", destination.label_, msg.label_);
+            assertThrows("deserializer-only cannot pack", function():void
+                {
+                    AnyRegistry.pack(decodeUrl, msg);
+                });
+
+            // Adding the other direction and omitting both must retain existing codecs.
+            AnyRegistry.register(encodeUrl, RuntimeNested.deserializeBytes, null);
+            AnyRegistry.register(decodeUrl, null, RuntimeNested.serializeBytes);
+            AnyRegistry.register(encodeUrl, null, null);
+            AnyRegistry.register(decodeUrl, null, null);
+            for each (var url:String in [encodeUrl, decodeUrl])
+            {
+                assertEq("merged serializer present", AnyRegistry.hasSerializer(url), true);
+                assertEq("merged deserializer present", AnyRegistry.hasDeserializer(url), true);
+                const out:RuntimeNested = AnyRegistry.unpack(AnyRegistry.pack(url, msg)) as RuntimeNested;
+                assertEq("merged registration label", out.label_, msg.label_);
+                assertEq("merged registration flags", out.flags, msg.flags);
+                assertEq("merged registration ratio", out.ratio, msg.ratio);
+            }
+            AnyRegistry.register(prefix, null, null);
+            assertEq("empty registration has no serializer", AnyRegistry.hasSerializer(prefix), false);
+            assertEq("empty registration has no deserializer", AnyRegistry.hasDeserializer(prefix), false);
+        }
+
         private static function testAnyRegistryFailure():void
         {
             const value:Any = new Any();
             value.typeUrl = "type.googleapis.com/test.Unregistered";
-            assertEq("unregistered Any type", AnyRegistry.isRegistered(value.typeUrl), false);
+            assertEq("unregistered Any serializer", AnyRegistry.hasSerializer(value.typeUrl), false);
+            assertEq("unregistered Any deserializer", AnyRegistry.hasDeserializer(value.typeUrl), false);
             assertThrows("unregistered Any unpack", function():void
                 {
                     AnyRegistry.unpack(value);

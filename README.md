@@ -96,7 +96,7 @@ Generated methods accept an optional reusable response after the timeout:
 client.echo(request, onComplete, onError, 0, response);
 ```
 
-The response is reset and populated before the callback receives it. Omit it or pass `null` to allocate. Use separate destinations for overlapping requests; later reuse changes retained references. RPC and `AnyRegistry` require ByteArray codecs.
+The response is reset and populated before the callback receives it. Omit it or pass `null` to allocate. Use separate destinations for overlapping requests; later reuse changes retained references. RPC requires both ByteArray codecs. `AnyRegistry.pack` needs a ByteArray serializer; `unpack` needs a ByteArray deserializer. Check availability with `AnyRegistry.hasSerializer(typeUrl)` or `AnyRegistry.hasDeserializer(typeUrl)`.
 
 ![AS3PB RPC sample running against the Go fixture server](assets/rpc.png)
 
