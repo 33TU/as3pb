@@ -35,6 +35,7 @@ generate-google-protobuf: build-protoc-gen-as3 build-as3-protoc
     {{ BIN_DIR }}/as3-protoc \
         --protoc_gen_as3_bin={{ BIN_DIR }}/protoc-gen-as3 \
         --as3_out=runtime/src \
+        --as3_opt=generate_serialize=true,generate_deserialize=true,generate_serialize_memory=true,generate_deserialize_memory=true \
         -I {{ GOOGLE_PROTOBUF_INCLUDE }} \
         {{ GOOGLE_PROTOBUF_PATH }}/any.proto \
         {{ GOOGLE_PROTOBUF_PATH }}/api.proto \
@@ -146,3 +147,7 @@ build-examples: generate-examples
         -compiler.inline={{ AS3_INLINE }} \
         -compiler.float={{ AS3_FLOAT }} \
         -debug={{ AS3_DEBUG }}
+
+# Compile opt-in combinations and run AIR runtime tests through memory methods.
+test-memory:
+    python3 runtime/test/memory/run.py

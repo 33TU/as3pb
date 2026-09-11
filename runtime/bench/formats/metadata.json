@@ -1,0 +1,12 @@
+{
+  "commit": "bfa3c22d246ed47b885c603936f9eef6c6233dbb",
+  "samples": 9,
+  "targetMs": 150,
+  "fixtures": 64,
+  "inline": true,
+  "debug": false,
+  "memoryLifecycle": "attach/detach per message",
+  "memoryBinding": "outside timing",
+  "memoryInputCopy": false,
+  "memoryBuffers": "reused, prepared before timing"
+}

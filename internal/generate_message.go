@@ -73,6 +73,15 @@ func (g *Generator) generateMessageClass(message *protogen.Message) error {
 		g.w.BlankLine()
 		g.generateSerializeMethod(message, names)
 	}
+	if g.opts.generateDeserializeMemory() {
+		g.w.BlankLine()
+		g.generateDeserializeMemoryMethod(message, names)
+	}
+	if g.opts.generateSerializeMemory() {
+		g.w.BlankLine()
+		g.generateSerializeMemoryMethod(message, names)
+	}
+
 	if g.opts.generateAny() && g.opts.generateDeserialize() && g.opts.generateSerialize() {
 		g.w.BlankLine()
 		g.generateAnyRegistration()
@@ -95,15 +104,23 @@ func (g *Generator) generateMessageFieldImports(message *protogen.Message) {
 	if g.opts.generateSerialize() {
 		g.w.Line("import as3pb.proto.Serialize;")
 	}
+	if g.opts.generateSerializeMemory() {
+		g.w.Line("import as3pb.proto.Pack;")
+		g.w.Line("import as3pb.proto.PackContext;")
+	}
+	if g.opts.generateDeserializeMemory() {
+		g.w.Line("import as3pb.proto.Unpack;")
+		g.w.Line("import as3pb.proto.UnpackContext;")
+	}
 	if g.needsBuffersImport(message) {
 		g.w.Line("import as3pb.proto.Buffers;")
 	}
 	if hasSingularSigned64Fields(message) ||
-		(g.opts.generateDeserialize() && hasRepeatedSignedVarint64Fields(message)) {
+		(g.opts.anyDeserialize() && hasRepeatedSignedVarint64Fields(message)) {
 		g.w.Line("import as3pb.types.Int64;")
 	}
 	if hasSingularUnsigned64Fields(message) ||
-		(g.opts.generateDeserialize() && hasRepeatedUnsignedVarint64Fields(message)) {
+		(g.opts.anyDeserialize() && hasRepeatedUnsignedVarint64Fields(message)) {
 		g.w.Line("import as3pb.types.UInt64;")
 	}
 	if hasRepeatedSigned64Fields(message) {
@@ -142,10 +159,10 @@ func (g *Generator) generateMessageStaticFields(message *protogen.Message) {
 			message.Desc.FullName(),
 		)
 	}
-	if g.opts.generateDeserialize() && hasRepeatedUnsignedVarint64Fields(message) {
+	if g.opts.anyDeserialize() && hasRepeatedUnsignedVarint64Fields(message) {
 		g.w.Line("private static const TMP_UINT64:UInt64 = new UInt64();")
 	}
-	if g.opts.generateDeserialize() && hasRepeatedSignedVarint64Fields(message) {
+	if g.opts.anyDeserialize() && hasRepeatedSignedVarint64Fields(message) {
 		g.w.Line("private static const TMP_INT64:Int64 = new Int64();")
 	}
 }
@@ -160,7 +177,7 @@ func (g *Generator) generateAnyRegistration() {
 
 func (g *Generator) needsMessageStaticFields(message *protogen.Message) bool {
 	return g.opts.generateAny() ||
-		(g.opts.generateDeserialize() && (hasRepeatedSignedVarint64Fields(message) ||
+		(g.opts.anyDeserialize() && (hasRepeatedSignedVarint64Fields(message) ||
 			hasRepeatedUnsignedVarint64Fields(message)))
 }
 

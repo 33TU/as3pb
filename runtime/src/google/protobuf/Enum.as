@@ -7,6 +7,10 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
 
@@ -234,6 +238,147 @@ package google.protobuf
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        /**
+         * Deserializes the message from protobuf wire format.
+         * @param src Decode context initialized with Unpack.begin, Unpack.attach, or manually for the current domain-memory binding.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
+         * @param reset Whether to reset a reusable destination before decoding.
+         */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Enum, length:uint, reset:Boolean = true):google.protobuf.Enum
+        {
+            if (!dst)
+                dst = new google.protobuf.Enum();
+            else if (reset)
+                google.protobuf.Enum.reset(dst);
+
+            if (!length)
+                return dst;
+            else if (src.position > src.limit || length > src.limit - src.position)
+                throw new Error("Invalid protobuf message length");
+
+            const end:uint = src.position + length;
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+
+            try
+            {
+                while (src.position < end)
+                {
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
+                    {
+                        case 10:
+                        {
+                            dst.name = Unpack.readString(src);
+                            break;
+                        }
+                        case 18:
+                        {
+                            dst.enumvalue.push(google.protobuf.EnumValue.deserializeMemory(src, null, Unpack.readVarint32(src)));
+                            break;
+                        }
+                        case 26:
+                        {
+                            dst.options.push(google.protobuf.Option.deserializeMemory(src, null, Unpack.readVarint32(src)));
+                            break;
+                        }
+                        case 34:
+                        {
+                            dst.sourceContext = google.protobuf.SourceContext.deserializeMemory(src, dst.sourceContext, Unpack.readVarint32(src), false);
+                            break;
+                        }
+                        case 40:
+                        {
+                            dst.syntax = Unpack.readInt32(src);
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
+
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
+
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
+                    }
+                }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+            }
+            finally
+            {
+                src.limit = previousLimit;
+            }
+            return dst;
+        }
+
+        /**
+         * Serializes the message to protobuf wire format.
+         * @param src The message to serialize; null writes an empty payload.
+         * @param dst Encode context initialized with Pack.begin, Pack.attach, or manually for the current domain-memory binding.
+         */
+        public static function serializeMemory(src:google.protobuf.Enum, dst:PackContext):void
+        {
+            if (!src)
+                return;
+
+            var vecIndex:uint = 0;
+            var vecLength:uint = 0;
+            var messageStart:uint;
+
+            const localName:String = src.name;
+            const localEnumvalue:Vector.<google.protobuf.EnumValue> = src.enumvalue;
+            const localOptions:Vector.<google.protobuf.Option> = src.options;
+            const localSourceContext:google.protobuf.SourceContext = src.sourceContext;
+            const localSyntax:int = src.syntax;
+
+            if (localName)
+            {
+                Pack.writeByte(dst, 10);
+                Pack.writeString(dst, localName);
+            }
+            if ((vecLength = localEnumvalue.length) !== 0)
+            {
+                for (vecIndex = 0; vecIndex < vecLength; vecIndex++)
+                {
+                    Pack.writeByte(dst, 18);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.EnumValue.serializeMemory(localEnumvalue[vecIndex], dst);
+                    Pack.endMessage(dst, messageStart);
+                }
+            }
+            if ((vecLength = localOptions.length) !== 0)
+            {
+                for (vecIndex = 0; vecIndex < vecLength; vecIndex++)
+                {
+                    Pack.writeByte(dst, 26);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.Option.serializeMemory(localOptions[vecIndex], dst);
+                    Pack.endMessage(dst, messageStart);
+                }
+            }
+            if (localSourceContext)
+            {
+                Pack.writeByte(dst, 34);
+                messageStart = Pack.startMessage(dst);
+                google.protobuf.SourceContext.serializeMemory(localSourceContext, dst);
+                Pack.endMessage(dst, messageStart);
+            }
+            if (localSyntax)
+            {
+                Pack.writeByte(dst, 40);
+                Pack.writeInt32(dst, localSyntax);
+            }
+
+            if (src.unknownFields)
+                Pack.writeRawBytes(dst, src.unknownFields);
         }
 
         {

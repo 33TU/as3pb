@@ -7,6 +7,10 @@ package google.protobuf
     import flash.utils.ByteArray;
     import as3pb.proto.Deserialize;
     import as3pb.proto.Serialize;
+    import as3pb.proto.Pack;
+    import as3pb.proto.PackContext;
+    import as3pb.proto.Unpack;
+    import as3pb.proto.UnpackContext;
     import as3pb.proto.Buffers;
     import as3pb.wkt.AnyRegistry;
 
@@ -155,6 +159,96 @@ package google.protobuf
             {
                 Buffers.releaseMessageBuffer(messageReuseBuffer);
             }
+        }
+
+        /**
+         * Deserializes the message from protobuf wire format.
+         * @param src Decode context initialized with Unpack.begin, Unpack.attach, or manually for the current domain-memory binding.
+         * @param dst Reusable destination message, or null to allocate.
+         * @param length Number of bytes to decode from the current position; zero means an empty message.
+         * @param reset Whether to reset a reusable destination before decoding.
+         */
+        public static function deserializeMemory(src:UnpackContext, dst:google.protobuf.Struct, length:uint, reset:Boolean = true):google.protobuf.Struct
+        {
+            if (!dst)
+                dst = new google.protobuf.Struct();
+            else if (reset)
+                google.protobuf.Struct.reset(dst);
+
+            if (!length)
+                return dst;
+            else if (src.position > src.limit || length > src.limit - src.position)
+                throw new Error("Invalid protobuf message length");
+
+            const end:uint = src.position + length;
+            const previousLimit:uint = src.limit;
+            src.limit = end;
+
+            try
+            {
+                while (src.position < end)
+                {
+                    const tag:uint = Unpack.readTag(src);
+                    switch (tag)
+                    {
+                        case 10:
+                        {
+                            dst.fields.push(google.protobuf.StructFieldsEntry.deserializeMemory(src, null, Unpack.readVarint32(src)));
+                            break;
+                        }
+                        default:
+                        {
+                            if ((tag >>> 3) == 0)
+                                throw new Error("Invalid protobuf field number");
+
+                            if (dst.unknownFields == null)
+                                dst.unknownFields = Buffers.newByteArray();
+
+                            Unpack.captureUnknownField(src, tag, dst.unknownFields);
+                            break;
+                        }
+                    }
+                }
+
+                if (src.position > end)
+                    throw new Error("Truncated protobuf message");
+            }
+            finally
+            {
+                src.limit = previousLimit;
+            }
+            return dst;
+        }
+
+        /**
+         * Serializes the message to protobuf wire format.
+         * @param src The message to serialize; null writes an empty payload.
+         * @param dst Encode context initialized with Pack.begin, Pack.attach, or manually for the current domain-memory binding.
+         */
+        public static function serializeMemory(src:google.protobuf.Struct, dst:PackContext):void
+        {
+            if (!src)
+                return;
+
+            var vecIndex:uint = 0;
+            var vecLength:uint = 0;
+            var messageStart:uint;
+
+            const localFields:Vector.<google.protobuf.StructFieldsEntry> = src.fields;
+
+            if ((vecLength = localFields.length) !== 0)
+            {
+                for (vecIndex = 0; vecIndex < vecLength; vecIndex++)
+                {
+                    Pack.writeByte(dst, 10);
+                    messageStart = Pack.startMessage(dst);
+                    google.protobuf.StructFieldsEntry.serializeMemory(localFields[vecIndex], dst);
+                    Pack.endMessage(dst, messageStart);
+                }
+            }
+
+            if (src.unknownFields)
+                Pack.writeRawBytes(dst, src.unknownFields);
         }
 
         {
