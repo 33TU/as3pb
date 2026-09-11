@@ -20,55 +20,55 @@ The ByteArray reused comparison also reuses its destination. AMF3 and JSON alloc
 
 ## Full results
 
-| Workload | Format | Average bytes | Encode msg/s | Fresh decode msg/s | Reused decode msg/s |
-|---|---|---:|---:|---:|---:|
-| readme-mixed | AS3PB AVM2 | 279.1 | 808,421 | 162,755 | 606,720 |
-| readme-mixed | AS3PB ByteArray | 279.1 | 157,605 | 141,227 | 404,211 |
-| readme-mixed | AMF3 | 669.7 | 50,479 | 42,082 | — |
-| readme-mixed | JSON | 873.1 | 9,710 | 33,074 | — |
-| negative-int32 | AS3PB AVM2 | 90.0 | 2,730,667 | 1,229,838 | 1,394,347 |
-| negative-int32 | AS3PB ByteArray | 90.0 | 503,351 | 744,533 | 796,299 |
-| negative-int32 | AMF3 | 71.0 | 198,667 | 185,114 | — |
-| negative-int32 | JSON | 117.7 | 118,667 | 353,907 | — |
-| wide-int64 | AS3PB AVM2 | 82.7 | 2,504,053 | 687,248 | 1,465,987 |
-| wide-int64 | AS3PB ByteArray | 82.7 | 525,139 | 525,139 | 897,707 |
-| wide-int64 | AMF3 | 202.0 | 113,509 | 97,215 | — |
-| wide-int64 | JSON | 323.5 | 21,616 | 99,097 | — |
-| packed-bools | AS3PB AVM2 | 17.5 | 4,489,748 | 1,114,947 | 3,141,584 |
-| packed-bools | AS3PB ByteArray | 17.5 | 1,912,268 | 825,469 | 2,094,389 |
-| packed-bools | AMF3 | 39.0 | 259,241 | 230,486 | — |
-| packed-bools | JSON | 100.8 | 133,901 | 458,507 | — |
-| packed-int64 | AS3PB AVM2 | 323.5 | 1,671,837 | 133,154 | 622,389 |
-| packed-int64 | AS3PB ByteArray | 323.5 | 152,421 | 95,147 | 204,800 |
-| packed-int64 | AMF3 | 875.2 | 35,282 | 29,474 | — |
-| packed-int64 | JSON | 1343.6 | 4,601 | 20,463 | — |
-| tables | AS3PB AVM2 | 235.2 | 395,243 | 253,506 | 313,514 |
-| tables | AS3PB ByteArray | 235.2 | 116,994 | 247,089 | 292,693 |
-| tables | AMF3 | 394.6 | 76,883 | 61,808 | — |
-| tables | JSON | 401.9 | 12,211 | 67,090 | — |
+| Workload       | Format          | Average bytes | Encode msg/s | Fresh decode msg/s | Reused decode msg/s |
+| -------------- | --------------- | ------------: | -----------: | -----------------: | ------------------: |
+| readme-mixed   | AS3PB AVM2      |         279.1 |      808,421 |            162,755 |             606,720 |
+| readme-mixed   | AS3PB ByteArray |         279.1 |      157,605 |            141,227 |             404,211 |
+| readme-mixed   | AMF3            |         669.7 |       50,479 |             42,082 |                   — |
+| readme-mixed   | JSON            |         873.1 |        9,710 |             33,074 |                   — |
+| negative-int32 | AS3PB AVM2      |          90.0 |    2,730,667 |          1,229,838 |           1,394,347 |
+| negative-int32 | AS3PB ByteArray |          90.0 |      503,351 |            744,533 |             796,299 |
+| negative-int32 | AMF3            |          71.0 |      198,667 |            185,114 |                   — |
+| negative-int32 | JSON            |         117.7 |      118,667 |            353,907 |                   — |
+| wide-int64     | AS3PB AVM2      |          82.7 |    2,504,053 |            687,248 |           1,465,987 |
+| wide-int64     | AS3PB ByteArray |          82.7 |      525,139 |            525,139 |             897,707 |
+| wide-int64     | AMF3            |         202.0 |      113,509 |             97,215 |                   — |
+| wide-int64     | JSON            |         323.5 |       21,616 |             99,097 |                   — |
+| packed-bools   | AS3PB AVM2      |          17.5 |    4,489,748 |          1,114,947 |           3,141,584 |
+| packed-bools   | AS3PB ByteArray |          17.5 |    1,912,268 |            825,469 |           2,094,389 |
+| packed-bools   | AMF3            |          39.0 |      259,241 |            230,486 |                   — |
+| packed-bools   | JSON            |         100.8 |      133,901 |            458,507 |                   — |
+| packed-int64   | AS3PB AVM2      |         323.5 |    1,671,837 |            133,154 |             622,389 |
+| packed-int64   | AS3PB ByteArray |         323.5 |      152,421 |             95,147 |             204,800 |
+| packed-int64   | AMF3            |         875.2 |       35,282 |             29,474 |                   — |
+| packed-int64   | JSON            |        1343.6 |        4,601 |             20,463 |                   — |
+| tables         | AS3PB AVM2      |         235.2 |      395,243 |            253,506 |             313,514 |
+| tables         | AS3PB ByteArray |         235.2 |      116,994 |            247,089 |             292,693 |
+| tables         | AMF3            |         394.6 |       76,883 |             61,808 |                   — |
+| tables         | JSON            |         401.9 |       12,211 |             67,090 |                   — |
 
 Values are messages per second; average bytes exclude transport framing and compression. Both AS3PB backends emit identical bytes. Payload sizes are logical lengths rather than allocated capacities. Results depend on schemas, representations, and hardware.
 
 Run the comparison again with:
 
-~~~sh
+```sh
 python3 runtime/bench/formats.py
-~~~
+```
 
 The recorded samples and metadata are in [formats/result.json](formats/result.json) and [formats/metadata.json](formats/metadata.json). Regenerate this SVG from those exact samples with:
 
-~~~sh
+```sh
 python3 runtime/bench/graph.py --input runtime/bench/formats/result.json
-~~~
+```
 
 ## User-provided runs of the original harness
 
 These timings were supplied from the existing interactive benchmark. They use its original allocation choices: protobuf reuses its output buffer and decode destination; JSON and AMF3 allocate output buffers. They are recorded separately from the controlled comparison above. Exact runtime versions, hardware, power state, and message counts were not recorded with these runs.
 
-| Runtime | Protobuf encode | JSON encode | AMF3 encode | Protobuf decode | JSON decode | AMF3 decode |
-|---|---:|---:|---:|---:|---:|---:|
-| Ruffle | 327 ms | 359 ms | 706 ms | 474 ms | 408 ms | 429 ms |
-| Electron / PepperFlash | 130 ms | 3,031 ms | 372 ms | 60 ms | 523 ms | 657 ms |
+| Runtime                | Protobuf encode | JSON encode | AMF3 encode | Protobuf decode | JSON decode | AMF3 decode |
+| ---------------------- | --------------: | ----------: | ----------: | --------------: | ----------: | ----------: |
+| Ruffle                 |          327 ms |      359 ms |      706 ms |          474 ms |      408 ms |      429 ms |
+| Electron / PepperFlash |          130 ms |    3,031 ms |      372 ms |           60 ms |      523 ms |      657 ms |
 
 Within the PepperFlash run, protobuf encoding throughput was 23.32× JSON and 2.86× AMF3; reused protobuf decoding throughput was 8.72× JSON and 10.95× AMF3. These runs are not controlled comparisons between runtimes.
 
@@ -78,8 +78,8 @@ This older Flash Player run used 100 messages and 300 iterations. Runtime versio
 
 ![Earlier Flash Player benchmark](../../assets/benchmark.png)
 
-| Format | Average bytes | Encode | Decode | Total |
-|---|---:|---:|---:|---:|
-| AS3PB ByteArray | 285 | 85 ms | 35 ms | 120 ms |
-| JSON | 718 | 1,608 ms | 283 ms | 1,891 ms |
-| AMF3 | 593 | 197 ms | 374 ms | 571 ms |
+| Format          | Average bytes |   Encode | Decode |    Total |
+| --------------- | ------------: | -------: | -----: | -------: |
+| AS3PB ByteArray |           285 |    85 ms |  35 ms |   120 ms |
+| JSON            |           718 | 1,608 ms | 283 ms | 1,891 ms |
+| AMF3            |           593 |   197 ms | 374 ms |   571 ms |

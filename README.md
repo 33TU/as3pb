@@ -69,18 +69,18 @@ Both codecs pass 1,404 tests with zero unexpected failures in the protobuf v35.1
 
 Pass options through `--as3_opt=name=value`. Environment variables use the same name with an `AS3PB_` prefix and uppercase letters, for example `AS3PB_GENERATE_DESERIALIZE_MEMORY=true`. Explicit options take precedence.
 
-| Option | Default | Effect |
-|---|---|---|
-| `debug` | `false` | Log generator diagnostics. |
-| `generate_always` | `false` | Include imported files, except bundled Google types. |
-| `indent` | Four spaces | Generated indentation. |
-| `inline_reset` | `true` | Add `[Inline]` to generated reset methods. |
-| `generate_any` | `true` | Generate type URLs and automatic `AnyRegistry` registration. |
-| `generate_clone` | `true` | Generate clone methods; disable to reduce code size. |
-| `generate_serialize` | `true` | Generate `serializeBytes`. |
-| `generate_deserialize` | `true` | Generate `deserializeBytes`. |
-| `generate_serialize_memory` | `false` | Generate `serializeMemory`. |
-| `generate_deserialize_memory` | `false` | Generate `deserializeMemory`. |
+| Option                        | Default     | Effect                                                       |
+| ----------------------------- | ----------- | ------------------------------------------------------------ |
+| `debug`                       | `false`     | Log generator diagnostics.                                   |
+| `generate_always`             | `false`     | Include imported files, except bundled Google types.         |
+| `indent`                      | Four spaces | Generated indentation.                                       |
+| `inline_reset`                | `true`      | Add `[Inline]` to generated reset methods.                   |
+| `generate_any`                | `true`      | Generate type URLs and automatic `AnyRegistry` registration. |
+| `generate_clone`              | `true`      | Generate clone methods; disable to reduce code size.         |
+| `generate_serialize`          | `true`      | Generate `serializeBytes`.                                   |
+| `generate_deserialize`        | `true`      | Generate `deserializeBytes`.                                 |
+| `generate_serialize_memory`   | `false`     | Generate `serializeMemory`.                                  |
+| `generate_deserialize_memory` | `false`     | Generate `deserializeMemory`.                                |
 
 `as3-protoc` supplies import mappings automatically. To invoke the plugin directly, imported protos need usable Go package metadata or explicit mappings:
 
@@ -104,19 +104,19 @@ The response is reset and populated before the callback receives it. Omit it or 
 
 Install Just and put the AIR SDK tools on `PATH`. `just download-air-sdk` downloads the host SDK; append `linux`, `mac`, or `windows` to select another OS. Run commands from this repository's root:
 
-| Command | Purpose |
-|---|---|
-| `just` | List all recipes. |
-| `just build` | Build both Go tools and the runtime SWC. |
-| `just test` | Run Go tests. |
-| `just test-memory` | Compile backend combinations and run memory tests in AIR. |
-| `just build-runtime-test` | Generate fixtures and build the runtime test SWF. |
-| `just build-runtime-bench` | Build `runtime/bin/as3pb-bench.swf` with all four codecs. |
-| `just build-runtime-rpc` | Build the RPC sample SWF. |
-| `just run-runtime-rpc-server` | Generate Go stubs and run the RPC fixture server. |
-| `just generate-google-protobuf` | Regenerate bundled Google types with both codecs. |
-| `just generate-examples` | Regenerate example messages. |
-| `just build-examples` | Regenerate and compile the examples SWC. |
+| Command                         | Purpose                                                   |
+| ------------------------------- | --------------------------------------------------------- |
+| `just`                          | List all recipes.                                         |
+| `just build`                    | Build both Go tools and the runtime SWC.                  |
+| `just test`                     | Run Go tests.                                             |
+| `just test-memory`              | Compile backend combinations and run memory tests in AIR. |
+| `just build-runtime-test`       | Generate fixtures and build the runtime test SWF.         |
+| `just build-runtime-bench`      | Build `runtime/bin/as3pb-bench.swf` with all four codecs. |
+| `just build-runtime-rpc`        | Build the RPC sample SWF.                                 |
+| `just run-runtime-rpc-server`   | Generate Go stubs and run the RPC fixture server.         |
+| `just generate-google-protobuf` | Regenerate bundled Google types with both codecs.         |
+| `just generate-examples`        | Regenerate example messages.                              |
+| `just build-examples`           | Regenerate and compile the examples SWC.                  |
 
 Runtime fixtures require protoc 27+; set `PROTOC` to select a binary. `GOOGLE_PROTOBUF_PATH` defaults to `/usr/include/google/protobuf`. Local Go tools are built into `bin/`; generated build artifacts go into `runtime/bin/`.
 
