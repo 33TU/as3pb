@@ -93,12 +93,14 @@ build-runtime-test: generate-runtime-test-data
         runtime/test/test/Main.as
 
 # Keep memory-enabled benchmark messages separate from the default runtime fixtures.
+# They are committed, so the benchmark builds without Go or protoc (swf2es runs it
+# in avmshell).
 generate-runtime-bench-data: build-protoc-gen-as3 build-as3-protoc
-    mkdir -p {{ AS3_BIN_DIR }}/bench-generated
+    mkdir -p runtime/bench-generated
     {{ BIN_DIR }}/as3-protoc \
         --protoc_bin={{ PROTOC }} \
         --protoc_gen_as3_bin={{ BIN_DIR }}/protoc-gen-as3 \
-        --as3_out={{ AS3_BIN_DIR }}/bench-generated \
+        --as3_out=runtime/bench-generated \
         --as3_opt=generate_serialize_memory=true,generate_deserialize_memory=true \
         -I runtime/test/data \
         runtime/test/data/bench.proto
@@ -108,7 +110,7 @@ build-runtime-bench: generate-runtime-bench-data
     mxmlc \
         -source-path runtime/src \
         -source-path runtime/test \
-        -source-path {{ AS3_BIN_DIR }}/bench-generated \
+        -source-path runtime/bench-generated \
         -output {{ AS3_BIN_DIR }}/as3pb-bench.swf \
         -optimize={{ AS3_OPTIMIZE }} \
         -compiler.strict=true \

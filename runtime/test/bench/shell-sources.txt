@@ -1,0 +1,56 @@
+# avmshell build of the benchmark: ASC 2.0 -in files, in this order. ASC 2.0 runs
+# each class's static initializer as it defines it, in -in order, so every file
+# must come after the classes its static initializers use.
+runtime/test/shell/flash/system/ApplicationDomain.as
+runtime/src/as3pb/types/Int64.as
+runtime/src/as3pb/types/Int64Vector.as
+runtime/src/as3pb/types/OptionalBoolean.as
+runtime/src/as3pb/types/OptionalInt.as
+runtime/src/as3pb/types/OptionalNumber.as
+runtime/src/as3pb/types/OptionalUint.as
+runtime/src/as3pb/types/UInt64.as
+runtime/src/as3pb/types/UInt64Vector.as
+runtime/src/as3pb/proto/Buffers.as
+runtime/src/as3pb/proto/Deserialize.as
+runtime/src/as3pb/proto/Pack.as
+runtime/src/as3pb/proto/PackContext.as
+runtime/src/as3pb/proto/Serialize.as
+runtime/src/as3pb/proto/Unpack.as
+runtime/src/as3pb/proto/UnpackContext.as
+runtime/src/as3pb/wkt/AnyRegistry.as
+runtime/src/as3pb/wkt/DurationUtils.as
+runtime/src/as3pb/wkt/TimestampUtils.as
+runtime/src/google/protobuf/Any.as
+runtime/src/google/protobuf/Api.as
+runtime/src/google/protobuf/BoolValue.as
+runtime/src/google/protobuf/BytesValue.as
+runtime/src/google/protobuf/DoubleValue.as
+runtime/src/google/protobuf/Duration.as
+runtime/src/google/protobuf/Empty.as
+runtime/src/google/protobuf/Enum.as
+runtime/src/google/protobuf/EnumValue.as
+runtime/src/google/protobuf/Field.as
+runtime/src/google/protobuf/FieldCardinality.as
+runtime/src/google/protobuf/FieldKind.as
+runtime/src/google/protobuf/FieldMask.as
+runtime/src/google/protobuf/FloatValue.as
+runtime/src/google/protobuf/Int32Value.as
+runtime/src/google/protobuf/Int64Value.as
+runtime/src/google/protobuf/ListValue.as
+runtime/src/google/protobuf/Method.as
+runtime/src/google/protobuf/Mixin.as
+runtime/src/google/protobuf/NullValue.as
+runtime/src/google/protobuf/Option.as
+runtime/src/google/protobuf/SourceContext.as
+runtime/src/google/protobuf/StringValue.as
+runtime/src/google/protobuf/Struct.as
+runtime/src/google/protobuf/StructFieldsEntry.as
+runtime/src/google/protobuf/Syntax.as
+runtime/src/google/protobuf/Timestamp.as
+runtime/src/google/protobuf/Type.as
+runtime/src/google/protobuf/UInt32Value.as
+runtime/src/google/protobuf/UInt64Value.as
+runtime/src/google/protobuf/Value.as
+runtime/bench-generated/bench/BenchMessage.as
+runtime/test/bench/Benchmark.as
+# Entry point, compiled last: runtime/test/bench/ShellMain.as
