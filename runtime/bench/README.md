@@ -54,3 +54,22 @@ python3 runtime/bench/bytearray.py --baseline HEAD --candidate main --workloads 
 ```
 
 Both Python benchmarks warm up and calibrate each operation, then report median throughput from nine rotating/alternating samples targeting 150 ms. Use `--samples`, `--target-ms`, and `--output` to adjust runs. Keep power state and background load consistent; small differences need repeat measurements.
+
+## avmshell
+
+The `build-runtime-bench` app also runs in avmshell, the avmplus (Tamarin)
+command-line shell, which [swf2es](https://github.com/swf2es/swf2es) uses as its
+reference VM. The shared benchmark is `runtime/test/bench/Benchmark.as`; `Main.as`
+is the Flash/AIR app around it and `ShellMain.as` the avmshell entry point,
+which reports through `trace()` and prefixes lines holding timings with `time: `.
+
+avmshell has no `flash.system.ApplicationDomain`, so its build compiles in
+`runtime/test/shell/flash/system/ApplicationDomain.as`, a stand-in over
+avmshell's `avmplus.Domain`. The memory-enabled `BenchMessage` is committed
+under `runtime/bench-generated/`, so the build needs neither Go nor protoc.
+
+Compile with ASC 2.0 against avmshell's `builtin.abc` and `shell_toplevel.abc`
+(for example from the [CrossBridge](https://github.com/33TU/crossbridge) image),
+passing the files in `runtime/test/bench/shell-sources.txt` with `-in`, in that
+order, and `ShellMain.as` last. ASC 2.0 runs each class's static initializer in
+`-in` order, so the order matters.
